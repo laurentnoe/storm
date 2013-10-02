@@ -1,0 +1,7 @@
+More SOLID seeds are available at : http://bioinfo.lifl.fr/yass/iedera_solid/.
+  command lines and models are provided by bash and perl scripts.
+
+For Solexa seeds, see directly the iedera main page http://bioinfo.lifl.fr/yass/iedera.php
+  command line used here was :
+   ./iedera -A 3 -B 2 -f 0.04,0.26,0.7 -b 0.0,0.75,0.25 -l 70 -M \{\{0,1,1\},\{0,0,1\}\} -BSymbols '01' -w 12,12 -s 12,22 -r 1000000 -k -n 3 -e n3_w12_l70_f70_26_04.txt -o n3_w12_l70_f70_26_04.txt
+

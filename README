@@ -1,0 +1,69 @@
+SToRM - Seed-based TOol for SOLiD Read Mapping
+
+[ABOUT]
+
+ SToRM is a read mapping tool designed first for the SOLiD technology, but
+ also available now for the classical Illumina technology. First, SToRM is 
+ based on seeding techniques adapted to the statistical characteristics of
+ reads: the seeds and the alignment algorithms are designed to comply with
+ the properties of the SOLiD color encoding or Illumina substitution model, 
+ as well as the observed reading error distribution along the read.
+
+ More information at  http://bioinfo.lifl.fr/yass/iedera_solid/storm
+
+
+[CONTENTS OF THIS ARCHIVE]
+
+    README
+    Makefile
+    *.c, *.h - source code
+    seeds/   - several seed families adapted for the SOLiD reads
+
+
+[COMPILING THE SOURCES]
+
+ Requirements: 
+    gcc (>=4.2), OpenMP support, Linux or MacOS
+
+ Command line: 
+    "make" / "make storm-color" / "make storm-nucleotide" (multithreaded)
+
+
+
+[RUNNING SToRM]
+
+  Command line: 
+    "./storm -g <path_2_reference.fas> -r <path_2_reads.xx> [opts]"
+    "./storm -h" for full parameter list
+
+   A classic command line:
+    "./storm-color      -g reference.fas -r reads.cs -l 500 -o out.sam"
+    "./storm-nucleotide -g reference.fas -r reads.fq -l 500 -o out.sam"
+
+
+
+[READING THE RESULT]
+
+ SToRM generates its output in the SAM format. To visualise the result, we 
+ recommend use of the SAMtools package (http://samtools.sourceforge.net/).
+
+ For both a SToRM output file "out.sam" and a reference file "ref.fas", the 
+ samtools command lines usually are:
+
+
+     samtools faidx ref.fas
+
+     samtools view -bT ref.fas out.sam > out.bam
+
+     ##
+     ## Next line if the "-M <int>" option is set : the "out.sam"/"out.bam"
+     ## are "read sorted" and not "ref sorted" in that case
+     ##
+     samtools sort out.bam out_sorted  
+
+     samtools index out_sorted.bam
+
+     samtools tview out_sorted.bam ref.fas
+
+
+ Please refer to the SAMtools documentation for more usage details.
