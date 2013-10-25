@@ -12,7 +12,8 @@ extern int delta_m;
 #define CODE_COUNT COLOR_CODE_COUNT
 #endif
 
-#define GENOME_MAP_SIZE         (genome_map->ref_dbs[ref_id].size)
+/* indels can occurs "before" the first base (g_map[0]) or "after" the last one (g_map[size]) so GENOME_MAP_SIZE must be of size (size+1)*/
+#define GENOME_MAP_SIZE         (genome_map->ref_dbs[ref_id].size+1)
 #define GENOME_MAP_READS_COUNT  (genome_map->hitmap->size)
 #define GENOME_MAP_READS_MAPPED (genome_map->hitmap->mapped)
 #define GENOME_MAP_INDELS       (genome_map->hitmap->indel_count)

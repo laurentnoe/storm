@@ -32,14 +32,14 @@ typedef struct ReferenceDBType {
 #endif
 
   /** "allocated" sequence pointer (larger than sequence to avoid SIMD checks)
-   *   this one only mus be freed
+   *   this one only must be freed
    */
   CODE_TYPE* sequence_alloc;
   /** "true" sequence pointer */
   CODE_TYPE* sequence;
 
   /** "allocated" sequence_masked pointer (larger than sequence_masked to avoid SIMD checks)
-   *   this one only mus be freed
+   *   this one only must be freed
    */
   CODE_TYPE* sequence_masked_alloc;
   /** "true" sequence of list of masked regions in flat "code" format
