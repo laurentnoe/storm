@@ -592,7 +592,7 @@ void genome_map__build_contextual(GenomeMapType* genome_map) {
       int ref_coverage = 0;
       int reads_coverage = 0;
       int ref_pos;
-      for (ref_pos = 0; ref_pos < GENOME_MAP_SIZE; ++ref_pos)
+      for (ref_pos = 0; ref_pos < genome_map->ref_dbs[ref_id].size; ++ref_pos)
         if (genome_map->g_maps[ref_id][ref_pos] != NULL)  {
           ref_coverage  ++;
           reads_coverage += genome_map->g_maps[ref_id][ref_pos]->read_at_pos_size;
