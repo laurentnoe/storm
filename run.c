@@ -515,7 +515,7 @@ static inline void process_read(
       for (k = 0; k < indexes[si]->seed->positions_count; ++k) {
         int read_pos = indexes[si]->seed->positions[k];
         key[si][read_pos] = seed__apply_to_compressed(indexes[si]->seed, read_seq, read_pos);
-        int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos],hit_pointer[si]+read_pos);
+        int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos], hit_pointer[si]+read_pos);
         if (ref_pos >= 0) {
           INSERT_HEAP(heap,heap_size,(ref_pos-read_pos),read_pos,si);
         }
@@ -524,7 +524,7 @@ static inline void process_read(
       int read_pos;
       for (read_pos = 0; read_pos < read_len - indexes[si]->seed->length + 1; ++read_pos) {
         key[si][read_pos] = seed__apply_to_compressed(indexes[si]->seed, read_seq, read_pos);
-        int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos],hit_pointer[si]+read_pos);
+        int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos], hit_pointer[si]+read_pos);
         if (ref_pos >= 0) {
           INSERT_HEAP(heap,heap_size,(ref_pos-read_pos),read_pos,si);
         }
@@ -547,7 +547,7 @@ static inline void process_read(
     short seed_id  = heap[0].seed_id;
 
     /* heap update can be done in parallel with ...*/
-    int new_ref_pos = index__get_extern_next_hit(indexes[seed_id], key[seed_id][read_pos],hit_pointer[seed_id]+read_pos);
+    int new_ref_pos = index__get_extern_next_hit(indexes[seed_id], key[seed_id][read_pos], hit_pointer[seed_id]+read_pos);
 
     if (new_ref_pos >= 0) {
       REP_TOP_SIEVE_HEAP(heap,heap_size,(new_ref_pos-read_pos),read_pos,seed_id);

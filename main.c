@@ -30,6 +30,8 @@ extern int IGNORE_LOWERCASE;
 extern int UNIQUENESS;
 extern int UNIQUENESS_SCORE_THRESHOLD;
 
+extern int read_quality_min_symbol_code;
+
 int allowed_indels      = ALLOWED_INDELS;
 int simd_allowed_diags  = ALLOWED_INDELS;
 int delta_m;
@@ -69,7 +71,7 @@ static void show_usage(char * progname, char* default_seeds) {
   printf("PARAMETERS:\n");
   printf("\033[37;1mMandatory:\033[0m\n");
   DISPLAY_OPTION("g <genome_file>", ("Name of the reference genome file (.fasta/.multifasta).\n"));
-  DISPLAY_OPTION("r <reads_file>", ("Name of the reads file (.csfasta/.fastq/.multifasta).\n"));
+  DISPLAY_OPTION("r <reads_file>", ("Name of the reads file (.csfasta/.fastq/.multifasta)."));
   /* [FIXME] :
    */
   /*
@@ -89,7 +91,7 @@ static void show_usage(char * progname, char* default_seeds) {
    *                "\t   -p,  when just  the alignment of two  small sequences  is wanted,\n"
    *                "\t   instead of -r and -g.\n"));
    */
-  printf("\n\t\033[37;1mWARNING\033[0m: Default is \"--strata like\" mode, otherwise use -M <number>\n\n");
+  printf("\n\t\033[37;1mWARNING\033[0m:\033[33;1m Default is at most \"1 read kept per reference position\" : use -M <number> (-M 1)\033[0m\n\n");
   printf("\n\033[37;1mOptional:\033[0m\n");
   DISPLAY_OPTION("q <qualities_file>", ("Name of the qualities file (qual).\n"));
   DISPLAY_OPTION("s <seed list>", ("The seed family to be used for filtering.  The list should \n"
@@ -123,8 +125,8 @@ static void show_usage(char * progname, char* default_seeds) {
                  "\t   written, in SAM format. Default: stdout.\n"));
   DISPLAY_OPTION("m <number>", ("Match score. Default: %d.\n", SCALE_SCORE(MATCH, MAX_READ_QUALITY_LEVEL)));
   DISPLAY_OPTION("x <number>", ("Mismatch penalty. Default: %d.\n"
-                            "\n\t\033[37;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities, \n"
-                        "\tif such qualities are available.\n", SCALE_SCORE(MISMATCH, MAX_READ_QUALITY_LEVEL)));
+                            "\n\t\033[37;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
+                            "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(MISMATCH, MAX_READ_QUALITY_LEVEL)));
   DISPLAY_OPTION("d <number>", ("Gap open penalty. Default: %d.\n", GAP_OPEN));
   DISPLAY_OPTION("e <number>", ("Gap extension penalty. Default: %d.\n", GAP_EXTEND));
   DISPLAY_OPTION("i <number>", ("Maximum number of indels in the alignment. Default: %d.\n", ALLOWED_INDELS));
@@ -134,6 +136,7 @@ static void show_usage(char * progname, char* default_seeds) {
                                 "\t   alignment is considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE_SIMD_FILTER));
   DISPLAY_OPTION("u <number>", ("The minimum difference between the first and second \n"
                         "\t   alignment of a given read to consider it unique; Default: disabled.\n"));
+  DISPLAY_OPTION("b <number>", ("base for FASTQ qual: worst val. (ASCII decimal). Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code));
   DISPLAY_OPTION("G", ("Perform an \"ordered greedy\" mapping. By default, multiple alignments of\n"
                    "\t   overlapping reads are evaluated at the mapping stage in order to establish\n"
                    "\t   the most relevant candidate mapping position for each read. When this option\n"
@@ -168,7 +171,7 @@ int main (int argc, char* argv[]) {
    * -e gap extension penalty
    * -i number of allowed indels in the alignment
    */
-  char *optstring = "g:r:q:s:S:a:f:p:m:x:d:e:t:z:T:i:v:o:O:l:u:M:jFRhcPHUG";
+  char *optstring = "g:r:q:s:S:a:b:f:p:m:x:d:e:t:z:T:i:v:o:O:l:u:M:jFRhcPHUG";
   /* Input files */
   char *genome_file = NULL, *reads_file = NULL, *qual_file = NULL;
   char *read = NULL, *reference=NULL, *reference_masked=NULL, *quality=NULL;
@@ -259,6 +262,9 @@ int main (int argc, char* argv[]) {
       break;
     case 'z':
       INTEGER_VALUE_FROM_OPTION(min_accepted_score_simd_filter);
+      break;
+    case 'b':
+      INTEGER_VALUE_FROM_OPTION(read_quality_min_symbol_code);
       break;
     case 'i':
       INTEGER_VALUE_FROM_OPTION(allowed_indels);

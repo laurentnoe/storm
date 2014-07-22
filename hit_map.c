@@ -340,7 +340,7 @@ void hit_map__generate_SAM_output(const HitMapType* map,
   SEQ   | [acgtnACGTN.=]+|\*    |               | query SEQuence; “=” for a match to the reference;
         |                       |               | n/N/. for ambiguity; cases are not maintained
   ------+-----------------------+---------------+--------------------------------------------------
-  QUAL  | [!-~]+|\*             | [0,93]        | query QUALity; ASCII-33 gives the Phred base quality
+  QUAL  | [!-~]+|\*             | [0,93]        | query QUALity; ASCII-33 (by default) the Phred base quality
   ------+-----------------------+---------------+--------------------------------------------------
   TAG   | [A-Z][A-Z0-9]         |               | TAG
   ------+-----------------------+---------------+--------------------------------------------------
@@ -432,18 +432,18 @@ void hit_map__generate_SAM_output(const HitMapType* map,
           if (map->map[read_id][score_rank].sense & ALIGNMENT_SENSE_REVERSE) {
             int q;
             for (q = reads_db->read_len - 1; q >= 0; --q) {
-              fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
+              fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
             }
 #ifndef NUCLEOTIDES
-            fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
+            fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
 #endif
           } else {
             int q;
 #ifndef NUCLEOTIDES
-            fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
+            fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
 #endif
             for (q = 0; q < reads_db->read_len; ++q) {
-              fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
+              fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
             }
           }
         } else {
@@ -452,6 +452,18 @@ void hit_map__generate_SAM_output(const HitMapType* map,
         }
         fprintf(sam_output, "\tAS:i:%d\tNM:i:%d\tNH:i:%d\n", map->map[read_id][score_rank].score, edit_distance, nb_reported);
       }
+    } else {
+      /* Unmapped read case (for v1.5) : not checked yet */
+      /*
+       * ReadDataType* read = &(reads_db->reads[read_id]);
+       */
+      /*
+       * Read name, flag, reference name, mapping position, alignment quality, CIGAR string, sequence, sequence quality
+       * The mate information (mate reference name, mate position, inserted size) is not supported yet (TODO) [FIXME]
+       */
+      /*
+       * fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t*\t=\t0\t0\n", read->info);
+       */
     }
   }
   fflush(sam_output);

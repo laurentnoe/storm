@@ -462,13 +462,6 @@ static inline ScoreType alignment__color_correction_score_adjustment(CODE_TYPE p
   // TODO : Improve
   return (prev && (COMPOSE(prev, crt) == (CODE_IDENTITY) || COMPOSE(prev, crt) == reference) && crt_score!= MIN_SCORE && crt_score < 0) ? -2*crt_score : crt_score;
 }
-
-
-static inline ScoreType alignment__color_correction_gap_penalty_adjustment(CODE_TYPE prev, CODE_TYPE crt, ScoreType compensation_score) {
-  // TODO : Improve
-  return (prev && COMPOSE(prev, crt) == CODE_IDENTITY) ? compensation_score : 0;
-}
-
 #endif
 
 /**

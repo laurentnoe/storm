@@ -490,7 +490,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
     case LINE_TYPE_QUAL:
       // parse the characher string encoding the quality
 #ifndef NUCLEOTIDES
-      db->reads[i].first_qual = QUALITY_LEVEL(FASTQ_PARSE_QUAL(line[0]));
+      db->reads[i].first_qual = QUALITY_LEVEL(FASTQ_PARSE_QUALITY_FROM_CHAR(line[0]));
 #endif
       delete_trailing_nl(line);
       memset(quality, 0, (db->read_len)*sizeof(short));
@@ -501,7 +501,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
       p = 1;
 #endif
       for (; p < MIN(db->read_len, strlen(line)); ++p) {
-        quality[p] = FASTQ_PARSE_QUAL(line[p]);
+        quality[p] = FASTQ_PARSE_QUALITY_FROM_CHAR(line[p]);
       }
 #ifdef NUCLEOTIDES
       db->reads[i].quality = compress_quality_sequence(quality, db->read_len, 0);

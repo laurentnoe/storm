@@ -235,10 +235,6 @@ static inline ScoreType genome_map__get_sorted_score(GenomeMapType* genome_map, 
   return genome_map->hitmap->map[genome_map->sorted_read_indices[j_index]][0].score;
 }
 
-static inline HitInfoType* genome_map__get_sorted_hit(GenomeMapType* genome_map, int j_index) {
-  return genome_map->hitmap->map[genome_map->sorted_read_indices[j_index]];
-}
-
 inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
   int i = 0;
 #define BITS_IN_DIGIT 4
@@ -833,18 +829,18 @@ void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output
             if (map->map[read_id][score_rank].sense & ALIGNMENT_SENSE_REVERSE) {
               int q;
               for (q = reads_db->read_len - 1; q >= 0; --q) {
-                fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
+                fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
               }
 #ifndef NUCLEOTIDES
-              fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
+              fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
 #endif
             } else {
               int q;
 #ifndef NUCLEOTIDES
-              fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
+              fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
 #endif
               for (q = 0; q < reads_db->read_len; ++q) {
-                fprintf(sam_output, "%c", 33 + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
+                fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
               }
             }
           } else {

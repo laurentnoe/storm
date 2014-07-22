@@ -109,12 +109,7 @@ extern const char COLOR_CODE_LETTER[COLOR_CODE_COUNT];
 #define SHIFTED_MASK (0xC0)
 #define STRIP(code)  (code & MASK)
 #define CODE_SEQUENCE_BLOCK_BITS (sizeof(CODE_TYPE) << 3)
-/* sizeof(CODE_TYPE) * 8) */
-
 #define CODES_PER_SEQUENCE_BLOCK (sizeof(CODE_TYPE) << 2)
-/*(sizeof(CODE_TYPE) * 8 / CODE_SIZE_USED_BITS)*/
-
-//#define MASK_SHIFT ((CODE_SIZE_BITS) - (CODE_SIZE_USED_BITS))
 
 /* Actual allocated length for keeping len codes in a compressed sequence*/
 #define COMPRESSED_LEN(len) (((len) >> 2) + (((len) & 3) ? 1 : 0))
@@ -130,20 +125,11 @@ extern int N_BYTES;
 #define COMPRESSED_OFFSET(i) ((i) & 3)
 /* For CODES_PER_SEQUENCE_BLOCK = 4: len % CODES_PER_SEQUENCE_BLOCK) */
 
-//#define TO_NTH_CODE(sequence, n, code)  (sequence[(n) >> 2] |= ((((code) & MASK) << (MASK_SHIFT)) >> (((n) & 3) << 1)));
-// changing so that the order of the codes in the byte is 3 2 1 0, making it easier to obtain each code
-/* sequence[n/CODES_PER_SEQUENCE_BLOCK] |= (((code & MASK) << (MASK_SHIFT)) >> ((n % CODES_PER_SEQUENCE_BLOCK)*CODE_SIZE_USED_BITS)); */
+/* the order of the codes in the byte is 3 2 1 0, making it easier to obtain each code */
 #define TO_NTH_CODE(sequence, n, code)  (sequence[COMPRESSED_IDX(n)] |= ((code) & MASK) << (COMPRESSED_OFFSET(n) << 1));
-
-//#define NTH_CODE(sequence, n) (((0xC0 >> (((n) & 3) << 1)) & sequence[(n) >> 2]) >> (6-(((n) & 3) << 1)))
-// changing so that the order of the codes in the byte is 3 2 1 0, making it easier to obtain each code
 #define NTH_CODE(sequence, n)  ((sequence[COMPRESSED_IDX(n)] & (MASK << (COMPRESSED_OFFSET(n) << 1))) >> (COMPRESSED_OFFSET(n) << 1))
-/* For CODES_PER_SEQUENCE_BLOCK = 4, MASK = 3, MASK_SHIFT = 6, CODE_SIZE_USED_BITS = 2:
- * ((((MASK << (MASK_SHIFT)) >> ((n % CODES_PER_SEQUENCE_BLOCK)*CODE_SIZE_USED_BITS)) & sequence[n/CODES_PER_SEQUENCE_BLOCK]) >> (MASK_SHIFT - ((n%CODES_PER_SEQUENCE_BLOCK)*CODE_SIZE_USED_BITS)))
- */
 
 #define NTH_CODE_IS_POSSIBLY_NOTZERO(sequence, n) ((sequence[COMPRESSED_IDX(n)]))
-/* For */
 
 /**
  * Obtains a readable string from a compressed base sequence.

@@ -9,13 +9,14 @@
 #define READ_QUALITY_LEVELS    4
 #define MAX_READ_QUALITY_LEVEL 3
 
-#define READ_QUALITY_LEVEL0_UB  5
-#define READ_QUALITY_LEVEL1_UB 10
-#define READ_QUALITY_LEVEL2_UB 15
+#define READ_QUALITY_LEVEL0_UB  2
+#define READ_QUALITY_LEVEL1_UB  7
+#define READ_QUALITY_LEVEL2_UB 10
 #define READ_QUALITY_LEVEL3_UB MAX_READ_QUALITY
 
 const short READ_QUALITY_LEVEL_UPPER_BOUNDS[READ_QUALITY_LEVELS];
 
+extern int read_quality_min_symbol_code;
 
 /*
  * Qualities
@@ -76,10 +77,19 @@ typedef unsigned char QUAL_TYPE;
 /*(READ_QUALITY_LEVELS - 1) * MIN (Q, 40) / 40 => index of the score */
 /* @Deprecated */
 /* #define QUALITY_LEVEL(q) ((int) ( ( (READ_QUALITY_LEVELS - 1) * MIN((q), MAX_READ_QUALITY)) / MAX_READ_QUALITY  + .5))*/
+
 int get_quality_level(short quality);
 
 #define QUALITY_LEVEL(q) (get_quality_level(q))
 
+int fastq_parse_quality_from_char(char c);
+
+#define FASTQ_PARSE_QUALITY_FROM_CHAR(c) (fastq_parse_quality_from_char(c))
+
+
+/**
+ * Allocate and compress the list of "short" qualities
+ */
 QUAL_TYPE* compress_quality_sequence(const short* qual, int len, int shift);
 
 /**
@@ -91,20 +101,4 @@ void quality__reverse_compressed(const QUAL_TYPE* sequence, QUAL_TYPE* dest, int
 void quality__reverse_compressed(const QUAL_TYPE first, const QUAL_TYPE* sequence, QUAL_TYPE* dest, int len);
 #endif
 
-/* Use the read quality to decide good positions for applying the seeds */
-#define MIN_TRUSTED_QUALITY_LEVEL 2
-#define MIN_TRUSTED_CODES 0.8
-
-/**
- * Seed masking when the quality is low
- */
-// @{
-void quality__build_mask(const QUAL_TYPE* sequence, int len, unsigned int* dest_mask);
-
-int  quality__accept_seed(const unsigned int* qual_mask, int len, unsigned int seed_mask, int seed_len, int pos);
-
-int  quality__accept_seed_relaxed(const unsigned int* qual_mask, int len, const SeedType* seed, int pos, double t);
-
-int  quality__accept_seed_relaxed2(const QUAL_TYPE* quality, int len, const SeedType* seed, int pos, int t);
-// @}
 #endif /* _READ_QUALITY_H_ */

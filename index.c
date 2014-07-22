@@ -209,7 +209,7 @@ inline void index__reset_extern_crt_hit(int * const hit_pointer) {
  * @return The position -- in the reference database -- of the subsequence
  * corresponding to the key
  */
-int index__get_extern_next_hit(const IndexType *index, const int key, int * const hit_pointer) {
+inline int index__get_extern_next_hit(const IndexType *index, const int key, int * const hit_pointer) {
   register int a = *hit_pointer;
 
 #ifdef DISABLE_CONTIG_INDEX

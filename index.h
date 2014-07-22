@@ -51,7 +51,8 @@ IndexType* index__build_reference(ReferenceDBType* db, SeedType* seed);
 /**
  * Reset the index external "pointer" to the current hit
  */
-inline void index__reset_extern_crt_hit(int *hit_pointer);
+void index__reset_extern_crt_hit(int *hit_pointer);
+
 /**
  * The next hit in a reference index (as field external to the index structure)
  * @param index
@@ -60,7 +61,8 @@ inline void index__reset_extern_crt_hit(int *hit_pointer);
  * @return The position -- in the reference database -- of the subsequence
  * corresponding to the key
  */
-inline int index__get_extern_next_hit(const IndexType *index, const int key, int* hit_pointer);
+int index__get_extern_next_hit(const IndexType *index, const int key, int* hit_pointer);
+
 /**
  * The current hit in a reference index (as field external to the index structure)
  * @param index
@@ -69,7 +71,7 @@ inline int index__get_extern_next_hit(const IndexType *index, const int key, int
  * @return The position -- in the reference database -- of the subsequence
  * corresponding to the key
  */
-inline int index__get_extern_current_hit (const IndexType *index, const int key, const int *hit_pointer);
+int index__get_extern_current_hit (const IndexType *index, const int key, const int *hit_pointer);
 
 /**
  * Destroy an indexed

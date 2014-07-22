@@ -2,7 +2,7 @@
 #define _READS_DATA_H_
 
 #include "load_data.h"
-#include "read_quality.h"
+
 #include <limits.h>
 #include <stdlib.h>
 

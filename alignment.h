@@ -47,7 +47,7 @@ typedef char DirectionType;
 
 #define INDEL_COUNT_LIMIT (INDEL_DATA_VECTOR_SIZE - 1)
 
-#define SCALE_SCORE(score, quality_level) (ScoreType)(   ((score) * (quality_level+1) + 0.) / READ_QUALITY_LEVELS) // FIXME
+#define SCALE_SCORE(score, quality_level) (ScoreType)(   ((score) * (quality_level+1) + 0.) / READ_QUALITY_LEVELS)
 
 /* For accessing various parameters */
 #define GAP_TYPES_SIZE 2

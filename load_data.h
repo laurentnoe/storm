@@ -14,7 +14,6 @@
 #define LINE_TYPE_QUAL_HEADER 3
 #define LINE_TYPE_QUAL        4
 #define LINE_TYPE_UNKNOWN   (-1)
-#define FASTQ_PARSE_QUAL(q) ((q) - 33)
 
 /* Length of the line read from the input files */
 #define MAX_LINE_LEN 65536

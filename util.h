@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #define PROGRAM_NAME    "SToRM"
-#define PROGRAM_VERSION "0.0092"
+#define PROGRAM_VERSION "0.0093"
 
 /* flushed write to trace */
 #define __W {printf("\033[35;1m%s %d\033[0m\n", __FILE__, __LINE__);fflush(stdout);}
