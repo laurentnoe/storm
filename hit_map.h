@@ -74,12 +74,6 @@ HitMapType* hit_map__create(int size, int indel_count);
 void hit_map__init(HitMapType* map, int size, int indel_count);
 
 /**
- * Cleans the contents of the map
- * @param map The map to clean
- */
-inline void hit_map__clean(HitMapType* map);
-
-/**
  * Updates a map with a new alignment
  * @param map The map to update
  * @param read_id The aligned read's index in the reads database
@@ -108,7 +102,6 @@ inline int hit_map__score_for(const HitMapType* map, const int read_id, const in
  */
 void hit_map__display(const HitMapType* map);
 
-
 /**
  * Output the hit_map data as a full SAM output (avoid the "GenomeMap" that keep the "best read" per "genome pos" ; here display the score_rank_max best matching per read)
  * @param map
@@ -122,7 +115,18 @@ void hit_map__generate_SAM_output(const HitMapType* map,
                                   const ReferenceDBType* ref_dbs, const int ref_dbs_size,
                                   FILE* sam_output, const int score_rank_max);
 /**
+ * Output the hit_map "Unmapped" reads as a FASTQ output
+ * @param map
+ * @param reads_db
+ * @param fastq_output
+ */
+void hit_map__generate_unmapped_FASTQ_output(const HitMapType* map,
+                                             const ReadsDBType* reads_db,
+                                             FILE* fastq_output);
+
+/**
  * Cleanup
+ * @param map
  */
 void hit_map__destroy(HitMapType* map);
 

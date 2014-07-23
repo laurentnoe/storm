@@ -123,6 +123,9 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("R", ("Only align in reverse complementary sense.        Default: both senses. \n"));
   DISPLAY_OPTION("o <output_file>", ("The name of the output file  where the mapping result is\n"
                  "\t   written, in SAM format. Default: stdout.\n"));
+  DISPLAY_OPTION("O <output_file>", ("The name of the output file where the unmapped reads are\n"
+                 "\t   written, in FASTQ format. Availaible if -M <number>. Default: none.\n"));
+
   DISPLAY_OPTION("m <number>", ("Match score. Default: %d.\n", SCALE_SCORE(MATCH, MAX_READ_QUALITY_LEVEL)));
   DISPLAY_OPTION("x <number>", ("Mismatch penalty. Default: %d.\n"
                             "\n\t\033[37;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
@@ -145,7 +148,7 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("M <number>", ("Perform an \"unordered\" mapping. By default, or in greedy mode, only\n"
                    "\t   one read is kept per reference position.  This option enables any read to\n"
                    "\t   be mapped at any <number> (1..%d) positions per read without considering\n"
-                        "\t   this read is the best one for the reference.\n"
+                   "\t   this read is necessary the \"best one\" for the reference.\n"
                    "\n\t\033[37;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be mapped\033[0m without this option set to >= 1.\n"
                   , MAP_DETAIL_SIZE));
 
@@ -181,6 +184,8 @@ int main (int argc, char* argv[]) {
 
   /* Output files*/
   FILE* output = stdout;
+  /* Fastq Ouput for missing reads */
+  FILE* unmapped_FASTQ_output = NULL;
 
   /* Process command line ... */
   int option;
@@ -272,7 +277,7 @@ int main (int argc, char* argv[]) {
         HANDLE_INVALID_NUMERIC_VALUE_FATAL(allowed_indels, "a positive value or zero");
       }
       if (allowed_indels > INDEL_COUNT_LIMIT) {
-        WARNING__(("%s may not handle more than %d indels in the SIMD code (%d diagonals).", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE));
+        WARNING__(("%s may not handle more than %d indels in the SIMD (local alignment) filter code (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels));
       simd_allowed_diags = INDEL_COUNT_LIMIT;
       } else {
       simd_allowed_diags = allowed_indels;
@@ -307,8 +312,19 @@ int main (int argc, char* argv[]) {
             exit(-1);
           }
         }
-        break;
       }
+      break;
+    case 'O':
+      if (strcmp(optarg, "NULL") == 0 || strcmp(optarg, "null") == 0) {
+        unmapped_FASTQ_output = NULL;
+      } else {
+        unmapped_FASTQ_output = fopen(optarg, "w");
+        if (unmapped_FASTQ_output == NULL) {
+          ERROR__(("Could not open or create FASTQ output file %s.\n", optarg));
+          exit(-1);
+        }
+      }
+      break;
     case 'F':
       ALIGNMENT_SENSE = ALIGNMENT_SENSE_FORWARD;
       break;
@@ -387,7 +403,7 @@ int main (int argc, char* argv[]) {
   } else if (reads_file) {
     if (genome_file) {
       printf("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)");
-      reads_against_references(reads_file, qual_file, genome_file, seeds, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output);
+      reads_against_references(reads_file, qual_file, genome_file, seeds, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output, unmapped_FASTQ_output);
     } else {
       ERROR__(("\nNot enough mandatory parameters provided.\n"));
       show_usage(argv[0], seeds);
@@ -399,6 +415,9 @@ int main (int argc, char* argv[]) {
 
   if (output && output != stdout) {
     fclose(output);
+  }
+  if (unmapped_FASTQ_output) {
+    fclose(unmapped_FASTQ_output);
   }
   return 0;
 }

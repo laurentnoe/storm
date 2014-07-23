@@ -432,18 +432,18 @@ void hit_map__generate_SAM_output(const HitMapType* map,
           if (map->map[read_id][score_rank].sense & ALIGNMENT_SENSE_REVERSE) {
             int q;
             for (q = reads_db->read_len - 1; q >= 0; --q) {
-              fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
+              fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
             }
 #ifndef NUCLEOTIDES
-            fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
+            fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual],126));
 #endif
           } else {
             int q;
 #ifndef NUCLEOTIDES
-            fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual]);
+            fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual],126));
 #endif
             for (q = 0; q < reads_db->read_len; ++q) {
-              fprintf(sam_output, "%c", read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)]);
+              fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
             }
           }
         } else {
@@ -482,6 +482,79 @@ void hit_map__generate_SAM_output(const HitMapType* map,
 }
 
 
+/**
+ * Output the hit_map "Unmapped" reads as a FASTQ output
+ * @param map
+ * @param reads_db
+ * @param fastq_output
+ */
+
+void hit_map__generate_unmapped_FASTQ_output(const HitMapType* map,
+                                             const ReadsDBType* reads_db,
+                                             FILE* fastq_output) {
+  int read_id;
+  for (read_id = 0; read_id < map->size; ++read_id) {
+
+    /* if the read is unmapped */
+    if (!(map->map[read_id])) {
+
+      /* [1/4] display the header */
+      if (reads_db->reads[read_id].info) {
+        fprintf(fastq_output, "@%s\n", reads_db->reads[read_id].info);
+      } else {
+        fprintf(fastq_output, "@%d\n", read_id);
+      }
+
+      /* [2/4] display the read (nucleotide or color space) */
+#ifdef NUCLEOTIDES
+      {
+        int k;
+        for (k = 0; k < reads_db->read_len; ++k) {
+          fprintf(fastq_output, "%c", BASE_CODE_LETTER[NTH_CODE(reads_db->reads[read_id].sequence, k)]);
+        }
+        fprintf(fastq_output, "\n");
+      }
+#else
+      {
+        CODE_TYPE base = reads_db->reads[read_id].first_base;
+        fprintf(fastq_output, "%c", BASE_CODE_LETTER[base]);
+        int k;
+        for (k = 0; k < reads_db->read_len; ++k) {
+          fprintf(fastq_output, "%c", COLOR_CODE_LETTER[NTH_CODE(reads_db->reads[read_id].sequence,k)]);
+        }
+        fprintf(fastq_output, "\n");
+      }
+#endif
+
+      /* [3/4] display the header */
+      if (reads_db->reads[read_id].info) {
+        fprintf(fastq_output, "+%s\n", reads_db->reads[read_id].info);
+      } else {
+        fprintf(fastq_output, "+%d\n", read_id);
+      }
+
+      /* [4/4] display the quality */
+      if (reads_db->reads[read_id].quality) {
+          int q;
+#ifndef NUCLEOTIDES
+          fprintf(fastq_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual],126));
+#endif
+          for (q = 0; q < reads_db->read_len; ++q) {
+            fprintf(fastq_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
+          }
+      } else {
+        int q;
+#ifndef NUCLEOTIDES
+        fprintf(fastq_output, "%c",  MIN(read_quality_min_symbol_code + MAX_READ_QUALITY,126));
+#endif
+        for (q = 0; q < reads_db->read_len; ++q) {
+          fprintf(fastq_output, "%c",  MIN(read_quality_min_symbol_code + MAX_READ_QUALITY,126));
+        }
+      }
+      fprintf(fastq_output, "\n");
+    }
+  }
+}
 
 /**
  * Cleanup

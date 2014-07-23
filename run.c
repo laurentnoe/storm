@@ -402,7 +402,7 @@ typedef struct HitType {
   int   hit_pos;
   short read_pos;
   short seed_id;
-} HitType;
+} __attribute__((__packed__)) HitType;
 
 /* insert at position $__size__$ then sieve from bottom to top (increment $__size__$) */
 #define INSERT_HEAP(__heap__,__size__,__hit_pos__,__read_pos__,__seed_id__) \
@@ -414,9 +414,7 @@ typedef struct HitType {
             &&                                                              \
             (__hit_pos__ <  (__heap__)[__t__].hit_pos)                      \
           ) {                                                               \
-       (__heap__)[__u__].hit_pos  = (__heap__)[__t__].hit_pos ;             \
-       (__heap__)[__u__].read_pos = (__heap__)[__t__].read_pos;             \
-       (__heap__)[__u__].seed_id  = (__heap__)[__t__].seed_id ;             \
+       (__heap__)[__u__] = (__heap__)[__t__];                               \
        __u__ = __t__;                                                       \
        __t__ = (__u__-1)>>1;                                                \
     }                                                                       \
@@ -446,9 +444,7 @@ typedef struct HitType {
        }                                                                              \
        if (__u_min__ == __u__)                                                        \
          break;                                                                       \
-       (__heap__)[__u__].hit_pos  = (__heap__)[__u_min__].hit_pos ;                   \
-       (__heap__)[__u__].read_pos = (__heap__)[__u_min__].read_pos;                   \
-       (__heap__)[__u__].seed_id  = (__heap__)[__u_min__].seed_id ;                   \
+       (__heap__)[__u__] = (__heap__)[__u_min__];                                     \
        __u__ = __u_min__;                                                             \
     }                                                                                 \
     (__heap__)[__u__].hit_pos  = __hit_pos__  ;                                       \
@@ -666,11 +662,12 @@ static inline void process_read(
  * @param gap_extend
  * @param allowd_indels
  * @param output
+ * @param unmapped_FASTQ_output
  */
 int reads_against_references(const char* reads_filename, const char* qual_filename, const char* ref_filename,
                              const char* seedslist,
                              const ScoreType match, const ScoreType mismatch, const ScoreType gap_open, const ScoreType gap_extend, const int allowed_indels, const int simd_allowed_diags,
-                             FILE* output) {
+                             FILE* output, FILE* unmapped_FASTQ_output) {
   ReadsDBType       reads_db;
   ReferenceDBType*  ref_dbs;
   int               ref_dbs_size;
@@ -923,7 +920,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
     crt_time = time(NULL);
 
-    VERB_FILTER(VERBOSITY_MODERATE, printf("Mapping...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, printf("Reference mapping...\n"););
     GenomeMapType*  genome_map = genome_map__create(map, ref_dbs, ref_dbs_size, &reads_db);
     genome_map__build(genome_map);
 
@@ -939,7 +936,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
     }
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, printf("\nMap built in %ld seconds. Generating output...\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_NONE, printf("\nMap built in %ld seconds. Generating SAM output...\n", time(NULL) - crt_time););
     genome_map__generate_SAM_output(genome_map, output);
 
     /* erase the genome_map */
@@ -949,14 +946,22 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   } else {
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, printf("\nGenerating output...\n"););
+    VERB_FILTER(VERBOSITY_NONE, printf("\nGenerating SAM output...\n"););
     hit_map__generate_SAM_output(map,
                                  &reads_db,
                                  ref_dbs, ref_dbs_size,
                                  output, map_unordered);
+
   }
 #endif /* __DONT__MAP__ */
 
+  /* output unmmapped reads */
+  if (unmapped_FASTQ_output) {
+     VERB_FILTER(VERBOSITY_NONE, printf("\nGenerating FastQ output for unmapped reads...\n"););
+     hit_map__generate_unmapped_FASTQ_output(map,
+                                             &reads_db,
+                                             unmapped_FASTQ_output);
+  }
   /* clear the hit_map */
   hit_map__destroy(map);
   free(map);
