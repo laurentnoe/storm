@@ -609,9 +609,7 @@ void genome_map__build(GenomeMapType* genome_map) {
 
 /**
  * Outputs the mapped reads in the SAM fomat (http://samtools.sourceforge.net)
- * @param map
- * @param ref_db
- * @param reads_db
+ * @param genome_map
  * @param sam_output
  */
 void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output) {

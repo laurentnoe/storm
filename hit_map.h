@@ -19,14 +19,18 @@ typedef struct HitInfoType{
   ScoreType score;
   /** a score alignment adjusted according to the multiple alignment with the reads already mapped in that zone */
   ScoreType adjusted_score;
-  /** the nreference sequence number */
+  /** the reference sequence number */
   int ref_id;
   /** the position in the reference where the read is mapped */
+  /** @{ */
   int ref_start;
   int ref_end;
+  /** @} */
   /** the position in the read where the read is mapped */
+  /** @{ */
   short read_start;
   short read_end;
+  /** @} */
   /** the alignment sense (+1/-1) */
   int sense;
   /** alignment traceback (2 symbols per Byte)*/
@@ -52,7 +56,7 @@ typedef struct HitMapType{
   int mapped;
   /** 2D array
    * (of size equal to (nb reads) x (fixed nb maxhits per read = MAP_DETAIL_SIZE ))
-   *  of HitInfoType struct
+   * of HitInfoType struct
    */
   HitInfoType** map;
 } HitMapType;

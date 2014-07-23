@@ -16,9 +16,9 @@ int map_greedy;
 #define COMPRESSED_COUNTERS
 
 /**
- * @struct GenomeMapReadAtPosition
- *  gives Read index (on the readdb/hitmap)
- *  for one read on a given position of the genome
+ * @struct GenomeMapReadAtPositionType
+ * gives Read index (on the readdb/hitmap)
+ * for one read on a given position of the genome
  */
 typedef struct GenomeMapReadAtPositionType {
   /** index of the read mapped here */
@@ -30,8 +30,8 @@ typedef struct GenomeMapReadAtPositionType {
 
 /**
  * @struct GenomeMapPositionType
- *  gives Mapping Information (reads mapped and statistics)
- *  for one position of the genome
+ * gives Mapping Information (reads mapped and statistics)
+ * for one position of the genome
  */
 typedef struct GenomeMapPositionType {
   /** index of the reads mapped here and their hitmap pos*/
@@ -63,16 +63,20 @@ typedef struct GenomeMapType {
   /** 2D array (of size equal to ref number x ref size) of pointers
    *  to a GenomeMapPositionType struct
    *  (set to NULL when no read is mapped)
+   *  @see GenomeMapPositionType
    */
   GenomeMapPositionType*** g_maps;
-  /** Hitmap used to remap reads (of reads_db) on the references (ref_dbs)
+  /** Hitmap used to remap reads (of reads_db) on the references (ref_dbs) @see HitMapType
    */
   HitMapType* hitmap;
-  /** References being used
+  /** Structures and number of References being used @see ReferenceDBType
    */
+  /** @{ */
   ReferenceDBType* ref_dbs;
   int ref_dbs_size;
+  /** @} */
   /** Reads database
+   * @see ReadsDBType
    */
   ReadsDBType* reads_db;
   /** Indices of the reads (in reads_db), sorted according to the score
@@ -98,36 +102,21 @@ void genome_map__build(GenomeMapType* genome_map);
 
 /**
  * Outputs the mapped reads in the SAM fomat (http://samtools.sourceforge.net)
- * @param map
- * @param ref_db
- * @param reads_db
+ * @param genome_map
  * @param sam_output
  */
 void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output);
 
 /**
  * Quick display of pairs ref_pos: read_index for each position with a corresponding mapped read
+ * @param genome_map
  */
 void genome_map__display(const GenomeMapType* genome_map);
 
 /**
  * Free the memory occupied by the genome map
+ * @param genome_map
  */
 void genome_map__destroy(GenomeMapType* genome_map);
-
-void genome_map__radix_sort_reads(GenomeMapType* genome_map);
-/**
- * Find the colors that appears the most often in the reads at the certain position.
- * The result is an integer, holding the IDs of each color, in decreasing order of their
- * frequency of appearance on that position, encoded on 4 bits starting with the least
- * significant. Only the colors which appear a significant number of times are considered.
- * (the condition is to appear at least SIGNIFICANT_PERCENTAGE % wrt the previous color).
- * The 4 bits allocated to each color should be interpreted as follows:
- * FCCC, where F is a flag, set to 1 if those 4 bits correspond to a color,
- * and CCC is the 3 bit representation of the 5 possible values, from 0 to 4.
- */
-/*
-int genome_map__get_direct_consensus_codes(int* counts, int reference_code);
-*/
 
 #endif /* _GENOME_MAP_H_ */

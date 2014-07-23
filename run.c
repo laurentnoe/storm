@@ -397,10 +397,14 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
 
 /*---------------------------------------------->8--------------------------------------------------------*/
 
-/* Heap structure for sorting hits */
+/** Heap structure for sorting hits
+  */
 typedef struct HitType {
+  /** hit position on the current reference */
   int   hit_pos;
+  /** hit position on the read */
   short read_pos;
+  /** seed id that generate this hit */
   short seed_id;
 } __attribute__((__packed__)) HitType;
 

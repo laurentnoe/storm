@@ -43,9 +43,13 @@ typedef struct SeedType {
   int weight;
   /** seed span */
   int length;
+  /** seed symbols @see SeedSymbolType and its macros */
   SeedSymbolType* seed;
+  /** list of 0 starting positions for the seed where a '#' occurs, and its size */
+  /** @{ */
   int* positions;
   int positions_count;
+  /** @} */
   /** binary mask (bit set to 1 when maching symbol, 0 otherwise) */
   unsigned long long int mask;
 } SeedType;
@@ -68,11 +72,14 @@ int seed__parse_list(const char* src, SeedType*** seeds);
 
 /**
  * Read a seed list from a file
+ * @param filename
+ * @return the string of the seed in final ";" format
  */
 char* seed__string_from_file(const char* filename);
 
 /**
  * Apply a seed to the given sequence
+ * @param seed
  * @param sequence
  * @param pos
  * @return The code of the indexed zone
@@ -81,6 +88,7 @@ int seed__apply(const SeedType *seed, const CODE_TYPE* sequence, const int pos);
 
 /**
  * Apply a seed to the given compressed sequence
+ * @param seed
  * @param sequence
  * @param pos
  * @return The code of the indexed zone

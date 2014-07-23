@@ -14,6 +14,7 @@
 /**
  * @struct ReadDataType
  * data stored for one read
+ * @see ReadDBType
  */
 
 typedef struct ReadDataType {
@@ -33,11 +34,10 @@ typedef struct ReadDataType {
 
 
 /**
- * @struct ReadDataType
+ * @struct ReadsDBType
  * data stored for a set of reads
  * @see ReadDataType
  */
-
 typedef struct ReadsDBType {
   /** descriptor name of the set of reads */
   char* name;

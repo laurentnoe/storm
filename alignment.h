@@ -203,14 +203,16 @@ typedef struct AlignmentCellType {
  */
 
 /**
- * @struct
+ * @struct AlignmentType
  * The alignment data structure
  */
 typedef struct AlignmentType {
   /** Parameters: match, mismatch, gap */
   AlignmentParamType params;
   /** Sizes of the aligned sequences */
-  short read_len, ref_len;
+  /** @{ */
+  short read_len,ref_len;
+  /** @} */
   /** The read */
   CODE_TYPE* read;
   /** Its quality */
@@ -224,12 +226,18 @@ typedef struct AlignmentType {
   /** The alignment matrix */
   AlignmentCellType** matrix;
   /** The matrix is not entirely stored into memory; the range fields tells which parts are stored from each line */
+  /** @{ */
   short* range_first;
   short  range_shift;
+  /** @} */
   /** Coordinates of the cell where the best scoring alignment ends, set by the __align function */
+  /** @{ */
   short best_i, best_j;
+  /** @} */
   /** Coordinates of the cell where the best scoring alignment starts, set by the __traceback function  */
+  /** @{ */
   short best_i0, best_j0;
+  /** @} */
   /** Representation of the alignment, set (and returned) by the __traceback function */
   char* to_display;
   /** traceback sequence of bytes filled with the TRACEBACK_MATCH(...), TRACEBACK_CODE_MISMATCH(...),

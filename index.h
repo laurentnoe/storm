@@ -17,10 +17,8 @@
 
 /**
  * @struct IndexType
- *
+ * Index for one seed
  */
-
-
 typedef struct IndexType {
   /** reference to the genome sequence db */
   ReferenceDBType *db;
@@ -36,7 +34,9 @@ typedef struct IndexType {
    *   @see first
    */
   int* map;
+  /** size of the "first" array */
   int index_size;
+  /** size of the "map" array */
   int map_size;
 } IndexType;
 

@@ -3,11 +3,11 @@
 
 #include "load_data.h"
 #include "util.h"
-/**
- * @struct Linked list of masked regions
- * on the ref sequence.
- */
 
+/**
+ * @struct MaskedRegionType
+ * linked list of masked regions on the ref sequence.
+ */
 typedef struct MaskedRegionType {
   /** first pos masked */
   int start;
@@ -18,7 +18,8 @@ typedef struct MaskedRegionType {
 } MaskedRegionType;
 
 /**
- * @struct Ref sequence descriptor
+ * @struct ReferenceDBType
+ * Reference sequence descriptor (single sequence)
  */
 
 typedef struct ReferenceDBType {
