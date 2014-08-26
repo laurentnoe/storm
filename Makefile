@@ -5,6 +5,8 @@ CC      = gcc
 
 ## Without the "-msse2" the program is more than ten time slower
 CFLAGS  = -Wall -pipe -msse2 -O3
+## Or replace with "-mavx2" for processors that are >= mid-2013
+#CFLAGS  = -Wall -pipe -mavx2 -O3
 
 ## For large files support :
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE 
