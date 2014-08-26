@@ -89,7 +89,7 @@ int alignment_avx2__compatible_proc() {
                 "movq %%rbx,%1" "\n\t"
                 "popq %%rbx" "\n\t"
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
-                : "a" (7), "c"(0)
+                : "a" (7), "c" (0)
                 );
   printf("* compatible avx2 ? %s\n",_bx & 1<<5 ? "yes":"no");
   return (_bx & 1<<5) != 0;
