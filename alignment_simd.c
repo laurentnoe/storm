@@ -88,7 +88,7 @@ int alignment_avx2__compatible_proc() {
                 "cpuid" "\n\t"
                 "movq %%rbx,%1" "\n\t"
                 "popq %%rbx" "\n\t"
-                : "=a" (_ax), "=m" (_bx), "=c" (_cx), "=d" (_dx)
+                : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c"(0)
                 );
   printf("* compatible avx2 ? %s\n",_bx & 1<<5 ? "yes":"no");
@@ -108,7 +108,7 @@ int alignment_sse2__compatible_proc() {
                 "cpuid" "\n\t"
                 "movq %%rbx,%1" "\n\t"
                 "popq %%rbx" "\n\t"
-                : "=a" (_ax), "=m" (_bx), "=c" (_cx), "=d" (_dx)
+                : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (1)
                 );
 #else
@@ -118,7 +118,7 @@ int alignment_sse2__compatible_proc() {
                 "cpuid" "\n\t"
                 "movl %%ebx,%1" "\n\t"
                 "popl %%ebx" "\n\t"
-                : "=a" (_ax), "=m" (_bx), "=c" (_cx), "=d" (_dx)
+                : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (1)
                 );
 #endif
@@ -135,7 +135,7 @@ int alignment_sse__compatible_proc() {
                 "cpuid" "\n\t"
                 "movq %%rbx,%1" "\n\t"
                 "popq %%rbx" "\n\t"
-                : "=a" (_ax), "=m" (_bx), "=c" (_cx), "=d" (_dx)
+                : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (1)
                 );
 #else
@@ -145,7 +145,7 @@ int alignment_sse__compatible_proc() {
                 "cpuid" "\n\t"
                 "movl %%ebx,%1" "\n\t"
                 "popl %%ebx" "\n\t"
-                : "=a" (_ax), "=m" (_bx), "=c" (_cx), "=d" (_dx)
+                : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (1)
                 );
 #endif
