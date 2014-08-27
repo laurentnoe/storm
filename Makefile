@@ -3,9 +3,11 @@
 # - gcc-mp-4.8 + llvm-gcc-4.2 (openmp memset bug) + icc 14 (mac)
 CC      = gcc
 
-## Without the "-msse2" the program is more than ten time slower
+## Without the "-msse2" or "-mavx2", the program is more than ten time slower
 CFLAGS  = -Wall -pipe -msse2 -O3
-## Or replace with "-mavx2" for processors that are >= mid-2013
+## Replace with "-mavx2" for processors that are at least >= mid-2013 and support the "avx2" ?
+##  - For Linux : cat /proc/cpuinfo | grep avx2
+##  - For Mac   : sysctl -a | grep avx2
 #CFLAGS  = -Wall -pipe -mavx2 -O3
 
 ## For large files support :
