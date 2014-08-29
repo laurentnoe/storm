@@ -31,6 +31,13 @@ int alignment_sse__compatible_proc();
  */
 
 #ifdef __AVX2__
+void alignment_avx2__init_hexa(const unsigned int match,
+                               const unsigned int mismatch,
+                               const unsigned int gapopen,
+                               const unsigned int gapextends,
+                               const unsigned int threshold,
+                               const unsigned int readlength);
+
 void alignment_avx2__init_octa(const unsigned int match,
                                const unsigned int mismatch,
                                const unsigned int gapopen,
@@ -118,6 +125,10 @@ void alignment_sse__init_mono(const unsigned int match,
 
 
 #ifdef __AVX2__
+int alignment_avx2__align_hexa(unsigned char * genome,
+                               int * pos_genome,
+                               unsigned char * read);
+
 int alignment_avx2__align_octa(unsigned char * genome,
                                int * pos_genome,
                                unsigned char * read);
@@ -168,6 +179,8 @@ int alignment_sse__align_mono(unsigned char * genome,
  */
 
 #ifdef __AVX2__
+void alignment_avx2__setlength_hexa(unsigned int readlength);
+
 void alignment_avx2__setlength_octa(unsigned int readlength);
 
 void alignment_avx2__setlength_quad(unsigned int readlength);
