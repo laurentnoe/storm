@@ -15,12 +15,12 @@ int map_unordered = 0;
 
 #ifdef __AVX2__
 
-#define MAX_MULTIPLE_HITS 8
+#define MAX_MULTIPLE_HITS 16
 
-const int simd_mul[INDEL_DATA_VECTOR_SIZE] = {8, 8, 8, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2};
+const int simd_mul[INDEL_DATA_VECTOR_SIZE] = {16, 16, 8, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2};
 int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
-  &alignment_avx2__align_octa,
-  &alignment_avx2__align_octa,
+  &alignment_avx2__align_hexa,
+  &alignment_avx2__align_hexa,
   &alignment_avx2__align_octa,
   &alignment_avx2__align_octa,
   &alignment_avx2__align_quad,
@@ -37,8 +37,8 @@ int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsi
   &alignment_avx2__align_pair
 };
 void(* const simd_init_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) = {
-  &alignment_avx2__init_octa,
-  &alignment_avx2__init_octa,
+  &alignment_avx2__init_hexa,
+  &alignment_avx2__init_hexa,
   &alignment_avx2__init_octa,
   &alignment_avx2__init_octa,
   &alignment_avx2__init_quad,
@@ -54,7 +54,7 @@ void(* const simd_init_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned int, unsigned
   &alignment_avx2__init_pair,
   &alignment_avx2__init_pair
 };
-const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {4, 4, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {2, 2, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
 void(* const simd_clean_fct)() = &alignment_avx2__clean;
 #else
 #ifdef __SSE2__
