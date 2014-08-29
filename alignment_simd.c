@@ -35,13 +35,14 @@ typedef union __attribute__((packed, aligned (16))) {
 
 #include <emmintrin.h>
 
-#define EPU8_TYPE(ins)  ins##_epu8
-#define EPI8_TYPE(ins)  ins##_epi8
-#define EPI16_TYPE(ins) ins##_epi16
-#define EPI32_TYPE(ins) ins##_epi32
-#define EPI64_TYPE(ins) ins##_epi64
-#define SI128_TYPE(ins) ins##_si128
-#define VTYPE128           __m128i
+#define EPU8_TYPE(ins)   ins##_epu8
+#define EPI8_TYPE(ins)   ins##_epi8
+#define EPI16_TYPE(ins)  ins##_epi16
+#define EPI32_TYPE(ins)  ins##_epi32
+#define EPI64_TYPE(ins)  ins##_epi64
+#define EPI64X_TYPE(ins) ins##_epi64x
+#define SI128_TYPE(ins)  ins##_si128
+#define VTYPE128            __m128i
 
 /* data conversion union */
 typedef union __attribute__((packed, aligned (16))) {
@@ -91,7 +92,7 @@ int alignment_avx2__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
-  printf("* compatible avx2 ? %s\n",_bx & 1<<5 ? "yes":"no");
+  printf("* compatible avx2 ? %s\n", _bx & 1<<5 ? "yes":"no");
   return (_bx & 1<<5) != 0;
 #else
   printf("* compatible avx2 ? no (32bits compiled)\n");
@@ -122,7 +123,7 @@ int alignment_sse2__compatible_proc() {
                 : "a" (1)
                 );
 #endif
-  printf("* compatible sse2 ? %s\n",_dx & 1<<26 ? "yes":"no");
+  printf("* compatible sse2 ? %s\n", _dx & 1<<26 ? "yes":"no");
   return (_dx & 1<<26) != 0;
 }
 
@@ -149,10 +150,9 @@ int alignment_sse__compatible_proc() {
                 : "a" (1)
                 );
 #endif
-  printf("* compatible sse ? %s\n",_dx & 1<<25 ? "yes":"no");
+  printf("* compatible sse ? %s\n", _dx & 1<<25 ? "yes":"no");
   return (_dx & 1<<25) != 0;
 }
-
 
 
 /*
@@ -163,421 +163,196 @@ int alignment_sse__compatible_proc() {
 
 #ifdef __AVX2__
 
-#define NEXTREADSEQ_OCTA256(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u32[0] =                                                                 \
-      inout_vector.u32[1] =                                                                 \
-      inout_vector.u32[2] =                                                                 \
-      inout_vector.u32[3] =                                                                 \
-      inout_vector.u32[4] =                                                                 \
-      inout_vector.u32[5] =                                                                 \
-      inout_vector.u32[6] =                                                                 \
-      inout_vector.u32[7] =                                                                 \
-        *((uint32_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 16;                                                          \
-      inout_byte += 4;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                \
-     inout_vector.v = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                            \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_OCTA256(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI32_TYPE(_mm256_set1)(*((uint32_t *)(inout_byte)));                                                               \
+      inout_nbnuc    = 16;                                                                                                                 \
+      inout_byte    += 4;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                                \
+    inout_vector.v = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_QUAD256(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-      inout_vector.u64[1] =                                                                 \
-      inout_vector.u64[2] =                                                                 \
-      inout_vector.u64[3] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                \
-     inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                            \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_QUAD256(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64X_TYPE(_mm256_set1)(*((uint64_t *)(inout_byte)));                                                              \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                                \
+    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_PAIR256(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-      inout_vector.u64[2] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                \
-     inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                            \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_PAIR256(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64X_TYPE(_mm256_set1)(*((uint64_t *)(inout_byte)));                                                              \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                                \
+    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_OCTA256(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,              \
-                            in_subpos_b,inout_byte_b,inout_vector_nbletters_b,              \
-                            in_subpos_c,inout_byte_c,inout_vector_nbletters_c,              \
-                            in_subpos_d,inout_byte_d,inout_vector_nbletters_d,              \
-                            in_subpos_e,inout_byte_e,inout_vector_nbletters_e,              \
-                            in_subpos_f,inout_byte_f,inout_vector_nbletters_f,              \
-                            in_subpos_g,inout_byte_g,inout_vector_nbletters_g,              \
-                            in_subpos_h,inout_byte_h,inout_vector_nbletters_h,              \
-                            inout_vector,out_vtype_vLB) {                                   \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u32[0] =                                                                 \
-        *((uint32_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 16;                                                        \
-      inout_byte_a += 4;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u32[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 16;                                                        \
-      inout_byte_b += 4;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u32[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u32[2] =                                                                 \
-        *((uint32_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 16;                                                        \
-      inout_byte_c += 4;                                                                    \
-      if (in_subpos_c) {                                                                    \
-        inout_vector.u32[2]     >>= in_subpos_c << 1;                                       \
-        inout_vector_nbletters_c -= in_subpos_c;                                            \
-        in_subpos_c               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u32[3] =                                                                 \
-        *((uint32_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 16;                                                        \
-      inout_byte_d += 4;                                                                    \
-      if (in_subpos_d) {                                                                    \
-        inout_vector.u32[3]     >>= in_subpos_d << 1;                                       \
-        inout_vector_nbletters_d -= in_subpos_d;                                            \
-        in_subpos_d               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_e) {                                                        \
-      inout_vector.u32[4] =                                                                 \
-        *((uint32_t *)(inout_byte_e));                                                      \
-      inout_vector_nbletters_e = 16;                                                        \
-      inout_byte_e += 4;                                                                    \
-      if (in_subpos_e) {                                                                    \
-        inout_vector.u32[4]     >>= in_subpos_e << 1;                                       \
-        inout_vector_nbletters_e -= in_subpos_e;                                            \
-        in_subpos_e               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_f) {                                                        \
-      inout_vector.u32[5] =                                                                 \
-        *((uint32_t *)(inout_byte_f));                                                      \
-      inout_vector_nbletters_f = 16;                                                        \
-      inout_byte_f += 4;                                                                    \
-      if (in_subpos_f) {                                                                    \
-        inout_vector.u32[5]     >>= in_subpos_f << 1;                                       \
-        inout_vector_nbletters_f -= in_subpos_f;                                            \
-        in_subpos_f               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_g) {                                                        \
-      inout_vector.u32[6] =                                                                 \
-        *((uint32_t *)(inout_byte_g));                                                      \
-      inout_vector_nbletters_g = 16;                                                        \
-      inout_byte_g += 4;                                                                    \
-      if (in_subpos_g) {                                                                    \
-        inout_vector.u32[6]     >>= in_subpos_g << 1;                                       \
-        inout_vector_nbletters_g -= in_subpos_g;                                            \
-        in_subpos_g               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_h) {                                                        \
-      inout_vector.u32[7] =                                                                 \
-        *((uint32_t *)(inout_byte_h));                                                      \
-      inout_vector_nbletters_h = 16;                                                        \
-      inout_byte_h += 4;                                                                    \
-      if (in_subpos_h) {                                                                    \
-        inout_vector.u32[7]     >>= in_subpos_h << 1;                                       \
-        inout_vector_nbletters_h -= in_subpos_h;                                            \
-        in_subpos_h               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
-    inout_vector_nbletters_e--;                                                             \
-    inout_vector_nbletters_f--;                                                             \
-    inout_vector_nbletters_g--;                                                             \
-    inout_vector_nbletters_h--;                                                             \
+#define NEXTGENOSEQ_OCTA256(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm256_movemask)(EPI32_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
+        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u32[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u32[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_QUAD256(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,              \
-                            in_subpos_b,inout_byte_b,inout_vector_nbletters_b,              \
-                            in_subpos_c,inout_byte_c,inout_vector_nbletters_c,              \
-                            in_subpos_d,inout_byte_d,inout_vector_nbletters_d,              \
-                            inout_vector,out_vtype_vLB) {                                   \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 32;                                                        \
-      inout_byte_a += 8;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u64[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u64[1] =                                                                 \
-        *((uint64_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 32;                                                        \
-      inout_byte_b += 8;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u64[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u64[2] =                                                                 \
-        *((uint64_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 32;                                                        \
-      inout_byte_c += 8;                                                                    \
-      if (in_subpos_c) {                                                                    \
-        inout_vector.u64[2]     >>= in_subpos_c << 1;                                       \
-        inout_vector_nbletters_c -= in_subpos_c;                                            \
-        in_subpos_c               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u64[3] =                                                                 \
-        *((uint64_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 32;                                                        \
-      inout_byte_d += 8;                                                                    \
-      if (in_subpos_d) {                                                                    \
-        inout_vector.u64[3]     >>= in_subpos_d << 1;                                       \
-        inout_vector_nbletters_d -= in_subpos_d;                                            \
-        in_subpos_d               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_QUAD256(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+          inout_vector.u64[__d__] =                                                                                                        \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
+          inout_byte[__d__]            += 8;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u64[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u64[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_PAIR256(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,              \
-                            in_subpos_b,inout_byte_b,inout_vector_nbletters_b,              \
-                            inout_vector,out_vtype_vLB) {                                   \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 32;                                                        \
-      inout_byte_a += 8;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u64[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u64[2] =                                                                 \
-        *((uint64_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 32;                                                        \
-      inout_byte_b += 8;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u64[2]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_PAIR256(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
+        if (__u__ & 1 << (16*__d__)) {                                                                                                     \
+          inout_vector.u64[2*__d__] =                                                                                                      \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
+          inout_nbnuc_vector.u64[2*__d__ + 1] = 32;                                                                                        \
+          inout_byte[__d__]                  += 8;                                                                                         \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u64[2*__d__]          >>= inout_subpos[__d__] << 1;                                                               \
+            inout_nbnuc_vector.u64[2*__d__    ] -= inout_subpos[__d__];                                                                    \
+            inout_nbnuc_vector.u64[2*__d__ + 1] -= inout_subpos[__d__];                                                                    \
+            inout_subpos[__d__]                  = 0;                                                                                      \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_NOSUB_OCTA256(inout_byte_a,inout_vector_nbletters_a,                    \
-                                  inout_byte_b,inout_vector_nbletters_b,                    \
-                                  inout_byte_c,inout_vector_nbletters_c,                    \
-                                  inout_byte_d,inout_vector_nbletters_d,                    \
-                                  inout_byte_e,inout_vector_nbletters_e,                    \
-                                  inout_byte_f,inout_vector_nbletters_f,                    \
-                                  inout_byte_g,inout_vector_nbletters_g,                    \
-                                  inout_byte_h,inout_vector_nbletters_h,                    \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u32[0] =                                                                 \
-        *((uint32_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 16;                                                        \
-      inout_byte_a += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 16;                                                        \
-      inout_byte_b += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u32[2] =                                                                 \
-        *((uint32_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 16;                                                        \
-      inout_byte_c += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u32[3] =                                                                 \
-        *((uint32_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 16;                                                        \
-      inout_byte_d += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_e) {                                                        \
-      inout_vector.u32[4] =                                                                 \
-        *((uint32_t *)(inout_byte_e));                                                      \
-      inout_vector_nbletters_e = 16;                                                        \
-      inout_byte_e += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_f) {                                                        \
-      inout_vector.u32[5] =                                                                 \
-        *((uint32_t *)(inout_byte_f));                                                      \
-      inout_vector_nbletters_f = 16;                                                        \
-      inout_byte_f += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_g) {                                                        \
-      inout_vector.u32[6] =                                                                 \
-        *((uint32_t *)(inout_byte_g));                                                      \
-      inout_vector_nbletters_g = 16;                                                        \
-      inout_byte_g += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_h) {                                                        \
-      inout_vector.u32[7] =                                                                 \
-        *((uint32_t *)(inout_byte_h));                                                      \
-      inout_vector_nbletters_h = 16;                                                        \
-      inout_byte_h += 4;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
-    inout_vector_nbletters_e--;                                                             \
-    inout_vector_nbletters_f--;                                                             \
-    inout_vector_nbletters_g--;                                                             \
-    inout_vector_nbletters_h--;                                                             \
+#define NEXTGENOSEQ_NOSUB_OCTA256(inout_byte,                                                                                              \
+                                  inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm256_movemask)(EPI32_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
+        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_NOSUB_QUAD256(inout_byte_a,inout_vector_nbletters_a,                    \
-                                  inout_byte_b,inout_vector_nbletters_b,                    \
-                                  inout_byte_c,inout_vector_nbletters_c,                    \
-                                  inout_byte_d,inout_vector_nbletters_d,                    \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 32;                                                        \
-      inout_byte_a += 8;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u64[1] =                                                                 \
-        *((uint64_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 32;                                                        \
-      inout_byte_b += 8;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u64[2] =                                                                 \
-        *((uint64_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 32;                                                        \
-      inout_byte_c += 8;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u64[3] =                                                                 \
-        *((uint64_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 32;                                                        \
-      inout_byte_d += 8;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_NOSUB_QUAD256(inout_byte,                                                                                              \
+                                  inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+          inout_vector.u64[__d__] =                                                                                                        \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
+          inout_byte[__d__]            += 8;                                                                                               \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_NOSUB_PAIR256(inout_byte_a,inout_vector_nbletters_a,                    \
-                                  inout_byte_b,inout_vector_nbletters_b,                    \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 32;                                                        \
-      inout_byte_a += 8;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u64[2] =                                                                 \
-        *((uint64_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 32;                                                        \
-      inout_byte_b += 8;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_NOSUB_PAIR256(inout_byte,                                                                                              \
+                                  inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
+        if (__u__ & 1 << (16*__d__)) {                                                                                                     \
+          inout_vector.u64[2*__d__] =                                                                                                      \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
+          inout_nbnuc_vector.u64[2*__d__ + 1] = 32;                                                                                        \
+          inout_byte[__d__]                  += 8;                                                                                         \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_OCTA256(inout_vector_nbletters_a,                            \
-                                       inout_vector_nbletters_b,                            \
-                                       inout_vector_nbletters_c,                            \
-                                       inout_vector_nbletters_d,                            \
-                                       inout_vector_nbletters_e,                            \
-                                       inout_vector_nbletters_f,                            \
-                                       inout_vector_nbletters_g,                            \
-                                       inout_vector_nbletters_h,                            \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
-    inout_vector_nbletters_e--;                                                             \
-    inout_vector_nbletters_f--;                                                             \
-    inout_vector_nbletters_g--;                                                             \
-    inout_vector_nbletters_h--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_OCTA256(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                    \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI32_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_QUAD256(inout_vector_nbletters_a,                            \
-                                       inout_vector_nbletters_b,                            \
-                                       inout_vector_nbletters_c,                            \
-                                       inout_vector_nbletters_d,                            \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_QUAD256(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                    \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_PAIR256(inout_vector_nbletters_a,                            \
-                                       inout_vector_nbletters_b,                            \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                 \
-    inout_vector.v = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                             \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_PAIR256(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                    \
+    out_vtype_vLB        = SI256_TYPE(_mm256_and)(inout_vector.v,vBufferMask256);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm256_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
 VTYPE256  vThreshold256     __attribute__ ((aligned (16))),
@@ -585,7 +360,7 @@ VTYPE256  vThreshold256     __attribute__ ((aligned (16))),
           vMismatchS256     __attribute__ ((aligned (16))),
           vIndelOpenS256    __attribute__ ((aligned (16))),
           vIndelExtendsS256 __attribute__ ((aligned (16))),
-          v0256             __attribute__ ((aligned (16))),
+          vOnes256          __attribute__ ((aligned (16))),
           vBufferMask256    __attribute__ ((aligned (16))),
          *vMsk256           __attribute__ ((aligned (16)));
 
@@ -602,472 +377,243 @@ void alignment_avx2__clean() {if (vMsk256unaligned){ free(vMsk256unaligned); vMs
 
 #ifdef __SSE2__
 
-#define NEXTREADSEQ_OCTA128(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u16[0] =                                                                 \
-      inout_vector.u16[1] =                                                                 \
-      inout_vector.u16[2] =                                                                 \
-      inout_vector.u16[3] =                                                                 \
-      inout_vector.u16[4] =                                                                 \
-      inout_vector.u16[5] =                                                                 \
-      inout_vector.u16[6] =                                                                 \
-      inout_vector.u16[7] =                                                                 \
-        *((uint16_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 8;                                                           \
-      inout_byte += 2;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                   \
-     inout_vector.v = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                               \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_OCTA128(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI16_TYPE(_mm_set1)(*(uint16_t *)(inout_byte));                                                                    \
+      inout_nbnuc    = 8;                                                                                                                  \
+      inout_byte    += 2;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                                   \
+    inout_vector.v = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                               \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_QUAD128(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u32[0] =                                                                 \
-      inout_vector.u32[1] =                                                                 \
-      inout_vector.u32[2] =                                                                 \
-      inout_vector.u32[3] =                                                                 \
-        *((uint32_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 16;                                                          \
-      inout_byte += 4;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                   \
-     inout_vector.v = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                               \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_QUAD128(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI32_TYPE(_mm_set1)(*(uint32_t *)(inout_byte));                                                                    \
+      inout_nbnuc    = 16;                                                                                                                 \
+      inout_byte    += 4;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                                   \
+    inout_vector.v = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                               \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_PAIR128(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-      inout_vector.u64[1] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                   \
-     inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                               \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_PAIR128(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64X_TYPE(_mm_set1)(*(uint64_t *)(inout_byte));                                                                   \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                                   \
+    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                               \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_MONO128(inout_byte,inout_vector_nbletters,                              \
-                            inout_vector,out_vtype_vLA) {                                   \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                   \
-     inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                               \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_MONO128(inout_byte,                                                                                                    \
+                            inout_nbnuc,inout_vector,out_vtype_vLA) {                                                                      \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64X_TYPE(_mm_set1)(*(uint64_t *)(inout_byte));                                                                   \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                                   \
+    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                               \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_OCTA128(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,              \
-                            in_subpos_b,inout_byte_b,inout_vector_nbletters_b,              \
-                            in_subpos_c,inout_byte_c,inout_vector_nbletters_c,              \
-                            in_subpos_d,inout_byte_d,inout_vector_nbletters_d,              \
-                            in_subpos_e,inout_byte_e,inout_vector_nbletters_e,              \
-                            in_subpos_f,inout_byte_f,inout_vector_nbletters_f,              \
-                            in_subpos_g,inout_byte_g,inout_vector_nbletters_g,              \
-                            in_subpos_h,inout_byte_h,inout_vector_nbletters_h,              \
-                            inout_vector,out_vtype_vLB) {                                   \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u16[0] =                                                                 \
-        *((uint16_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 8;                                                         \
-      inout_byte_a += 2;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u16[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u16[1] =                                                                 \
-        *((uint16_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 8;                                                         \
-      inout_byte_b += 2;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u16[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u16[2] =                                                                 \
-        *((uint16_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 8;                                                         \
-      inout_byte_c += 2;                                                                    \
-      if (in_subpos_c) {                                                                    \
-        inout_vector.u16[2]     >>= in_subpos_c << 1;                                       \
-        inout_vector_nbletters_c -= in_subpos_c;                                            \
-        in_subpos_c               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u16[3] =                                                                 \
-        *((uint16_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 8;                                                         \
-      inout_byte_d += 2;                                                                    \
-      if (in_subpos_d) {                                                                    \
-        inout_vector.u16[3]     >>= in_subpos_d << 1;                                       \
-        inout_vector_nbletters_d -= in_subpos_d;                                            \
-        in_subpos_d               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_e) {                                                        \
-      inout_vector.u16[4] =                                                                 \
-        *((uint16_t *)(inout_byte_e));                                                      \
-      inout_vector_nbletters_e = 8;                                                         \
-      inout_byte_e += 2;                                                                    \
-      if (in_subpos_e) {                                                                    \
-        inout_vector.u16[4]     >>= in_subpos_e << 1;                                       \
-        inout_vector_nbletters_e -= in_subpos_e;                                            \
-        in_subpos_e               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_f) {                                                        \
-      inout_vector.u16[5] =                                                                 \
-        *((uint16_t *)(inout_byte_f));                                                      \
-      inout_vector_nbletters_f = 8;                                                         \
-      inout_byte_f += 2;                                                                    \
-      if (in_subpos_f) {                                                                    \
-        inout_vector.u16[5]     >>= in_subpos_f << 1;                                       \
-        inout_vector_nbletters_f -= in_subpos_f;                                            \
-        in_subpos_f               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_g) {                                                        \
-      inout_vector.u16[6] =                                                                 \
-        *((uint16_t *)(inout_byte_g));                                                      \
-      inout_vector_nbletters_g = 8;                                                         \
-      inout_byte_g += 2;                                                                    \
-      if (in_subpos_g) {                                                                    \
-        inout_vector.u16[6]     >>= in_subpos_g << 1;                                       \
-        inout_vector_nbletters_g -= in_subpos_g;                                            \
-        in_subpos_g               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_h) {                                                        \
-      inout_vector.u16[7] =                                                                 \
-        *((uint16_t *)(inout_byte_h));                                                      \
-      inout_vector_nbletters_h = 8;                                                         \
-      inout_byte_h += 2;                                                                    \
-      if (in_subpos_h) {                                                                    \
-        inout_vector.u16[7]     >>= in_subpos_h << 1;                                       \
-        inout_vector_nbletters_h -= in_subpos_h;                                            \
-        in_subpos_h               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
-    inout_vector_nbletters_e--;                                                             \
-    inout_vector_nbletters_f--;                                                             \
-    inout_vector_nbletters_g--;                                                             \
-    inout_vector_nbletters_h--;                                                             \
+#define NEXTGENOSEQ_OCTA128(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm_movemask)(EPI16_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
+          inout_vector.u16[__d__] =                                                                                                        \
+            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
+          inout_byte[__d__]            += 2;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u16[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u16[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI16_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_QUAD128(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,              \
-                            in_subpos_b,inout_byte_b,inout_vector_nbletters_b,              \
-                            in_subpos_c,inout_byte_c,inout_vector_nbletters_c,              \
-                            in_subpos_d,inout_byte_d,inout_vector_nbletters_d,              \
-                            inout_vector,out_vtype_vLB) {                                   \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u32[0] =                                                                 \
-        *((uint32_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 16;                                                        \
-      inout_byte_a += 4;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u32[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 16;                                                        \
-      inout_byte_b += 4;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u32[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u32[2] =                                                                 \
-        *((uint32_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 16;                                                        \
-      inout_byte_c += 4;                                                                    \
-      if (in_subpos_c) {                                                                    \
-        inout_vector.u32[2]     >>= in_subpos_c << 1;                                       \
-        inout_vector_nbletters_c -= in_subpos_c;                                            \
-        in_subpos_c               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u32[3] =                                                                 \
-        *((uint32_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 16;                                                        \
-      inout_byte_d += 4;                                                                    \
-      if (in_subpos_d) {                                                                    \
-        inout_vector.u32[3]     >>= in_subpos_d << 1;                                       \
-        inout_vector_nbletters_d -= in_subpos_d;                                            \
-        in_subpos_d               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_QUAD128(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u32[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u32[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_PAIR128(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,              \
-                            in_subpos_b,inout_byte_b,inout_vector_nbletters_b,              \
-                            inout_vector,out_vtype_vLB) {                                   \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 32;                                                        \
-      inout_byte_a += 8;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u64[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u64[1] =                                                                 \
-        *((uint64_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 32;                                                        \
-      inout_byte_b += 8;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u64[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_PAIR128(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
+        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+          inout_vector.u64[__d__] =                                                                                                        \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[2*__d__    ] = 32;                                                                                        \
+          inout_nbnuc_vector.u32[2*__d__ + 1] = 32;                                                                                        \
+          inout_byte[__d__]                  += 8;                                                                                         \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u64[__d__]            >>= inout_subpos[__d__] << 1;                                                               \
+            inout_nbnuc_vector.u32[2*__d__    ] -= inout_subpos[__d__];                                                                    \
+            inout_nbnuc_vector.u32[2*__d__ + 1] -= inout_subpos[__d__];                                                                    \
+            inout_subpos[__d__]                  = 0;                                                                                      \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_MONO128(in_subpos,inout_byte,inout_vector_nbletters,                    \
-                              inout_vector,out_vtype_vLB) {                                 \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-      if (in_subpos) {                                                                      \
-        inout_vector.u64[0]     >>= in_subpos << 1;                                         \
-        inout_vector_nbletters -= in_subpos;                                                \
-        in_subpos               = 0;                                                        \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters--;                                                               \
+#define NEXTGENOSEQ_MONO128(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc,inout_vector,out_vtype_vLB) {                                                                      \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64X_TYPE(_mm_set1)(*((uint64_t *)(inout_byte)));                                                                 \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+      if (inout_subpos) {                                                                                                                  \
+        inout_vector.v  = EPI64_TYPE(_mm_srli)(inout_vector.v, inout_subpos << 1);                                                         \
+        inout_nbnuc    -= inout_subpos;                                                                                                    \
+        inout_subpos    = 0;                                                                                                               \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_NOSUB_OCTA128(inout_byte_a,inout_vector_nbletters_a,                    \
-                                  inout_byte_b,inout_vector_nbletters_b,                    \
-                                  inout_byte_c,inout_vector_nbletters_c,                    \
-                                  inout_byte_d,inout_vector_nbletters_d,                    \
-                                  inout_byte_e,inout_vector_nbletters_e,                    \
-                                  inout_byte_f,inout_vector_nbletters_f,                    \
-                                  inout_byte_g,inout_vector_nbletters_g,                    \
-                                  inout_byte_h,inout_vector_nbletters_h,                    \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u16[0] =                                                                 \
-        *((uint16_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 8;                                                         \
-      inout_byte_a += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u16[1] =                                                                 \
-        *((uint16_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 8;                                                         \
-      inout_byte_b += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u16[2] =                                                                 \
-        *((uint16_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 8;                                                         \
-      inout_byte_c += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u16[3] =                                                                 \
-        *((uint16_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 8;                                                         \
-      inout_byte_d += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_e) {                                                        \
-      inout_vector.u16[4] =                                                                 \
-        *((uint16_t *)(inout_byte_e));                                                      \
-      inout_vector_nbletters_e = 8;                                                         \
-      inout_byte_e += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_f) {                                                        \
-      inout_vector.u16[5] =                                                                 \
-        *((uint16_t *)(inout_byte_f));                                                      \
-      inout_vector_nbletters_f = 8;                                                         \
-      inout_byte_f += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_g) {                                                        \
-      inout_vector.u16[6] =                                                                 \
-        *((uint16_t *)(inout_byte_g));                                                      \
-      inout_vector_nbletters_g = 8;                                                         \
-      inout_byte_g += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_h) {                                                        \
-      inout_vector.u16[7] =                                                                 \
-        *((uint16_t *)(inout_byte_h));                                                      \
-      inout_vector_nbletters_h = 8;                                                         \
-      inout_byte_h += 2;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
-    inout_vector_nbletters_e--;                                                             \
-    inout_vector_nbletters_f--;                                                             \
-    inout_vector_nbletters_g--;                                                             \
-    inout_vector_nbletters_h--;                                                             \
+#define NEXTGENOSEQ_NOSUB_OCTA128(inout_byte,                                                                                              \
+                                  inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm_movemask)(EPI16_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
+          inout_vector.u16[__d__] =                                                                                                        \
+            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
+          inout_byte[__d__]            += 2;                                                                                               \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI16_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_NOSUB_QUAD128(inout_byte_a,inout_vector_nbletters_a,                    \
-                                  inout_byte_b,inout_vector_nbletters_b,                    \
-                                  inout_byte_c,inout_vector_nbletters_c,                    \
-                                  inout_byte_d,inout_vector_nbletters_d,                    \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u32[0] =                                                                 \
-        *((uint32_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 16;                                                        \
-      inout_byte_a += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 16;                                                        \
-      inout_byte_b += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u32[2] =                                                                 \
-        *((uint32_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 16;                                                        \
-      inout_byte_c += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u32[3] =                                                                 \
-        *((uint32_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 16;                                                        \
-      inout_byte_d += 4;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_NOSUB_QUAD128(inout_byte,                                                                                              \
+                                  inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_NOSUB_PAIR128(inout_byte_a,inout_vector_nbletters_a,                    \
-                                  inout_byte_b,inout_vector_nbletters_b,                    \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 32;                                                        \
-      inout_byte_a += 8;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u64[1] =                                                                 \
-        *((uint64_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 32;                                                        \
-      inout_byte_b += 8;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_NOSUB_PAIR128(inout_byte,                                                                                              \
+                                  inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
+        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+          inout_vector.u64[__d__] =                                                                                                        \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[2*__d__    ] = 32;                                                                                        \
+          inout_nbnuc_vector.u32[2*__d__ + 1] = 32;                                                                                        \
+          inout_byte[__d__]                  += 8;                                                                                         \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_NOSUB_MONO128(inout_byte,inout_vector_nbletters,                        \
-                                  inout_vector,out_vtype_vLB) {                             \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-    }                                                                                       \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters--;                                                               \
+#define NEXTGENOSEQ_NOSUB_MONO128(inout_byte,                                                                                              \
+                                  inout_nbnuc,inout_vector,out_vtype_vLB) {                                                                \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64X_TYPE(_mm_set1)(*((uint64_t *)(inout_byte)));                                                                 \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_OCTA128(inout_vector_nbletters_a,                            \
-                                       inout_vector_nbletters_b,                            \
-                                       inout_vector_nbletters_c,                            \
-                                       inout_vector_nbletters_d,                            \
-                                       inout_vector_nbletters_e,                            \
-                                       inout_vector_nbletters_f,                            \
-                                       inout_vector_nbletters_g,                            \
-                                       inout_vector_nbletters_h,                            \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
-    inout_vector_nbletters_e--;                                                             \
-    inout_vector_nbletters_f--;                                                             \
-    inout_vector_nbletters_g--;                                                             \
-    inout_vector_nbletters_h--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_OCTA128(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                    \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI16_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_QUAD128(inout_vector_nbletters_a,                            \
-                                       inout_vector_nbletters_b,                            \
-                                       inout_vector_nbletters_c,                            \
-                                       inout_vector_nbletters_d,                            \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_QUAD128(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                    \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_PAIR128(inout_vector_nbletters_a,                            \
-                                       inout_vector_nbletters_b,                            \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_PAIR128(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                    \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes128);                                                             \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_MONO128(inout_vector_nbletters,                              \
-                                       inout_vector,out_vtype_vLB) {                        \
-    out_vtype_vLB  = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                    \
-    inout_vector.v = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                \
-    inout_vector_nbletters--;                                                               \
+#define NEXTGENOSEQ_NOSUB_NOUP_MONO128(inout_nbnuc,inout_vector,out_vtype_vLB) {                                                           \
+    out_vtype_vLB        = SI128_TYPE(_mm_and)(inout_vector.v,vBufferMask128);                                                             \
+    inout_vector.v       = EPI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                         \
+    inout_nbnuc--;                                                                                                                         \
 }
 
 VTYPE128  vThreshold128     __attribute__ ((aligned (16))),
@@ -1075,7 +621,7 @@ VTYPE128  vThreshold128     __attribute__ ((aligned (16))),
           vMismatchS128     __attribute__ ((aligned (16))),
           vIndelOpenS128    __attribute__ ((aligned (16))),
           vIndelExtendsS128 __attribute__ ((aligned (16))),
-          v0128             __attribute__ ((aligned (16))),
+          vOnes128          __attribute__ ((aligned (16))),
           vBufferMask128    __attribute__ ((aligned (16))),
          *vMsk128           __attribute__ ((aligned (16)));
 
@@ -1092,253 +638,177 @@ void alignment_sse2__clean() {if (vMsk128unaligned){ free(vMsk128unaligned); vMs
 
 #ifdef __SSE__
 
-#define NEXTREADSEQ_QUAD64(inout_byte,inout_vector_nbletters,                               \
-                           inout_vector,out_vtype_vLA) {                                    \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u16[0] =                                                                 \
-      inout_vector.u16[1] =                                                                 \
-      inout_vector.u16[2] =                                                                 \
-      inout_vector.u16[3] =                                                                 \
-        *((uint16_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 8;                                                           \
-      inout_byte += 2;                                                                      \
-     }                                                                                      \
-     out_vtype_vLA  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                     \
-     inout_vector.v = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                \
-     inout_vector_nbletters--;                                                              \
+#define NEXTREADSEQ_QUAD64(inout_byte,inout_nbnuc,                                                                                         \
+                           inout_vector,out_vtype_vLA) {                                                                                   \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = PI16_TYPE(_mm_set1)(*(uint16_t *)(inout_byte));                                                                     \
+      inout_nbnuc    = 8;                                                                                                                  \
+      inout_byte    += 2;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                                     \
+    inout_vector.v = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                                \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_PAIR64(inout_byte,inout_vector_nbletters,                               \
-                           inout_vector,out_vtype_vLA) {                                    \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u32[0] =                                                                 \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 16;                                                          \
-      inout_byte += 4;                                                                      \
-    }                                                                                       \
-    out_vtype_vLA  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters--;                                                               \
+#define NEXTREADSEQ_PAIR64(inout_byte,inout_nbnuc,                                                                                         \
+                           inout_vector,out_vtype_vLA) {                                                                                   \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = PI32_TYPE(_mm_set1)(*(uint32_t *)(inout_byte));                                                                     \
+      inout_nbnuc    = 16;                                                                                                                 \
+      inout_byte    += 4;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                                     \
+    inout_vector.v = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                                \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTREADSEQ_MONO64(inout_byte,inout_vector_nbletters,                               \
-                           inout_vector,out_vtype_vLA) {                                    \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-    }                                                                                       \
-    out_vtype_vLA  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters--;                                                               \
+#define NEXTREADSEQ_MONO64(inout_byte,inout_nbnuc,                                                                                         \
+                           inout_vector,out_vtype_vLA) {                                                                                   \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = _mm_cvtsi64_m64(*((uint64_t *)(inout_byte)));                                                                       \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                                     \
+    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                                \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_QUAD64(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,               \
-                           in_subpos_b,inout_byte_b,inout_vector_nbletters_b,               \
-                           in_subpos_c,inout_byte_c,inout_vector_nbletters_c,               \
-                           in_subpos_d,inout_byte_d,inout_vector_nbletters_d,               \
-                           inout_vector,out_vtype_vLB) {                                    \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u16[0] =                                                                 \
-        *((uint16_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 8;                                                         \
-      inout_byte_a += 2;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u16[0]     >>= in_subpos_a << 1;                                       \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u16[1] =                                                                 \
-        *((uint16_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 8;                                                         \
-      inout_byte_b += 2;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u16[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u16[2] =                                                                 \
-        *((uint16_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 8;                                                         \
-      inout_byte_c += 2;                                                                    \
-      if (in_subpos_c) {                                                                    \
-        inout_vector.u16[2]     >>= in_subpos_c << 1;                                       \
-        inout_vector_nbletters_c -= in_subpos_c;                                            \
-        in_subpos_c               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u16[3] =                                                                 \
-        *((uint16_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 8;                                                         \
-      inout_byte_d += 2;                                                                    \
-      if (in_subpos_d) {                                                                    \
-        inout_vector.u16[3]     >>= in_subpos_d << 1;                                       \
-        inout_vector_nbletters_d -= in_subpos_d;                                            \
-        in_subpos_d               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_QUAD64(inout_subpos,inout_byte,                                                                                        \
+                           inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                                \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = PI8_TYPE(_mm_movemask)(PI16_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI64_TYPE(_mm_setzero)()));                                   \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
+          inout_vector.u16[__d__] =                                                                                                        \
+            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
+          inout_byte[__d__]            += 2;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u16[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u16[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc_vector.v = PI16_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes64);                                                               \
 }
 
-#define NEXTGENOSEQ_PAIR64(in_subpos_a,inout_byte_a,inout_vector_nbletters_a,               \
-                           in_subpos_b,inout_byte_b,inout_vector_nbletters_b,               \
-                           inout_vector,out_vtype_vLB) {                                    \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u32[0] =                                                                 \
-        *((uint32_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 16;                                                        \
-      inout_byte_a += 4;                                                                    \
-      if (in_subpos_a) {                                                                    \
-        inout_vector.u32[0]    >>= in_subpos_a << 1;                                        \
-        inout_vector_nbletters_a -= in_subpos_a;                                            \
-        in_subpos_a               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 16;                                                        \
-      inout_byte_b += 4;                                                                    \
-      if (in_subpos_b) {                                                                    \
-        inout_vector.u32[1]     >>= in_subpos_b << 1;                                       \
-        inout_vector_nbletters_b -= in_subpos_b;                                            \
-        in_subpos_b               = 0;                                                      \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_PAIR64(inout_subpos,inout_byte,                                                                                        \
+                           inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                                \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = PI8_TYPE(_mm_movemask)(PI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI64_TYPE(_mm_setzero)()));                                   \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
+        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u32[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u32[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc_vector.v = PI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes64);                                                               \
 }
 
-#define NEXTGENOSEQ_MONO64(in_subpos,inout_byte,inout_vector_nbletters,                     \
-                           inout_vector,out_vtype_vLB) {                                    \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-      if (in_subpos) {                                                                      \
-        inout_vector.u64[0]  >>= in_subpos << 1;                                            \
-        inout_vector_nbletters -= in_subpos;                                                \
-        in_subpos               = 0;                                                        \
-      }                                                                                     \
-    }                                                                                       \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters--;                                                               \
+#define NEXTGENOSEQ_MONO64(inout_subpos,inout_byte,                                                                                        \
+                           inout_nbnuc,inout_vector,out_vtype_vLB) {                                                                       \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = _mm_cvtsi64_m64(*((uint64_t *)(inout_byte)));                                                                       \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+      if (inout_subpos) {                                                                                                                  \
+        inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,inout_subpos << 1);                                                            \
+        inout_nbnuc   -= inout_subpos;                                                                                                     \
+        inout_subpos   = 0;                                                                                                                \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                                     \
+    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                                \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_NOSUB_QUAD64(inout_byte_a,inout_vector_nbletters_a,                     \
-                                 inout_byte_b,inout_vector_nbletters_b,                     \
-                                 inout_byte_c,inout_vector_nbletters_c,                     \
-                                 inout_byte_d,inout_vector_nbletters_d,                     \
-                                 inout_vector,out_vtype_vLB) {                              \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u16[0] =                                                                 \
-        *((uint16_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 8;                                                         \
-      inout_byte_a += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u16[1] =                                                                 \
-        *((uint16_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 8;                                                         \
-      inout_byte_b += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_c) {                                                        \
-      inout_vector.u16[2] =                                                                 \
-        *((uint16_t *)(inout_byte_c));                                                      \
-      inout_vector_nbletters_c = 8;                                                         \
-      inout_byte_c += 2;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_d) {                                                        \
-      inout_vector.u16[3] =                                                                 \
-        *((uint16_t *)(inout_byte_d));                                                      \
-      inout_vector_nbletters_d = 8;                                                         \
-      inout_byte_d += 2;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_NOSUB_QUAD64(inout_byte,                                                                                               \
+                                 inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                          \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = PI8_TYPE(_mm_movemask)(PI16_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI64_TYPE(_mm_setzero)()));                                   \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
+          inout_vector.u16[__d__] =                                                                                                        \
+            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
+          inout_byte[__d__]            += 2;                                                                                               \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc_vector.v = PI16_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes64);                                                               \
 }
 
-#define NEXTGENOSEQ_NOSUB_PAIR64(inout_byte_a,inout_vector_nbletters_a,                     \
-                                 inout_byte_b,inout_vector_nbletters_b,                     \
-                                 inout_vector,out_vtype_vLB) {                              \
-    if (!inout_vector_nbletters_a) {                                                        \
-      inout_vector.u32[0] =                                                                 \
-        *((uint32_t *)(inout_byte_a));                                                      \
-      inout_vector_nbletters_a = 16;                                                        \
-      inout_byte_a += 4;                                                                    \
-    }                                                                                       \
-    if (!inout_vector_nbletters_b) {                                                        \
-      inout_vector.u32[1] =                                                                 \
-        *((uint32_t *)(inout_byte_b));                                                      \
-      inout_vector_nbletters_b = 16;                                                        \
-      inout_byte_b += 4;                                                                    \
-    }                                                                                       \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_NOSUB_PAIR64(inout_byte,                                                                                               \
+                                 inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                          \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = PI8_TYPE(_mm_movemask)(PI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI64_TYPE(_mm_setzero)()));                                   \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
+        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc_vector.v = PI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes64);                                                               \
 }
 
-#define NEXTGENOSEQ_NOSUB_MONO64(inout_byte,inout_vector_nbletters,                         \
-                                 inout_vector,out_vtype_vLB) {                              \
-    if (!inout_vector_nbletters) {                                                          \
-      inout_vector.u64[0] =                                                                 \
-        *((uint64_t *)(inout_byte));                                                        \
-      inout_vector_nbletters = 32;                                                          \
-      inout_byte += 8;                                                                      \
-    }                                                                                       \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters--;                                                               \
+#define NEXTGENOSEQ_NOSUB_MONO64(inout_byte,                                                                                               \
+                                 inout_nbnuc,inout_vector,out_vtype_vLB) {                                                                 \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = _mm_cvtsi64_m64(*((uint64_t *)(inout_byte)));                                                                       \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                                     \
+    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                                \
+    inout_nbnuc--;                                                                                                                         \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_QUAD64(inout_vector_nbletters_a,                             \
-                                      inout_vector_nbletters_b,                             \
-                                      inout_vector_nbletters_c,                             \
-                                      inout_vector_nbletters_d,                             \
-                                      inout_vector,out_vtype_vLB) {                         \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
-    inout_vector_nbletters_c--;                                                             \
-    inout_vector_nbletters_d--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_QUAD64(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                     \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = PI16_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc_vector.v = PI16_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes64);                                                               \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_PAIR64(inout_vector_nbletters_a,                             \
-                                      inout_vector_nbletters_b,                             \
-                                      inout_vector,out_vtype_vLB) {                         \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters_a--;                                                             \
-    inout_vector_nbletters_b--;                                                             \
+#define NEXTGENOSEQ_NOSUB_NOUP_PAIR64(inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                     \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = PI32_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc_vector.v = PI32_TYPE(_mm_sub)(inout_nbnuc_vector.v,vOnes64);                                                               \
 }
 
-#define NEXTGENOSEQ_NOSUB_NOUP_MONO64(inout_vector_nbletters,                               \
-                                      inout_vector,out_vtype_vLB) {                         \
-    out_vtype_vLB  = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                      \
-    inout_vector.v = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                 \
-    inout_vector_nbletters--;                                                               \
+#define NEXTGENOSEQ_NOSUB_NOUP_MONO64(inout_nbnuc,inout_vector,out_vtype_vLB) {                                                            \
+    out_vtype_vLB        = SI64_TYPE(_mm_and)(inout_vector.v,vBufferMask64);                                                               \
+    inout_vector.v       = SI64_TYPE(_mm_srli)(inout_vector.v,2);                                                                          \
+    inout_nbnuc--;                                                                                                                         \
 }
 
 VTYPE64  vThreshold64     __attribute__ ((aligned (16))),
@@ -1346,7 +816,7 @@ VTYPE64  vThreshold64     __attribute__ ((aligned (16))),
          vMismatchS64     __attribute__ ((aligned (16))),
          vIndelOpenS64    __attribute__ ((aligned (16))),
          vIndelExtendsS64 __attribute__ ((aligned (16))),
-         v064             __attribute__ ((aligned (16))),
+         vOnes64          __attribute__ ((aligned (16))),
          vBufferMask64    __attribute__ ((aligned (16))),
         *vMsk64           __attribute__ ((aligned (16)));
 
@@ -1358,10 +828,7 @@ void alignment_sse__clean() {if (vMsk64unaligned){ free(vMsk64unaligned); vMsk64
 
 
 
-
 unsigned int   prlength;
-
-
 
 
 #ifdef __AVX2__
@@ -1572,7 +1039,7 @@ void alignment_avx2__init_pair(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0256             =  EPI32_TYPE(_mm256_set)(0, 0, 0, 0, 0, 0, 0, 0);
+  vOnes256          =  EPI64X_TYPE(_mm256_set)(1, 1, 1, 1);
   vBufferMask256    =  EPI32_TYPE(_mm256_set)(0, 0, 0, 3, 0, 0, 0, 3);
   vThreshold256     =  EPI8_TYPE(_mm256_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                              u_threshold, u_threshold, u_threshold, u_threshold,
@@ -1629,7 +1096,7 @@ void alignment_avx2__init_quad(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0256             =  EPI32_TYPE(_mm256_set)(0, 0, 0, 0, 0, 0, 0, 0);
+  vOnes256          =  EPI64X_TYPE(_mm256_set)(1, 1, 1, 1);
   vBufferMask256    =  EPI32_TYPE(_mm256_set)(0, 3, 0, 3, 0, 3, 0, 3);
   vThreshold256     =  EPI8_TYPE(_mm256_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                              u_threshold, u_threshold, u_threshold, u_threshold,
@@ -1686,7 +1153,7 @@ void alignment_avx2__init_octa(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0256             =  EPI32_TYPE(_mm256_set)(0, 0, 0, 0, 0, 0, 0, 0);
+  vOnes256          =  EPI32_TYPE(_mm256_set)(1, 1, 1, 1, 1, 1, 1, 1);
   vBufferMask256    =  EPI32_TYPE(_mm256_set)(3, 3, 3, 3, 3, 3, 3, 3);
   vThreshold256     =  EPI8_TYPE(_mm256_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                              u_threshold, u_threshold, u_threshold, u_threshold,
@@ -1755,23 +1222,21 @@ int alignment_avx2__align_pair(unsigned char * genome,
   VTYPE256 vM_old_old;
   VTYPE256 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
+  unsigned char *             byte_pos_genome[2];
+  unsigned int                 sub_pos_genome[2];
+  {
+    int d;
+    for (d = 0; d < 2; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector256_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-
-  vector256_t     vector_read_buffer     __attribute__ ((aligned (16)));
-
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI256_TYPE(_mm256_setzero)();
@@ -1787,14 +1252,11 @@ int alignment_avx2__align_pair(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_PAIR256(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                        sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_PAIR256(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 16; d++) {
       VTYPE256 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_PAIR256(vector_genome_buffer_nbletters_a,
-                                     vector_genome_buffer_nbletters_b,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_PAIR256(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = SI256_TYPE(_mm256_slli)(vB,(1));
       vB        = SI256_TYPE(_mm256_or)(vB,vLB);
     }
@@ -1806,18 +1268,17 @@ int alignment_avx2__align_pair(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE256 vLB;
-        NEXTGENOSEQ_NOSUB_PAIR256(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                  byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_PAIR256(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = SI256_TYPE(_mm256_slli)(vB,(1));
         vB  = SI256_TYPE(_mm256_or)(vB,vLB);
       } else {
         VTYPE256 vLA;
-        NEXTREADSEQ_PAIR256(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_PAIR256(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = SI256_TYPE(_mm256_slli)(vLA,(15));
         vA  = SI256_TYPE(_mm256_srli)(vA,(1));
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
@@ -1961,33 +1422,21 @@ int alignment_avx2__align_quad(unsigned char * genome,
   VTYPE256 vM_old_old;
   VTYPE256 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
-  int pos_genome_c = pos_genome[2];
-  int pos_genome_d = pos_genome[3];
+  unsigned char *             byte_pos_genome[4];
+  unsigned int                 sub_pos_genome[4];
+  {
+    int d;
+    for (d = 0; d < 4; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector256_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-  unsigned char *             byte_pos_genome_c = genome + (pos_genome_c >> 2);
-  unsigned int                 sub_pos_genome_c = (pos_genome_c & 3);
-  unsigned int vector_genome_buffer_nbletters_c = 0;
-
-  unsigned char *             byte_pos_genome_d = genome + (pos_genome_d >> 2);
-  unsigned int                 sub_pos_genome_d = (pos_genome_d & 3);
-  unsigned int vector_genome_buffer_nbletters_d = 0;
-
-
-  vector256_t     vector_read_buffer     __attribute__ ((aligned (16)));
-
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI256_TYPE(_mm256_setzero)();
@@ -2003,18 +1452,11 @@ int alignment_avx2__align_quad(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_QUAD256(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                        sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                        sub_pos_genome_c,byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                        sub_pos_genome_d,byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_QUAD256(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 8; d++) {
       VTYPE256 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_QUAD256(vector_genome_buffer_nbletters_a,
-                                     vector_genome_buffer_nbletters_b,
-                                     vector_genome_buffer_nbletters_c,
-                                     vector_genome_buffer_nbletters_d,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_QUAD256(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = EPI64_TYPE(_mm256_slli)(vB,(1)*8);
       vB        = SI256_TYPE(_mm256_or)(vB,vLB);
     }
@@ -2026,20 +1468,17 @@ int alignment_avx2__align_quad(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE256 vLB;
-        NEXTGENOSEQ_NOSUB_QUAD256(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                  byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                  byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                                  byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_QUAD256(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = EPI64_TYPE(_mm256_slli)(vB,(1)*8);
         vB  = SI256_TYPE(_mm256_or)(vB,vLB);
       } else {
         VTYPE256 vLA;
-        NEXTREADSEQ_QUAD256(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_QUAD256(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = EPI64_TYPE(_mm256_slli)(vLA,(7)*8);
         vA  = EPI64_TYPE(_mm256_srli)(vA,(1)*8);
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
@@ -2180,53 +1619,21 @@ int alignment_avx2__align_octa(unsigned char * genome,
   VTYPE256 vM_old_old;
   VTYPE256 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
-  int pos_genome_c = pos_genome[2];
-  int pos_genome_d = pos_genome[3];
-  int pos_genome_e = pos_genome[4];
-  int pos_genome_f = pos_genome[5];
-  int pos_genome_g = pos_genome[6];
-  int pos_genome_h = pos_genome[7];
+  unsigned char *             byte_pos_genome[8];
+  unsigned int                 sub_pos_genome[8];
+  {
+    int d;
+    for (d = 0; d < 8; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector256_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-  unsigned char *             byte_pos_genome_c = genome + (pos_genome_c >> 2);
-  unsigned int                 sub_pos_genome_c = (pos_genome_c & 3);
-  unsigned int vector_genome_buffer_nbletters_c = 0;
-
-  unsigned char *             byte_pos_genome_d = genome + (pos_genome_d >> 2);
-  unsigned int                 sub_pos_genome_d = (pos_genome_d & 3);
-  unsigned int vector_genome_buffer_nbletters_d = 0;
-
-  unsigned char *             byte_pos_genome_e = genome + (pos_genome_e >> 2);
-  unsigned int                 sub_pos_genome_e = (pos_genome_e & 3);
-  unsigned int vector_genome_buffer_nbletters_e = 0;
-
-  unsigned char *             byte_pos_genome_f = genome + (pos_genome_f >> 2);
-  unsigned int                 sub_pos_genome_f = (pos_genome_f & 3);
-  unsigned int vector_genome_buffer_nbletters_f = 0;
-
-  unsigned char *             byte_pos_genome_g = genome + (pos_genome_g >> 2);
-  unsigned int                 sub_pos_genome_g = (pos_genome_g & 3);
-  unsigned int vector_genome_buffer_nbletters_g = 0;
-
-  unsigned char *             byte_pos_genome_h = genome + (pos_genome_h >> 2);
-  unsigned int                 sub_pos_genome_h = (pos_genome_h & 3);
-  unsigned int vector_genome_buffer_nbletters_h = 0;
-
-
-  vector256_t     vector_read_buffer     __attribute__ ((aligned (16)));
-
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI256_TYPE(_mm256_setzero)();
@@ -2242,26 +1649,11 @@ int alignment_avx2__align_octa(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_OCTA256(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                        sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                        sub_pos_genome_c,byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                        sub_pos_genome_d,byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                        sub_pos_genome_e,byte_pos_genome_e,vector_genome_buffer_nbletters_e,
-                        sub_pos_genome_f,byte_pos_genome_f,vector_genome_buffer_nbletters_f,
-                        sub_pos_genome_g,byte_pos_genome_g,vector_genome_buffer_nbletters_g,
-                        sub_pos_genome_h,byte_pos_genome_h,vector_genome_buffer_nbletters_h,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_OCTA256(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 4; d++) {
       VTYPE256 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_OCTA256(vector_genome_buffer_nbletters_a,
-                                     vector_genome_buffer_nbletters_b,
-                                     vector_genome_buffer_nbletters_c,
-                                     vector_genome_buffer_nbletters_d,
-                                     vector_genome_buffer_nbletters_e,
-                                     vector_genome_buffer_nbletters_f,
-                                     vector_genome_buffer_nbletters_g,
-                                     vector_genome_buffer_nbletters_h,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_OCTA256(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = EPI32_TYPE(_mm256_slli)(vB,(1)*8);
       vB        = SI256_TYPE(_mm256_or)(vB,vLB);
     }
@@ -2273,24 +1665,17 @@ int alignment_avx2__align_octa(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE256 vLB;
-        NEXTGENOSEQ_NOSUB_OCTA256(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                  byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                  byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                                  byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                                  byte_pos_genome_e,vector_genome_buffer_nbletters_e,
-                                  byte_pos_genome_f,vector_genome_buffer_nbletters_f,
-                                  byte_pos_genome_g,vector_genome_buffer_nbletters_g,
-                                  byte_pos_genome_h,vector_genome_buffer_nbletters_h,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_OCTA256(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = EPI32_TYPE(_mm256_slli)(vB,(1)*8);
         vB  = SI256_TYPE(_mm256_or)(vB,vLB);
       } else {
         VTYPE256 vLA;
-        NEXTREADSEQ_OCTA256(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_OCTA256(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = EPI32_TYPE(_mm256_slli)(vLA,(3)*8);
         vA  = EPI32_TYPE(_mm256_srli)(vA,(1)*8);
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
@@ -2673,7 +2058,7 @@ void alignment_sse2__init_mono(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0128             =  EPI32_TYPE(_mm_set)(0, 0, 0, 0);
+  vOnes128          =  EPI32_TYPE(_mm_set)(1, 1, 1, 1); /* not used */
   vBufferMask128    =  EPI32_TYPE(_mm_set)(0, 0, 0, 3);
   vThreshold128     =  EPI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                           u_threshold, u_threshold, u_threshold, u_threshold,
@@ -2710,7 +2095,7 @@ void alignment_sse2__init_pair(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0128             =  EPI32_TYPE(_mm_set)(0, 0, 0, 0);
+  vOnes128          =  EPI32_TYPE(_mm_set)(1, 1, 1, 1);
   vBufferMask128    =  EPI32_TYPE(_mm_set)(0, 3, 0, 3);
   vThreshold128     =  EPI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                           u_threshold, u_threshold, u_threshold, u_threshold,
@@ -2747,7 +2132,7 @@ void alignment_sse2__init_quad(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0128             =  EPI32_TYPE(_mm_set)(0, 0, 0, 0);
+  vOnes128          =  EPI32_TYPE(_mm_set)(1, 1, 1, 1);
   vBufferMask128    =  EPI32_TYPE(_mm_set)(3, 3, 3, 3);
   vThreshold128     =  EPI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                           u_threshold, u_threshold, u_threshold, u_threshold,
@@ -2784,7 +2169,7 @@ void alignment_sse2__init_octa(const unsigned int match, const unsigned int mism
     u_threshold = 254;
 
   /* init some vectors */
-  v0128             =  EPI16_TYPE(_mm_set)(0, 0, 0, 0, 0, 0, 0, 0);
+  vOnes128          =  EPI16_TYPE(_mm_set)(1, 1, 1, 1, 1, 1, 1, 1);
   vBufferMask128    =  EPI16_TYPE(_mm_set)(3, 3, 3, 3, 3, 3, 3, 3);
   vThreshold128     =  EPI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                           u_threshold, u_threshold, u_threshold, u_threshold,
@@ -2833,15 +2218,14 @@ int alignment_sse2__align_mono(unsigned char * genome,
   VTYPE128 vM_old_old;
   VTYPE128 vI_old;
 
-  int pos_genome_a = pos_genome[0];
+  unsigned char *             byte_pos_genome = genome + (pos_genome[0] >> 2);
+  unsigned int                 sub_pos_genome = (pos_genome[0] & 3);
 
-  vector128_t     vector_genome_buffer __attribute__ ((aligned (16)));
-  unsigned char *             byte_pos_genome = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters = 0;
+  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  unsigned int       vector_genome_buffer_nbnuc = 0;
 
-  vector128_t     vector_read_buffer   __attribute__ ((aligned (16)));
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI128_TYPE(_mm_setzero)();
@@ -2857,12 +2241,11 @@ int alignment_sse2__align_mono(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_MONO128(sub_pos_genome,byte_pos_genome,vector_genome_buffer_nbletters,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_MONO128(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 16; d++) {
       VTYPE128 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_MONO128(vector_genome_buffer_nbletters,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_MONO128(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = SI128_TYPE(_mm_slli)(vB,(1));
       vB        = SI128_TYPE(_mm_or)(vB,vLB);
     }
@@ -2874,17 +2257,17 @@ int alignment_sse2__align_mono(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE128 vLB;
-        NEXTGENOSEQ_NOSUB_MONO128(byte_pos_genome,vector_genome_buffer_nbletters,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_MONO128(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = SI128_TYPE(_mm_slli)(vB,(1));
         vB  = SI128_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE128 vLA;
-        NEXTREADSEQ_MONO128(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_MONO128(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = SI128_TYPE(_mm_slli)(vLA,(15));
         vA  = SI128_TYPE(_mm_srli)(vA,(1));
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
@@ -3023,23 +2406,21 @@ int alignment_sse2__align_pair(unsigned char * genome,
   VTYPE128 vM_old_old;
   VTYPE128 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
+  unsigned char *             byte_pos_genome[2];
+  unsigned int                 sub_pos_genome[2];
+  {
+    int d;
+    for (d = 0; d < 2; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector128_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI128_TYPE(_mm_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-
-  vector128_t     vector_read_buffer     __attribute__ ((aligned (16)));
-
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI128_TYPE(_mm_setzero)();
@@ -3055,14 +2436,11 @@ int alignment_sse2__align_pair(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_PAIR128(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                        sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_PAIR128(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 8; d++) {
       VTYPE128 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_PAIR128(vector_genome_buffer_nbletters_a,
-                                     vector_genome_buffer_nbletters_b,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_PAIR128(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = EPI64_TYPE(_mm_slli)(vB,(1)*8);
       vB        = SI128_TYPE(_mm_or)(vB,vLB);
     }
@@ -3074,18 +2452,17 @@ int alignment_sse2__align_pair(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE128 vLB;
-        NEXTGENOSEQ_NOSUB_PAIR128(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                  byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_PAIR128(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = EPI64_TYPE(_mm_slli)(vB,(1)*8);
         vB  = SI128_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE128 vLA;
-        NEXTREADSEQ_PAIR128(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_PAIR128(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = EPI64_TYPE(_mm_slli)(vLA,(7)*8);
         vA  = EPI64_TYPE(_mm_srli)(vA,(1)*8);
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
@@ -3226,33 +2603,21 @@ int alignment_sse2__align_quad(unsigned char * genome,
   VTYPE128 vM_old_old;
   VTYPE128 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
-  int pos_genome_c = pos_genome[2];
-  int pos_genome_d = pos_genome[3];
+  unsigned char *             byte_pos_genome[4];
+  unsigned int                 sub_pos_genome[4];
+  {
+    int d;
+    for (d = 0; d < 4; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector128_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI128_TYPE(_mm_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-  unsigned char *             byte_pos_genome_c = genome + (pos_genome_c >> 2);
-  unsigned int                 sub_pos_genome_c = (pos_genome_c & 3);
-  unsigned int vector_genome_buffer_nbletters_c = 0;
-
-  unsigned char *             byte_pos_genome_d = genome + (pos_genome_d >> 2);
-  unsigned int                 sub_pos_genome_d = (pos_genome_d & 3);
-  unsigned int vector_genome_buffer_nbletters_d = 0;
-
-
-  vector128_t     vector_read_buffer     __attribute__ ((aligned (16)));
-
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI128_TYPE(_mm_setzero)();
@@ -3268,18 +2633,11 @@ int alignment_sse2__align_quad(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_QUAD128(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                        sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                        sub_pos_genome_c,byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                        sub_pos_genome_d,byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_QUAD128(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 4; d++) {
       VTYPE128 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_QUAD128(vector_genome_buffer_nbletters_a,
-                                     vector_genome_buffer_nbletters_b,
-                                     vector_genome_buffer_nbletters_c,
-                                     vector_genome_buffer_nbletters_d,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_QUAD128(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = EPI32_TYPE(_mm_slli)(vB,(1)*8);
       vB        = SI128_TYPE(_mm_or)(vB,vLB);
     }
@@ -3291,20 +2649,17 @@ int alignment_sse2__align_quad(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE128 vLB;
-        NEXTGENOSEQ_NOSUB_QUAD128(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                  byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                  byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                                  byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_QUAD128(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = EPI32_TYPE(_mm_slli)(vB,(1)*8);
         vB  = SI128_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE128 vLA;
-        NEXTREADSEQ_QUAD128(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_QUAD128(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = EPI32_TYPE(_mm_slli)(vLA,(3)*8);
         vA  = EPI32_TYPE(_mm_srli)(vA,(1)*8);
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
@@ -3445,53 +2800,21 @@ int alignment_sse2__align_octa(unsigned char * genome,
   VTYPE128 vM_old_old;
   VTYPE128 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
-  int pos_genome_c = pos_genome[2];
-  int pos_genome_d = pos_genome[3];
-  int pos_genome_e = pos_genome[4];
-  int pos_genome_f = pos_genome[5];
-  int pos_genome_g = pos_genome[6];
-  int pos_genome_h = pos_genome[7];
+  unsigned char *             byte_pos_genome[8];
+  unsigned int                 sub_pos_genome[8];
+  {
+    int d;
+    for (d = 0; d < 8; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector128_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI128_TYPE(_mm_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-  unsigned char *             byte_pos_genome_c = genome + (pos_genome_c >> 2);
-  unsigned int                 sub_pos_genome_c = (pos_genome_c & 3);
-  unsigned int vector_genome_buffer_nbletters_c = 0;
-
-  unsigned char *             byte_pos_genome_d = genome + (pos_genome_d >> 2);
-  unsigned int                 sub_pos_genome_d = (pos_genome_d & 3);
-  unsigned int vector_genome_buffer_nbletters_d = 0;
-
-  unsigned char *             byte_pos_genome_e = genome + (pos_genome_e >> 2);
-  unsigned int                 sub_pos_genome_e = (pos_genome_e & 3);
-  unsigned int vector_genome_buffer_nbletters_e = 0;
-
-  unsigned char *             byte_pos_genome_f = genome + (pos_genome_f >> 2);
-  unsigned int                 sub_pos_genome_f = (pos_genome_f & 3);
-  unsigned int vector_genome_buffer_nbletters_f = 0;
-
-  unsigned char *             byte_pos_genome_g = genome + (pos_genome_g >> 2);
-  unsigned int                 sub_pos_genome_g = (pos_genome_g & 3);
-  unsigned int vector_genome_buffer_nbletters_g = 0;
-
-  unsigned char *             byte_pos_genome_h = genome + (pos_genome_h >> 2);
-  unsigned int                 sub_pos_genome_h = (pos_genome_h & 3);
-  unsigned int vector_genome_buffer_nbletters_h = 0;
-
-
-  vector128_t     vector_read_buffer     __attribute__ ((aligned (16)));
-
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI128_TYPE(_mm_setzero)();
@@ -3507,26 +2830,11 @@ int alignment_sse2__align_octa(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_OCTA128(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                        sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                        sub_pos_genome_c,byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                        sub_pos_genome_d,byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                        sub_pos_genome_e,byte_pos_genome_e,vector_genome_buffer_nbletters_e,
-                        sub_pos_genome_f,byte_pos_genome_f,vector_genome_buffer_nbletters_f,
-                        sub_pos_genome_g,byte_pos_genome_g,vector_genome_buffer_nbletters_g,
-                        sub_pos_genome_h,byte_pos_genome_h,vector_genome_buffer_nbletters_h,
-                        vector_genome_buffer,vB);
+    NEXTGENOSEQ_OCTA128(sub_pos_genome,byte_pos_genome,
+                        vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 2; d++) {
       VTYPE128 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_OCTA128(vector_genome_buffer_nbletters_a,
-                                     vector_genome_buffer_nbletters_b,
-                                     vector_genome_buffer_nbletters_c,
-                                     vector_genome_buffer_nbletters_d,
-                                     vector_genome_buffer_nbletters_e,
-                                     vector_genome_buffer_nbletters_f,
-                                     vector_genome_buffer_nbletters_g,
-                                     vector_genome_buffer_nbletters_h,
-                                     vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_OCTA128(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = EPI16_TYPE(_mm_slli)(vB,(1)*8);
       vB        = SI128_TYPE(_mm_or)(vB,vLB);
     }
@@ -3538,24 +2846,17 @@ int alignment_sse2__align_octa(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE128 vLB;
-        NEXTGENOSEQ_NOSUB_OCTA128(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                  byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                  byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                                  byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                                  byte_pos_genome_e,vector_genome_buffer_nbletters_e,
-                                  byte_pos_genome_f,vector_genome_buffer_nbletters_f,
-                                  byte_pos_genome_g,vector_genome_buffer_nbletters_g,
-                                  byte_pos_genome_h,vector_genome_buffer_nbletters_h,
-                                  vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_OCTA128(byte_pos_genome,
+                                  vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = EPI16_TYPE(_mm_slli)(vB,(1)*8);
         vB  = SI128_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE128 vLA;
-        NEXTREADSEQ_OCTA128(read,vector_read_buffer_nbletters,
-                            vector_read_buffer,vLA);
+        NEXTREADSEQ_OCTA128(read,
+                            vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = EPI16_TYPE(_mm_slli)(vLA,(1)*8);
         vA  = EPI16_TYPE(_mm_srli)(vA,(1)*8);
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
@@ -3880,7 +3181,7 @@ void alignment_sse__init_mono(const unsigned int match, const unsigned int misma
     u_threshold = 254;
 
   /* init some vectors */
-  v064             =  PI32_TYPE(_mm_set)(0, 0);
+  vOnes64          =  PI32_TYPE(_mm_set)(1, 1); /* not used */
   vBufferMask64    =  PI32_TYPE(_mm_set)(0, 3);
   vThreshold64     =  PI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                         u_threshold, u_threshold, u_threshold, u_threshold);
@@ -3907,7 +3208,7 @@ void alignment_sse__init_pair(const unsigned int match, const unsigned int misma
     u_threshold = 254;
 
   /* init some vectors */
-  v064             =  PI32_TYPE(_mm_set)(0, 0);
+  vOnes64          =  PI32_TYPE(_mm_set)(1, 1);
   vBufferMask64    =  PI32_TYPE(_mm_set)(3, 3);
   vThreshold64     =  PI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                         u_threshold, u_threshold, u_threshold, u_threshold);
@@ -3934,7 +3235,7 @@ void alignment_sse__init_quad(const unsigned int match, const unsigned int misma
     u_threshold = 254;
 
   /* init some vectors */
-  v064             =  PI16_TYPE(_mm_set)(0, 0, 0, 0);
+  vOnes64          =  PI16_TYPE(_mm_set)(1, 1, 1, 1);
   vBufferMask64    =  PI16_TYPE(_mm_set)(3, 3, 3, 3);
   vThreshold64     =  PI8_TYPE(_mm_set)(u_threshold, u_threshold, u_threshold, u_threshold,
                                         u_threshold, u_threshold, u_threshold, u_threshold);
@@ -3973,15 +3274,14 @@ int alignment_sse__align_mono(unsigned char * genome,
   VTYPE64 vM_old_old;
   VTYPE64 vI_old;
 
-  int pos_genome_a = pos_genome[0];
+  unsigned char *             byte_pos_genome = genome + (pos_genome[0] >> 2);
+  unsigned int                 sub_pos_genome = (pos_genome[0] & 3);
 
-  vector64_t     vector_genome_buffer __attribute__ ((aligned (16)));
-  unsigned char *             byte_pos_genome = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters = 0;
+  vector64_t         vector_genome_buffer __attribute__ ((aligned (16)));
+  unsigned int       vector_genome_buffer_nbnuc = 0;
 
-  vector64_t     vector_read_buffer     __attribute__ ((aligned (16)));
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector64_t         vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI64_TYPE(_mm_setzero)();
@@ -3997,10 +3297,11 @@ int alignment_sse__align_mono(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_MONO64(sub_pos_genome,byte_pos_genome,vector_genome_buffer_nbletters,vector_genome_buffer,vB);
+    NEXTGENOSEQ_MONO64(sub_pos_genome,byte_pos_genome,
+                       vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 8; d++) {
       VTYPE64 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_MONO64(vector_genome_buffer_nbletters,vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_MONO64(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = SI64_TYPE(_mm_slli)(vB,(1)*8);
       vB        = SI64_TYPE(_mm_or)(vB,vLB);
     }
@@ -4012,17 +3313,17 @@ int alignment_sse__align_mono(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE64 vLB;
-        NEXTGENOSEQ_NOSUB_MONO64(byte_pos_genome,vector_genome_buffer_nbletters,
-                                 vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_MONO64(byte_pos_genome,
+                                 vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = SI64_TYPE(_mm_slli)(vB,(1)*8);
         vB  = SI64_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE64 vLA;
-        NEXTREADSEQ_MONO64(read,vector_read_buffer_nbletters,
-                           vector_read_buffer,vLA);
+        NEXTREADSEQ_MONO64(read,
+                           vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = SI64_TYPE(_mm_slli)(vLA,(7)*8);
         vA  = SI64_TYPE(_mm_srli)(vA,(1)*8);
         vA  = SI64_TYPE(_mm_or)(vA,vLA);
@@ -4164,21 +3465,21 @@ int alignment_sse__align_pair(unsigned char * genome,
   VTYPE64 vM_old_old;
   VTYPE64 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
+  unsigned char *             byte_pos_genome[2];
+  unsigned int                 sub_pos_genome[2];
+  {
+    int d;
+    for (d = 0; d < 2; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector64_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI64_TYPE(_mm_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-  vector64_t     vector_read_buffer     __attribute__ ((aligned (16)));
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector64_t         vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI64_TYPE(_mm_setzero)();
@@ -4194,14 +3495,11 @@ int alignment_sse__align_pair(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_PAIR64(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                       sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                       vector_genome_buffer,vB);
+    NEXTGENOSEQ_PAIR64(sub_pos_genome,byte_pos_genome,
+                       vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 4; d++) {
       VTYPE64 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_PAIR64(vector_genome_buffer_nbletters_a,
-                                    vector_genome_buffer_nbletters_b,
-                                    vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_PAIR64(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = PI32_TYPE(_mm_slli)(vB,(1)*8);
       vB        = SI64_TYPE(_mm_or)(vB,vLB);
     }
@@ -4213,18 +3511,17 @@ int alignment_sse__align_pair(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE64 vLB;
-        NEXTGENOSEQ_NOSUB_PAIR64(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                 byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                 vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_PAIR64(byte_pos_genome,
+                                 vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = PI32_TYPE(_mm_slli)(vB,(1)*8);
         vB  = SI64_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE64 vLA;
-        NEXTREADSEQ_PAIR64(read,vector_read_buffer_nbletters,
-                           vector_read_buffer,vLA);
+        NEXTREADSEQ_PAIR64(read,
+                           vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = PI32_TYPE(_mm_slli)(vLA,(3)*8);
         vA  = PI32_TYPE(_mm_srli)(vA,(1)*8);
         vA  = SI64_TYPE(_mm_or)(vA,vLA);
@@ -4366,31 +3663,21 @@ int alignment_sse__align_quad(unsigned char * genome,
   VTYPE64 vM_old_old;
   VTYPE64 vI_old;
 
-  int pos_genome_a = pos_genome[0];
-  int pos_genome_b = pos_genome[1];
-  int pos_genome_c = pos_genome[2];
-  int pos_genome_d = pos_genome[3];
+  unsigned char *             byte_pos_genome[4];
+  unsigned int                 sub_pos_genome[4];
+  {
+    int d;
+    for (d = 0; d < 4; d++) {
+      byte_pos_genome[d] = genome + (pos_genome[d] >> 2);
+       sub_pos_genome[d] = (pos_genome[d] & 3);
+    }
+  }
 
-  vector64_t     vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI64_TYPE(_mm_setzero)();
 
-  unsigned char *             byte_pos_genome_a = genome + (pos_genome_a >> 2);
-  unsigned int                 sub_pos_genome_a = (pos_genome_a & 3);
-  unsigned int vector_genome_buffer_nbletters_a = 0;
-
-  unsigned char *             byte_pos_genome_b = genome + (pos_genome_b >> 2);
-  unsigned int                 sub_pos_genome_b = (pos_genome_b & 3);
-  unsigned int vector_genome_buffer_nbletters_b = 0;
-
-  unsigned char *             byte_pos_genome_c = genome + (pos_genome_c >> 2);
-  unsigned int                 sub_pos_genome_c = (pos_genome_c & 3);
-  unsigned int vector_genome_buffer_nbletters_c = 0;
-
-  unsigned char *             byte_pos_genome_d = genome + (pos_genome_d >> 2);
-  unsigned int                 sub_pos_genome_d = (pos_genome_d & 3);
-  unsigned int vector_genome_buffer_nbletters_d = 0;
-
-  vector64_t     vector_read_buffer     __attribute__ ((aligned (16)));
-  unsigned int vector_read_buffer_nbletters = 0;
+  vector64_t         vector_read_buffer   __attribute__ ((aligned (16)));
+  unsigned int       vector_read_buffer_nbnuc = 0;
 
 
   vMMax      = SI64_TYPE(_mm_setzero)();
@@ -4406,18 +3693,11 @@ int alignment_sse__align_quad(unsigned char * genome,
   /* init vB : genome sequence diagonal */
   {
     int d;
-    NEXTGENOSEQ_QUAD64(sub_pos_genome_a,byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                       sub_pos_genome_b,byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                       sub_pos_genome_c,byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                       sub_pos_genome_d,byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                       vector_genome_buffer,vB);
+    NEXTGENOSEQ_QUAD64(sub_pos_genome,byte_pos_genome,
+                       vector_genome_buffer_nbnuc,vector_genome_buffer,vB);
     for (d = 1; d < 2; d++) {
       VTYPE64 vLB;
-      NEXTGENOSEQ_NOSUB_NOUP_QUAD64(vector_genome_buffer_nbletters_a,
-                                    vector_genome_buffer_nbletters_b,
-                                    vector_genome_buffer_nbletters_c,
-                                    vector_genome_buffer_nbletters_d,
-                                    vector_genome_buffer,vLB);
+      NEXTGENOSEQ_NOSUB_NOUP_QUAD64(vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
       vB        = PI16_TYPE(_mm_slli)(vB,(1)*8);
       vB        = SI64_TYPE(_mm_or)(vB,vLB);
     }
@@ -4429,20 +3709,17 @@ int alignment_sse__align_quad(unsigned char * genome,
     unsigned int l;
     for (l = 0; l < prlength; l++) {
 
-      /* a) get the letters to be compared on the diagonal */
+      /* a) get the nucleotides to be compared on the diagonal */
       if (l & 1) {
         VTYPE64 vLB;
-        NEXTGENOSEQ_NOSUB_QUAD64(byte_pos_genome_a,vector_genome_buffer_nbletters_a,
-                                 byte_pos_genome_b,vector_genome_buffer_nbletters_b,
-                                 byte_pos_genome_c,vector_genome_buffer_nbletters_c,
-                                 byte_pos_genome_d,vector_genome_buffer_nbletters_d,
-                                 vector_genome_buffer,vLB);
+        NEXTGENOSEQ_NOSUB_QUAD64(byte_pos_genome,
+                                 vector_genome_buffer_nbnuc,vector_genome_buffer,vLB);
         vB  = PI16_TYPE(_mm_slli)(vB,(1)*8);
         vB  = SI64_TYPE(_mm_or)(vB,vLB);
       } else {
         VTYPE64 vLA;
-        NEXTREADSEQ_QUAD64(read,vector_read_buffer_nbletters,
-                           vector_read_buffer,vLA);
+        NEXTREADSEQ_QUAD64(read,
+                           vector_read_buffer_nbnuc,vector_read_buffer,vLA);
         vLA = PI16_TYPE(_mm_slli)(vLA,(1)*8);
         vA  = PI16_TYPE(_mm_srli)(vA,(1)*8);
         vA  = SI64_TYPE(_mm_or)(vA,vLA);
