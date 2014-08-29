@@ -2,11 +2,16 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
+#include <xmmintrin.h>
+#endif
 #include "run.h"
 
 int map_unordered = 0;
 
 #include "stats.h"
+
+
 
 #ifdef __AVX2__
 
@@ -290,7 +295,7 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
 
 
 /* Alignment Structures for each process */
-#define ALIGNMENT__DECLARE AlignmentType* alignment = NULL;
+#define ALIGNMENT__DECLARE AlignmentType* alignment = NULL
 
 #define ALIGNMENT__INIT(read_len, ref_len, allowed_indels, match, mismatch, gap_open, gap_extend)  { \
     int t;                                                                                           \
@@ -369,7 +374,7 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
   }
 
 /* Alignment Structure */
-#define ALIGNMENT__DECLARE  AlignmentType alignment = {0};
+#define ALIGNMENT__DECLARE  AlignmentType alignment
 
 #define ALIGNMENT__INIT(read_len, ref_len, allowed_indels, match, mismatch, gap_open, gap_extend) { \
     alignment__init(&alignment, read_len, ref_len, allowed_indels);                                 \
@@ -382,7 +387,7 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
 
 #define ALIGNMENT__REF &alignment
 
-#define ALIGNMENT__DESTROY alignment__destroy(&alignment);
+#define ALIGNMENT__DESTROY  alignment__destroy(&alignment)
 
 /* Reverse complementary data */
 #define REV_SEQ__REF(tmp_sequence)  &tmp_sequence
@@ -517,7 +522,12 @@ static inline void process_read(
         key[si][read_pos] = seed__apply_to_compressed(indexes[si]->seed, read_seq, read_pos);
         int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos], hit_pointer[si]+read_pos);
         if (ref_pos >= 0) {
-          INSERT_HEAP(heap,heap_size,(ref_pos-read_pos),read_pos,si);
+          ref_pos -= read_pos;
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
+#include <xmmintrin.h>
+          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_T1);
+#endif
+          INSERT_HEAP(heap,heap_size,ref_pos,read_pos,si);
         }
       }
     } else {
@@ -526,12 +536,15 @@ static inline void process_read(
         key[si][read_pos] = seed__apply_to_compressed(indexes[si]->seed, read_seq, read_pos);
         int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos], hit_pointer[si]+read_pos);
         if (ref_pos >= 0) {
-          INSERT_HEAP(heap,heap_size,(ref_pos-read_pos),read_pos,si);
+          ref_pos -= read_pos;
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
+          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_T1);
+#endif
+          INSERT_HEAP(heap,heap_size,ref_pos,read_pos,si);
         }
       }
     }
   }
-
 
   /*
    * (2) then find the smallest hit, update the simd search array, and run the simd search when array is full
@@ -550,7 +563,11 @@ static inline void process_read(
     int new_ref_pos = index__get_extern_next_hit(indexes[seed_id], key[seed_id][read_pos], hit_pointer[seed_id]+read_pos);
 
     if (new_ref_pos >= 0) {
-      REP_TOP_SIEVE_HEAP(heap,heap_size,(new_ref_pos-read_pos),read_pos,seed_id);
+      new_ref_pos -= read_pos;
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
+      _mm_prefetch((char*)ref_seq + (new_ref_pos >> 2), _MM_HINT_T1);
+#endif
+      REP_TOP_SIEVE_HEAP(heap,heap_size,new_ref_pos,read_pos,seed_id);
     } else {
       DEL_TOP_SIEVE_HEAP(heap,heap_size);
     }
