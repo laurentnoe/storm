@@ -707,12 +707,12 @@ void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output
 #endif
     }
     fprintf(sam_output, "@RG\tID:%s\tSM:%s\n", DISPLAY_NAME(*reads_db),  DISPLAY_NAME(*reads_db));
-    fprintf(sam_output, "@PG\tID:%s\tPN:%s\tCL:", PROGRAM_NAME, PROGRAM_NAME);
+    fprintf(sam_output, "@PG\tID:%s\tVN:%s\tCL:\"", PROGRAM_NAME, PROGRAM_VERSION);
     int i;
     for (i = 0; i < cmd_line_len; ++i) {
       fprintf(sam_output, "%s ", cmd_line[i]);
     }
-    fprintf(sam_output, "\tVN:%s\n",PROGRAM_VERSION);
+    fprintf(sam_output, "\"\n");
   }
 
   /* Display read */
