@@ -1,10 +1,10 @@
 ## Tested on 
-# - gcc 4.6 (linux)
-# - gcc-mp-4.8 + llvm-gcc-4.2 (openmp memset bug) + icc 14 (mac)
+# - gcc 4.8 (sse2,avx2) [linux]
+# - gcc-mp-4.8 + llvm-gcc-4.2 (sse2) + icc 14 (sse2,avx2) [mac]
 CC      = gcc
 
 ## Without the "-msse2" or "-mavx2", the program is more than ten time slower
-CFLAGS  = -Wall -pipe -msse2 -O3
+CFLAGS  = -Wall -pipe -msse2 -O3 
 ## Replace with "-mavx2" for processors that are at least >= mid-2013 and support the "avx2" ?
 ##  - For Linux : cat /proc/cpuinfo | grep avx2
 ##  - For Mac   : sysctl -a | grep avx2
