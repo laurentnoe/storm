@@ -1,0 +1,23 @@
+CC      = icc
+
+CFLAGS  = -Wall -pipe -march=pentium3 -O3 -D__SSE__ -U__SSE2__ -U__AVX2__
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static
+CFLAGS += -fopenmp
+
+LDFLAGS = -lm
+
+
+ALL_C   = main.c alignment.c alignment_simd.c codes.c hit_map.c \
+   index.c load_data.c genome_map.c reads_data.c read_quality.c \
+   reference_data.c run.c seed.c stats.c util.c
+
+all: storm-color-sse storm-nucleotide-sse
+
+storm-color-sse :
+	${CC} ${ALL_C} -o storm-color-sse ${CFLAGS} ${LDFLAGS}
+
+storm-nucleotide-sse :
+	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-sse ${CFLAGS} ${LDFLAGS}
+
+clean:
+	rm -f *~ storm-color-sse storm-nucleotide-sse

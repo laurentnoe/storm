@@ -1,0 +1,22 @@
+CC      = icc
+
+CFLAGS  = -Wall -pipe -march=core-avx2 -O3 -D__SSE__ -D__SSE2__ -D__AVX2__
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static
+CFLAGS += -fopenmp
+
+LDFLAGS = -lm 
+
+ALL_C   = main.c alignment.c alignment_simd.c codes.c hit_map.c \
+   index.c load_data.c genome_map.c reads_data.c read_quality.c \
+   reference_data.c run.c seed.c stats.c util.c
+
+all: storm-color-avx2 storm-nucleotide-avx2
+
+storm-color-avx2 :
+	${CC} ${ALL_C} -o storm-color-avx2 ${CFLAGS} ${LDFLAGS}
+
+storm-nucleotide-avx2 :
+	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-avx2 ${CFLAGS} ${LDFLAGS}
+
+clean:
+	rm -f *~ storm-color-avx2 storm-nucleotide-avx2
