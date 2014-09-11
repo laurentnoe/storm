@@ -8,12 +8,38 @@
  * #define DEBUG
  */
 
+#ifdef __AVX512BW__
+
+#include <zmmintrin.h>
+
+#define EPU8_TYPE(ins)   ins##_epu8
+#define EPI8_TYPE(ins)   ins##_epi8
+#define EPI32_TYPE(ins)  ins##_epi32
+#define EPI64_TYPE(ins)  ins##_epi64
+#define EPI128_TYPE(ins) ins##_epi128
+#define SI512_TYPE(ins)  ins##_si512
+#define VTYPE512            __m512i
+
+/* data conversion union */
+typedef union __attribute__((packed, aligned (16))) {
+  VTYPE512 v;
+  /* __uint128_t u128[sizeof(VTYPE512)/sizeof(__uint128_t)];*/
+  /* [FIXME] not availaible on some compilers (e.g. gcc < 4.4 ; clang ?? ; icc ?? ; ) */
+  uint64_t u64[sizeof(VTYPE512)/sizeof(uint64_t)];
+  uint32_t u32[sizeof(VTYPE512)/sizeof(uint32_t)];
+  uint16_t u16[sizeof(VTYPE512)/sizeof(uint16_t)];
+} vector512_t;
+
+#endif
+
+
 #ifdef __AVX2__
 
 #include <immintrin.h>
 
 #define EPU8_TYPE(ins)   ins##_epu8
 #define EPI8_TYPE(ins)   ins##_epi8
+#define EPI16_TYPE(ins)  ins##_epi16
 #define EPI32_TYPE(ins)  ins##_epi32
 #define EPI64_TYPE(ins)  ins##_epi64
 #define SI256_TYPE(ins)  ins##_si256
@@ -80,6 +106,26 @@ typedef union __attribute__((packed, aligned (16))) {
 #endif
 
 
+
+
+int alignment_avx512bw__compatible_proc() {
+#if defined(__x86_64__)
+  uint64_t _ax = 0, _bx = 0, _cx = 0, _dx = 0;
+  asm volatile (
+                "pushq %%rbx" "\n\t"
+                "cpuid" "\n\t"
+                "movq %%rbx,%1" "\n\t"
+                "popq %%rbx" "\n\t"
+                : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
+                : "a" (7), "c" (0)
+                );
+  printf("* compatible avx512bw ? %s\n", _bx & 1<<30 ? "yes":"no");
+  return (_bx & 1<<30) != 0;
+#else
+  printf("* compatible avx512bw ? no (32bits compiled)\n");
+  return 0;
+#endif
+}
 
 
 int alignment_avx2__compatible_proc() {
@@ -159,6 +205,181 @@ int alignment_sse__compatible_proc() {
 /*
  * macros and global variables (no need to export because not usefull ouside this .c file)
  */
+
+
+/* avx512bw macros */
+
+#ifdef __AVX512BW__
+
+#define NEXTREADSEQ_DOTR512(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI16_TYPE(_mm512_set1)(*((uint16_t *)(inout_byte)));                                                               \
+      inout_nbnuc    = 8;                                                                                                                  \
+      inout_byte    += 2;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                                \
+    inout_vector.v = EPI16_TYPE(_mm512_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
+}
+
+#define NEXTREADSEQ_HEXA512(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI32_TYPE(_mm512_set1)(*((uint32_t *)(inout_byte)));                                                               \
+      inout_nbnuc    = 16;                                                                                                                 \
+      inout_byte    += 4;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                                \
+    inout_vector.v = EPI32_TYPE(_mm512_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
+}
+
+#define NEXTREADSEQ_OCTA512(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64_TYPE(_mm512_set1)(*((uint64_t *)(inout_byte)));                                                               \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                                \
+    inout_vector.v = EPI64_TYPE(_mm512_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
+}
+
+#define NEXTREADSEQ_QUAD512(inout_byte,inout_nbnuc,                                                                                        \
+                            inout_vector,out_vtype_vLA) {                                                                                  \
+    if (!inout_nbnuc) {                                                                                                                    \
+      inout_vector.v = EPI64_TYPE(_mm512_set1)(*((uint64_t *)(inout_byte)));                                                               \
+      inout_nbnuc    = 32;                                                                                                                 \
+      inout_byte    += 8;                                                                                                                  \
+    }                                                                                                                                      \
+    out_vtype_vLA  = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                                \
+    inout_vector.v = EPI64_TYPE(_mm512_srli)(inout_vector.v,2);                                                                            \
+    inout_nbnuc--;                                                                                                                         \
+}
+
+#define NEXTGENOSEQ_DOTR512(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ =  _mm512_movepi16_mask(EPI16_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                            \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 32; __d__++) {                                                                                               \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
+          inout_vector.u16[__d__] =                                                                                                        \
+            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
+          inout_byte[__d__]            += 2;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u16[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u16[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                          \
+    inout_vector.v       = EPI16_TYPE(_mm512_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI16_TYPE(_mm512_sub)(inout_nbnuc_vector.v,vOnes512);                                                          \
+}
+
+#define NEXTGENOSEQ_HEXA512(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = _mm512_movepi32_mask(EPI32_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 16; __d__++) {                                                                                               \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
+          inout_vector.u32[__d__] =                                                                                                        \
+            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
+          inout_byte[__d__]            += 4;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u32[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u32[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                          \
+    inout_vector.v       = EPI32_TYPE(_mm512_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI32_TYPE(_mm512_sub)(inout_nbnuc_vector.v,vOnes512);                                                          \
+}
+
+#define NEXTGENOSEQ_OCTA512(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = _mm512_movepi64_mask(EPI64_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
+          inout_vector.u64[__d__] =                                                                                                        \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
+          inout_byte[__d__]            += 8;                                                                                               \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u64[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
+            inout_nbnuc_vector.u64[__d__] -= inout_subpos[__d__];                                                                          \
+            inout_subpos[__d__]            = 0;                                                                                            \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm512_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm512_sub)(inout_nbnuc_vector.v,vOnes512);                                                          \
+}
+
+#define NEXTGENOSEQ_QUAD512(inout_subpos,inout_byte,                                                                                       \
+                            inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
+    unsigned int __u__;                                                                                                                    \
+    __u__ = _mm512_movepi64_mask(EPI64_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    if (__u__) {                                                                                                                           \
+      unsigned int __d__;                                                                                                                  \
+      for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
+          inout_vector.u64[2*__d__] =                                                                                                      \
+            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
+          inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
+          inout_nbnuc_vector.u64[2*__d__ + 1] = 32;                                                                                        \
+          inout_byte[__d__]                  += 8;                                                                                         \
+          if (inout_subpos[__d__]) {                                                                                                       \
+            inout_vector.u64[2*__d__]          >>= inout_subpos[__d__] << 1;                                                               \
+            inout_nbnuc_vector.u64[2*__d__    ] -= inout_subpos[__d__];                                                                    \
+            inout_nbnuc_vector.u64[2*__d__ + 1] -= inout_subpos[__d__];                                                                    \
+            inout_subpos[__d__]                  = 0;                                                                                      \
+          }                                                                                                                                \
+        }                                                                                                                                  \
+      }                                                                                                                                    \
+    }                                                                                                                                      \
+    out_vtype_vLB        = SI512_TYPE(_mm512_and)(inout_vector.v,vBufferMask512);                                                          \
+    inout_vector.v       = EPI64_TYPE(_mm512_srli)(inout_vector.v,2);                                                                      \
+    inout_nbnuc_vector.v = EPI64_TYPE(_mm512_sub)(inout_nbnuc_vector.v,vOnes512);                                                          \
+}
+
+/* FIXME : DEFINE "NOSUB" AND "NOSUB_NOUP" EQUIVALENT FUNCTIONS */
+
+VTYPE512  vThreshold512     __attribute__ ((aligned (16))),
+          vMatchS512        __attribute__ ((aligned (16))),
+          vMismatchS512     __attribute__ ((aligned (16))),
+          vIndelOpenS512    __attribute__ ((aligned (16))),
+          vIndelExtendsS512 __attribute__ ((aligned (16))),
+          vOnes512          __attribute__ ((aligned (16))),
+          vBufferMask512    __attribute__ ((aligned (16))),
+         *vMsk512           __attribute__ ((aligned (16)));
+
+void     *vMsk512unaligned = NULL;
+
+void alignment_avx512bw__clean() {if (vMsk512unaligned){ free(vMsk512unaligned); vMsk512unaligned = NULL;}}
+
+#endif
+
+
+
 
 /* avx2 macros */
 
@@ -240,11 +461,11 @@ int alignment_sse__compatible_proc() {
 #define NEXTGENOSEQ_OCTA256(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm256_movemask)(EPI32_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    __u__ = _mm256_movemask_ps((__m256)EPI32_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
-        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u32[__d__] =                                                                                                        \
             *((uint32_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
@@ -265,11 +486,11 @@ int alignment_sse__compatible_proc() {
 #define NEXTGENOSEQ_QUAD256(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    __u__ = _mm256_movemask_pd((__m256d)EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                      \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
-        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u64[__d__] =                                                                                                        \
             *((uint64_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
@@ -290,11 +511,11 @@ int alignment_sse__compatible_proc() {
 #define NEXTGENOSEQ_PAIR256(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    __u__ = _mm256_movemask_pd((__m256d)EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                      \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
-        if (__u__ & 1 << (16*__d__)) {                                                                                                     \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
           inout_vector.u64[2*__d__] =                                                                                                      \
             *((uint64_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
@@ -337,11 +558,11 @@ int alignment_sse__compatible_proc() {
 #define NEXTGENOSEQ_NOSUB_OCTA256(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm256_movemask)(EPI32_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    __u__ = _mm256_movemask_ps((__m256)EPI32_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
-        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u32[__d__] =                                                                                                        \
             *((uint32_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
@@ -357,11 +578,11 @@ int alignment_sse__compatible_proc() {
 #define NEXTGENOSEQ_NOSUB_QUAD256(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    __u__ = _mm256_movemask_pd((__m256d)EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                      \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
-        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u64[__d__] =                                                                                                        \
             *((uint64_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
@@ -377,11 +598,11 @@ int alignment_sse__compatible_proc() {
 #define NEXTGENOSEQ_NOSUB_PAIR256(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm256_movemask)(EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                       \
+    __u__ = _mm256_movemask_pd((__m256d)EPI64_TYPE(_mm256_cmpeq)(inout_nbnuc_vector.v,SI256_TYPE(_mm256_setzero)()));                      \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
-        if (__u__ & 1 << (16*__d__)) {                                                                                                     \
+        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
           inout_vector.u64[2*__d__] =                                                                                                      \
             *((uint64_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
@@ -517,11 +738,11 @@ void alignment_avx2__clean() {if (vMsk256unaligned){ free(vMsk256unaligned); vMs
 #define NEXTGENOSEQ_QUAD128(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    __u__ = _mm_movemask_ps((__m128)EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
-        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u32[__d__] =                                                                                                        \
             *((uint32_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
@@ -542,11 +763,11 @@ void alignment_avx2__clean() {if (vMsk256unaligned){ free(vMsk256unaligned); vMs
 #define NEXTGENOSEQ_PAIR128(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    __u__ = _mm_movemask_pd((__m128d)EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                               \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
-        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u64[__d__] =                                                                                                        \
             *((uint64_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u32[2*__d__    ] = 32;                                                                                        \
@@ -606,11 +827,11 @@ void alignment_avx2__clean() {if (vMsk256unaligned){ free(vMsk256unaligned); vMs
 #define NEXTGENOSEQ_NOSUB_QUAD128(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    __u__ = _mm_movemask_ps((__m128)EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
-        if (__u__ & 1 << (4*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u32[__d__] =                                                                                                        \
             *((uint32_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
@@ -626,11 +847,11 @@ void alignment_avx2__clean() {if (vMsk256unaligned){ free(vMsk256unaligned); vMs
 #define NEXTGENOSEQ_NOSUB_PAIR128(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
     unsigned int __u__;                                                                                                                    \
-    __u__ = EPI8_TYPE(_mm_movemask)(EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                                \
+    __u__ = _mm_movemask_pd((__m128d)EPI32_TYPE(_mm_cmpeq)(inout_nbnuc_vector.v,SI128_TYPE(_mm_setzero)()));                               \
     if (__u__) {                                                                                                                           \
       unsigned int __d__;                                                                                                                  \
       for (__d__ = 0; __d__ < 2; __d__++) {                                                                                                \
-        if (__u__ & 1 << (8*__d__)) {                                                                                                      \
+        if (__u__ & 1 << (__d__)) {                                                                                                        \
           inout_vector.u64[__d__] =                                                                                                        \
             *((uint64_t *)(inout_byte[__d__]));                                                                                            \
           inout_nbnuc_vector.u32[2*__d__    ] = 32;                                                                                        \
@@ -889,7 +1110,6 @@ void    *vMsk64unaligned = NULL;
 void alignment_sse__clean() {if (vMsk64unaligned){ free(vMsk64unaligned); vMsk64unaligned = NULL;}}
 
 #endif
-
 
 
 unsigned int   prlength;
@@ -1269,10 +1489,10 @@ int alignment_avx2__align_pair(unsigned char * genome,
     }
   }
 
-  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer;
   vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector256_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -1469,10 +1689,10 @@ int alignment_avx2__align_quad(unsigned char * genome,
     }
   }
 
-  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer;
   vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector256_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -1666,10 +1886,10 @@ int alignment_avx2__align_octa(unsigned char * genome,
     }
   }
 
-  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer;
   vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector256_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -1863,10 +2083,10 @@ int alignment_avx2__align_hexa(unsigned char * genome,
     }
   }
 
-  vector256_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector256_t        vector_genome_buffer;
   vector256_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI256_TYPE(_mm256_setzero)();
 
-  vector256_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector256_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -2390,10 +2610,10 @@ int alignment_sse2__align_mono(unsigned char * genome,
   unsigned char *             byte_pos_genome = genome + (pos_genome[0] >> 2);
   unsigned int                 sub_pos_genome = (pos_genome[0] & 3);
 
-  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer;
   unsigned int       vector_genome_buffer_nbnuc = 0;
 
-  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector128_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -2585,10 +2805,10 @@ int alignment_sse2__align_pair(unsigned char * genome,
     }
   }
 
-  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer;
   vector128_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI128_TYPE(_mm_setzero)();
 
-  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector128_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -2782,10 +3002,10 @@ int alignment_sse2__align_quad(unsigned char * genome,
     }
   }
 
-  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer;
   vector128_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI128_TYPE(_mm_setzero)();
 
-  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector128_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -2979,10 +3199,10 @@ int alignment_sse2__align_octa(unsigned char * genome,
     }
   }
 
-  vector128_t        vector_genome_buffer __attribute__ ((aligned (16)));
+  vector128_t        vector_genome_buffer;
   vector128_t        vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI128_TYPE(_mm_setzero)();
 
-  vector128_t        vector_read_buffer   __attribute__ ((aligned (16)));
+  vector128_t        vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -3431,10 +3651,10 @@ int alignment_sse__align_mono(unsigned char * genome,
   unsigned char *             byte_pos_genome = genome + (pos_genome[0] >> 2);
   unsigned int                 sub_pos_genome = (pos_genome[0] & 3);
 
-  vector64_t         vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer;
   unsigned int       vector_genome_buffer_nbnuc = 0;
 
-  vector64_t         vector_read_buffer   __attribute__ ((aligned (16)));
+  vector64_t         vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -3629,10 +3849,10 @@ int alignment_sse__align_pair(unsigned char * genome,
     }
   }
 
-  vector64_t         vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer;
   vector64_t         vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI64_TYPE(_mm_setzero)();
 
-  vector64_t         vector_read_buffer   __attribute__ ((aligned (16)));
+  vector64_t         vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
@@ -3827,10 +4047,10 @@ int alignment_sse__align_quad(unsigned char * genome,
     }
   }
 
-  vector64_t         vector_genome_buffer __attribute__ ((aligned (16)));
+  vector64_t         vector_genome_buffer;
   vector64_t         vector_genome_buffer_nbnuc; vector_genome_buffer_nbnuc.v = SI64_TYPE(_mm_setzero)();
 
-  vector64_t         vector_read_buffer   __attribute__ ((aligned (16)));
+  vector64_t         vector_read_buffer;
   unsigned int       vector_read_buffer_nbnuc = 0;
 
 
