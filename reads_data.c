@@ -41,12 +41,54 @@ int gv_read_byte_order[256];
 static int sort_reads_fun(const void *a, const void *b) {
   ReadDataType * r_a = (ReadDataType *)a;
   ReadDataType * r_b = (ReadDataType *)b;
-  int i=0;
-  for (i=0; i<gv_read_len_compr; i++) {
-    if (gv_read_byte_order[r_a->sequence[i]] < gv_read_byte_order[r_b->sequence[i]])
-      return -1;
-    if (gv_read_byte_order[r_a->sequence[i]] > gv_read_byte_order[r_b->sequence[i]])
+  int i_a=0, i_b=0;
+  /* read "a" (byte aligned) subword */
+  {
+    int i;
+    for (i=0; i<gv_read_len_compr/2; i++) {
+      int j;
+      for (j=0; j<gv_read_len_compr/2; j++) {
+        if (gv_read_byte_order[r_a->sequence[i_a + j]] < gv_read_byte_order[r_a->sequence[i + j]]) {
+          break;
+        }
+        if (gv_read_byte_order[r_a->sequence[i_a + j]] > gv_read_byte_order[r_a->sequence[i + j]]) {
+          i_a = i;
+          break;
+        }
+      }
+    }
+  }
+  /* read "b" (byte aligned) subword */
+  {
+    int i;
+    for (i=0; i<gv_read_len_compr/2; i++) {
+      int j;
+      for (j=0; j<gv_read_len_compr/2; j++) {
+        if (gv_read_byte_order[r_b->sequence[i_b + j]] < gv_read_byte_order[r_b->sequence[i + j]]) {
+          break;
+        }
+        if (gv_read_byte_order[r_b->sequence[i_b + j]] > gv_read_byte_order[r_b->sequence[i + j]]) {
+          i_b = i;
+          break;
+        }
+      }
+    }
+  }
+
+  /* comparison of subwords */
+  {
+    int j;
+    for (j=0; j<gv_read_len_compr/2; j++) {    
+      if (gv_read_byte_order[r_a->sequence[i_a + j]] > gv_read_byte_order[r_b->sequence[i_b + j]])
+        return +1;
+      if (gv_read_byte_order[r_a->sequence[i_a + j]] < gv_read_byte_order[r_b->sequence[i_b + j]])
+        return -1;
+    }
+    /* comparison of positions if subwords are equivalents */
+    if (i_a > i_b)
       return +1;
+    if (i_a < i_b)
+      return -1;
   }
   return 0;
 }
