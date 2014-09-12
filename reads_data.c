@@ -36,79 +36,58 @@ void read__reverse(const ReadDataType* src, ReadDataType* dest, int len) {
 /**
  * Sort reads function (alphanumeric order)
  */
-int gv_read_len_compr = 0;
-int gv_read_byte_order[256];
+static int gv_read_len = 0;
+
 static int sort_reads_fun(const void *a, const void *b) {
   ReadDataType * r_a = (ReadDataType *)a;
   ReadDataType * r_b = (ReadDataType *)b;
-  int i_a=0, i_b=0;
-  /* read "a" (byte aligned) subword */
-  {
+
+  /* read "a" tag : not clean to do this here ... but must be parallel if psort ... and very few are computed as polyA "0" */
+  if (!r_a->tag) {
     int i;
-    for (i=0; i<gv_read_len_compr/2; i++) {
-      int j;
-      for (j=0; j<gv_read_len_compr/2; j++) {
-        if (gv_read_byte_order[r_a->sequence[i_a + j]] < gv_read_byte_order[r_a->sequence[i + j]]) {
-          break;
-        }
-        if (gv_read_byte_order[r_a->sequence[i_a + j]] > gv_read_byte_order[r_a->sequence[i + j]]) {
-          i_a = i;
-          break;
-        }
-      }
+    unsigned long c_tag = 0;
+    for (i = 0; i < gv_read_len; i++) {
+      c_tag <<= 2 ; c_tag |= NTH_CODE(r_a->sequence, i);
+      r_a->tag = MAX(r_a->tag,c_tag);
     }
   }
-  /* read "b" (byte aligned) subword */
-  {
+  /* read "b" tag : not clean to do this here ... but must be parallel if psort ... and very few are computed as polyA "0" */
+  if (!r_b->tag) {
     int i;
-    for (i=0; i<gv_read_len_compr/2; i++) {
-      int j;
-      for (j=0; j<gv_read_len_compr/2; j++) {
-        if (gv_read_byte_order[r_b->sequence[i_b + j]] < gv_read_byte_order[r_b->sequence[i + j]]) {
-          break;
-        }
-        if (gv_read_byte_order[r_b->sequence[i_b + j]] > gv_read_byte_order[r_b->sequence[i + j]]) {
-          i_b = i;
-          break;
-        }
-      }
+    unsigned long c_tag = 0;
+    for (i = 0; i < gv_read_len; i++) {
+      c_tag <<= 2 ; c_tag |= NTH_CODE(r_b->sequence, i);
+      r_b->tag = MAX(r_b->tag,c_tag);
     }
   }
 
-  /* comparison of subwords */
-  {
-    int j;
-    for (j=0; j<gv_read_len_compr/2; j++) {    
-      if (gv_read_byte_order[r_a->sequence[i_a + j]] > gv_read_byte_order[r_b->sequence[i_b + j]])
-        return +1;
-      if (gv_read_byte_order[r_a->sequence[i_a + j]] < gv_read_byte_order[r_b->sequence[i_b + j]])
-        return -1;
-    }
-    /* comparison of positions if subwords are equivalents */
-    if (i_a > i_b)
-      return +1;
-    if (i_a < i_b)
-      return -1;
-  }
+  /* comparison of tags */
+  if (r_a->tag < r_b->tag)
+    return -1;
+  if (r_a->tag > r_b->tag)
+    return +1;
   return 0;
 }
 
+
+void psort() __attribute__((weak));
 
 /**
  * Sort a read database (alphanumeric order)
  */
 int sort_reads_db(ReadsDBType * db) {
-  gv_read_len_compr = COMPRESSED_LEN(db->read_len);
-  /* (1/2) fill reverse byte order */
-  int i;
-  for ( i = 0; i < 256; i++)
-    gv_read_byte_order[i] = ((i & 0xc0) >> 6) | ((i & 0x30) >> 2) | ((i & 0x0c) << 2) | ((i & 0x03) << 6);
+  gv_read_len = db->read_len;
 
-  /* (2/2) sort */
-  qsort((void *)db->reads/*base*/,
-        (size_t)db->size /*nel*/,
-        (size_t)(sizeof(ReadDataType))/*width*/,
-        sort_reads_fun/*int (*compar)(const void *, const void *)*/);
+  if (psort)
+    psort((void *)db->reads/*base*/,
+          (size_t)db->size /*nel*/,
+          (size_t)(sizeof(ReadDataType))/*width*/,
+          sort_reads_fun/*int (*compar)(const void *, const void *)*/);
+  else
+    qsort((void *)db->reads/*base*/,
+          (size_t)db->size /*nel*/,
+          (size_t)(sizeof(ReadDataType))/*width*/,
+          sort_reads_fun/*int (*compar)(const void *, const void *)*/);
   return 0;
 }
 
@@ -291,6 +270,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
           // copy the color sequence after the fake first base and the first color
           db->reads[i].sequence = string_to_compressed_code(linebuffer+2);
 #endif
+          db->reads[i].tag = 0;
           i++;
           if (i == db->size) {
             goto eol;
@@ -525,6 +505,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
       // copy the color sequence after the fake first base and the first color
       db->reads[i].sequence = string_to_compressed_code(line+2);
 #endif
+      db->reads[i].tag = 0;
       break;
       }
     case LINE_TYPE_QUAL_HEADER:

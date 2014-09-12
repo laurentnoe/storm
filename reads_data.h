@@ -30,6 +30,8 @@ typedef struct ReadDataType {
   QUAL_TYPE *quality;
   /** color space read sequence (compressed in 2bits per code) */
   CODE_TYPE *sequence;
+  /** tag : maximum lexicographic subword of size at most sizeof(unsigned long)*4 in the read */
+  unsigned long tag;
 } ReadDataType;
 
 
