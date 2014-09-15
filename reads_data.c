@@ -47,7 +47,7 @@ static int sort_reads_fun(const void *a, const void *b) {
     int i;
     unsigned long c_tag = 0;
     for (i = 0; i < gv_read_len; i++) {
-      c_tag <<= 2 ; c_tag |= NTH_CODE(r_a->sequence, i);
+      c_tag <<= 2 ; c_tag |= ((NTH_CODE(r_a->sequence, i) + 1) & 0x3) ^ 0x1; /* (x):[acgt] order -> ((x)+1)&0x3:[tacg] order -> (((x)+1)&0x3)^0x1:[atgc] order : so more weigth given to "gc" more than "at" */
       r_a->tag = MAX(r_a->tag,c_tag);
     }
   }
@@ -56,7 +56,7 @@ static int sort_reads_fun(const void *a, const void *b) {
     int i;
     unsigned long c_tag = 0;
     for (i = 0; i < gv_read_len; i++) {
-      c_tag <<= 2 ; c_tag |= NTH_CODE(r_b->sequence, i);
+      c_tag <<= 2 ; c_tag |= ((NTH_CODE(r_b->sequence, i) + 1) & 0x3) ^ 0x1;
       r_b->tag = MAX(r_b->tag,c_tag);
     }
   }
