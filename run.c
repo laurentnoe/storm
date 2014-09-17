@@ -485,9 +485,9 @@ typedef struct HitType {
  * @param seeds_count The number of seeds available
  * @param indexes An array of indexes of the current ref (one per seed)
  * @param alignment The alignment data structure
- * @param map the read map to update with good alignments
- * @param number of diagonal allowed for the simd code (for selection the right simd function)
- * @param alignement done in forward/reverse (sequence already reversed, for updating the map only)
+ * @param map The read map to update with good alignments
+ * @param simd_allowed_diags number of diagonal allowed for the simd code (for selection the right simd function)
+ * @param alignment_sens alignement done in forward/reverse (sequence already reversed, for updating the map only)
  */
 
 static inline void process_read(
@@ -549,8 +549,11 @@ static inline void process_read(
   /*
    * (2) then find the smallest hit, update the simd search array, and run the simd search when array is full
    */
-  int old_hit_pos    = -I;
-  int hits_pos_index = 0;
+#ifdef DOUBLE_HIT
+  int old_old_hit_pos    = -I;
+#endif
+  int old_hit_pos        = -I;
+  int hits_pos_index     = 0;
   int hits_pos[MAX_MULTIPLE_HITS] = {0};
   int simd_win_start[MAX_MULTIPLE_HITS] = {0};
 
@@ -573,11 +576,14 @@ static inline void process_read(
     }
 
     /* ... managing hits and alignments */
+#ifdef DOUBLE_HIT /* only double hits with at most "I" indels between the two hits are selected (the second condition avoids double selection on same diagonal) */
+    if ((hit_pos <= old_hit_pos + I) && ((hit_pos > old_hit_pos) || ((hit_pos == old_hit_pos) && (old_hit_pos > old_old_hit_pos)))) {
+#else /* all the single hits are extended */
     if (hit_pos > old_hit_pos) {
+#endif
       hits_pos[hits_pos_index] = hit_pos;
       simd_win_start[hits_pos_index] = hit_pos - simd_allowed_diags;
       hits_pos_index++; hits_pos_index %= simd_mul[simd_allowed_diags];
-      old_hit_pos = hit_pos;
 
       VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("\nRead:%d@[%d]: HIT Reference:%d@[%d]", read_id, read_pos, ref_id, hit_pos)););
 
@@ -619,6 +625,10 @@ static inline void process_read(
         }
       }
     }
+#ifdef DOUBLE_HIT
+    old_old_hit_pos = old_hit_pos;
+#endif
+    old_hit_pos     = hit_pos;
   }
 
 
@@ -739,7 +749,9 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   map = hit_map__create(reads_db.size, allowed_indels);
   VERB_FILTER(VERBOSITY_MODERATE, printf("Loaded %ld reads (read length %d) in %ld seconds.\n\n", reads_db.size, reads_db.read_len, time(NULL) - crt_time););
 
-  /* sort reads in alphanumeric order */
+  /* sort reads (by using the "maximum" lexicographic common subword of size 32 for each read by now ... ) to get cache efficient read order during the search
+   * -> clustering for cache efficiency is an interesting question!!
+   */
   VERB_FILTER(VERBOSITY_MODERATE, printf("Sorting reads database...\n"););
   crt_time = time(NULL);
   sort_reads_db(&reads_db);
