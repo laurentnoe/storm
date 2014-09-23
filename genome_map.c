@@ -643,7 +643,7 @@ void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output
 #define FLAG_SUPPLEMENTARY  0x0800 /* the read is a supplementary alignment (chimeric) */
 
   if (!sam_output) {
-    ERROR__(("No file name provided for SAM output."));
+    ERROR__("No file name provided for SAM output.");
     return;
   }
 

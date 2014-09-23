@@ -143,14 +143,14 @@ IndexType* index__build_reference(ReferenceDBType* db, SeedType* seed) {
 #ifdef _OPENMP
 #pragma omp ordered
 #endif
-        VERB_FILTER(VERBOSITY_HIGH, WARNING__(("%8d appearances of key 0x%x removed for seed \"%s\"", counts[key], key, seed_pattern)););
+        VERB_FILTER(VERBOSITY_HIGH, WARNING__("%8d appearances of key 0x%x removed for seed \"%s\"", counts[key], key, seed_pattern););
         ++erased;
       }
     }
 #ifdef _OPENMP
 #pragma omp ordered
 #endif
-    WARNING__(("%8d key%s erased for seed \"%s\" (appearances > %d).", erased, erased == 1 ? "" : "s", seed_pattern, (int) (avg + ACCEPTED_STDEV_DISTANCE * std_dev + 0.9999)));
+    WARNING__("%8d key%s erased for seed \"%s\" (appearances > %d).", erased, erased == 1 ? "" : "s", seed_pattern, (int) (avg + ACCEPTED_STDEV_DISTANCE * std_dev + 0.9999));
     free(seed_pattern);
   }
 

@@ -225,7 +225,7 @@ void hit_map__generate_SAM_output(const HitMapType* map,
 #define FLAG_SUPPLEMENTARY  0x0800 /* the read is a supplementary alignment (chimeric) */
 
   if (!sam_output) {
-    ERROR__(("No file name provided for SAM output."));
+    ERROR__("No file name provided for SAM output.");
     return;
   }
 

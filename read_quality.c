@@ -18,11 +18,11 @@ inline int get_quality_level(short quality) {
 inline int fastq_parse_quality_from_char(char c) {
   int value = (int)c - read_quality_min_symbol_code;
   if (value < 0) {
-    ERROR__(("Quality level char \"%c\" {x:%2x;dec:%3d} (from base \"%c\" {x:%2x;dec:%3d}) induces a negative value \"%d\" .\nUnable to set quality value.\n", c, (int)c, (int)c, (char)read_quality_min_symbol_code, read_quality_min_symbol_code, read_quality_min_symbol_code, value));
+    ERROR__("Quality level char \"%c\" {x:%2x;dec:%3d} (from base \"%c\" {x:%2x;dec:%3d}) induces a negative value \"%d\" .\nUnable to set quality value.\n", c, (int)c, (int)c, (char)read_quality_min_symbol_code, read_quality_min_symbol_code, read_quality_min_symbol_code, value);
     exit (RETURN_INPUT_ERR);
   } else {
     if ( value > MAX_READ_QUALITY) {
-      ERROR__(("Quality level char \"%c\" {x:%2x,dec:%3d} (from base \"%c\" {x:%2x;dec:%3d}) induces a too large value \"%d\" .\nUnable to set quality value.\n", c, (int)c, (int)c, (char)read_quality_min_symbol_code, read_quality_min_symbol_code, read_quality_min_symbol_code, value));
+      ERROR__("Quality level char \"%c\" {x:%2x,dec:%3d} (from base \"%c\" {x:%2x;dec:%3d}) induces a too large value \"%d\" .\nUnable to set quality value.\n", c, (int)c, (int)c, (char)read_quality_min_symbol_code, read_quality_min_symbol_code, read_quality_min_symbol_code, value);
       exit (RETURN_INPUT_ERR);
     }
   }

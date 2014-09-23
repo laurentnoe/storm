@@ -47,19 +47,19 @@ extern int ALIGNMENT_SENSE;
 #ifdef _OPENMP
 
 #define OMP_INTERNAL_CRITICAL_PROGRESS _Pragma("omp critical(progress)")
-#define ERROR__(message)    OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[31;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define WARNING__(message)  OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[33;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define INFO__(message)     OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[32;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define DEBUG__(message)    OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[35;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define MESSAGE_(message)   OMP_INTERNAL_CRITICAL_PROGRESS {                      printf message;                      fflush(NULL); }
+#define ERROR__(...)    OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[31;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define WARNING__(...)  OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[33;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define INFO__(...)     OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[32;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define DEBUG__(...)    OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[35;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define MESSAGE_(...)   OMP_INTERNAL_CRITICAL_PROGRESS {                      fprintf(stderr,__VA_ARGS__);                      fflush(NULL); }
 
 #else
 
-#define ERROR__(message)   {printf("\033[31;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define WARNING__(message) {printf("\033[33;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define INFO__(message)    {printf("\033[32;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define DEBUG__(message)   {printf("\033[35;1m"); printf message; printf("\033[0m\n"); fflush(NULL); }
-#define MESSAGE_(message)  {                      printf message;                      fflush(NULL); }
+#define ERROR__(...)   {printf("\033[31;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define WARNING__(...) {printf("\033[33;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define INFO__(...)    {printf("\033[32;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define DEBUG__(...)   {printf("\033[35;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
+#define MESSAGE_(...)  {                      fprintf(stderr,__VA_ARGS__);                      fflush(NULL); }
 
 #endif
 
@@ -70,11 +70,11 @@ extern int ALIGNMENT_SENSE;
 #define SAFE_FAILURE__ALLOC(_ptr,_size,_unit_type) {                               \
   (_ptr) = (_unit_type*)malloc((size_t)(_size)*(size_t)sizeof(_unit_type));        \
   if ((_ptr) == NULL) {                                                            \
-    ERROR__(("\nNot enough available memory.\n%s:%d  %zu X %zu = %zu bytes needed" \
+    ERROR__( "\nNot enough available memory.\n%s:%d  %zu X %zu = %zu bytes needed" \
              "\n\nExiting.\n", __FILE__, __LINE__,                                 \
              (size_t)(_size),                                                      \
              (size_t)sizeof(_unit_type),                                           \
-             (size_t)(_size) * sizeof(_unit_type)));                               \
+             (size_t)(_size) * sizeof(_unit_type));                                \
              exit(1);                                                              \
   }                                                                                \
 }
@@ -84,11 +84,11 @@ extern int N_BYTES;
 #define SAFE_FAILURE__ALLOC_ALIGNED(_ptr,_size,_unit_type) {                        \
   posix_memalign(&_prt,N_BYTES,(size_t)(_size)*(size_t)sizeof(_unit_type));         \
   if ((_ptr) == NULL) {                                                             \
-    ERROR__(("\nNot enough available memory.\n%s:%d  %zu X %zu = %zu bytes needed"  \
+    ERROR__( "\nNot enough available memory.\n%s:%d  %zu X %zu = %zu bytes needed"  \
              "\n\nExiting.\n", __FILE__, __LINE__,                                  \
              (size_t)(_size),                                                       \
              (size_t)sizeof(_unit_type),                                            \
-             (size_t)(_size) * sizeof(_unit_type)));                                \
+             (size_t)(_size) * sizeof(_unit_type));                                 \
              exit(1);                                                               \
   }                                                                                 \
 }
@@ -97,11 +97,11 @@ extern int N_BYTES;
 #define SAFE_FAILURE__REALLOC(_ptr,_size,_unit_type) {                             \
   (_ptr) = (_unit_type*)realloc(_ptr,(size_t)(_size)*(size_t)sizeof(_unit_type));  \
   if ((_ptr) == NULL) {                                                            \
-    ERROR__(("\nNot enough available memory.\n%s:%d  %zu X %zu = %zu bytes needed" \
+    ERROR__( "\nNot enough available memory.\n%s:%d  %zu X %zu = %zu bytes needed" \
              "\n\nExiting.\n", __FILE__, __LINE__,                                 \
              (size_t)(_size),                                                      \
              (size_t)sizeof(_unit_type),                                           \
-             (size_t)(_size) * sizeof(_unit_type)));                               \
+             (size_t)(_size) * sizeof(_unit_type));                                \
              exit(1);                                                              \
   }                                                                                \
 }

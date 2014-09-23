@@ -40,14 +40,14 @@ int delta_m;
 
 #define INTEGER_VALUE_FROM_OPTION(target) {                                     \
     if (sscanf(optarg, "%d", &target) != 1) {                                   \
-      ERROR__(("Mandatory numeric parameter missing for option %c.", option));  \
+      ERROR__("Mandatory numeric parameter missing for option %c.", option);    \
       exit(-1);                                                                 \
     }                                                                           \
   }
 
 #define STRING_VALUE_FROM_OPTION(target) {                                                                            \
     if ((strlen(optarg) == 2) && (optarg[0] == '-') && (optarg[1] != ':') && (index(optstring, optarg[1]) != NULL)) { \
-      ERROR__(("Mandatory parameter missing for option %c.", option));                                                \
+      ERROR__("Mandatory parameter missing for option %c.", option);                                                  \
       exit(-1);                                                                                                       \
     } else {                                                                                                          \
       target = optarg;                                                                                                \
@@ -55,12 +55,12 @@ int delta_m;
   }
 
 #define HANDLE_INVALID_NUMERIC_VALUE(value, default_) {                                              \
-    WARNING__(("Invalid value %d for option %c. Resetting default (%d).", value, option, default_)); \
+    WARNING__("Invalid value %d for option %c. Resetting default (%d).", value, option, default_);   \
     value = default_;                                                                                \
   }
 
 #define HANDLE_INVALID_NUMERIC_VALUE_FATAL(value, expected) {                            \
-    ERROR__(("Invalid value %d for option %c. Expected: %s.", value, option, expected)); \
+    ERROR__("Invalid value %d for option %c. Expected: %s.", value, option, expected);   \
     exit(-1);                                                                            \
   }
 
@@ -202,21 +202,21 @@ int main (int argc, char* argv[]) {
     switch (option) {
     case 'g':
       if (genome_file != NULL) {
-        ERROR__(("Genome file previously set with \"%s\".\nUnable to set it again.\n", genome_file));
+        ERROR__("Genome file previously set with \"%s\".\nUnable to set it again.\n", genome_file);
         exit(-1);
       }
       STRING_VALUE_FROM_OPTION(genome_file);
       break;
     case 'r':
       if (reads_file != NULL) {
-        ERROR__(("Read file previously set with \"%s\".\nUnable to set it again.\n", reads_file));
+        ERROR__("Read file previously set with \"%s\".\nUnable to set it again.\n", reads_file);
         exit(-1);
       }
       STRING_VALUE_FROM_OPTION(reads_file);
       break;
     case 'q':
       if (qual_file != NULL) {
-        ERROR__(("Quality file previously set with \"%s\".\nUnable to set it again.\n", qual_file));
+        ERROR__("Quality file previously set with \"%s\".\nUnable to set it again.\n", qual_file);
         exit(-1);
       }
       STRING_VALUE_FROM_OPTION(qual_file);
@@ -224,7 +224,7 @@ int main (int argc, char* argv[]) {
     case 'S':
       if ((tmp = seed__string_from_file(optarg)) == NULL) {
         char confirmation;
-        ERROR__(("Unable to read seeds input file %s.", optarg));
+        ERROR__("Unable to read seeds input file %s.", optarg);
         do {
           printf("Continue (c) with default seeds %s, or abort (a)?\n", seeds);
         } while(scanf("%c", &confirmation) && confirmation != 'a' && confirmation != 'A' && confirmation != 'c' && confirmation != 'C');
@@ -277,7 +277,7 @@ int main (int argc, char* argv[]) {
         HANDLE_INVALID_NUMERIC_VALUE_FATAL(allowed_indels, "a positive value or zero");
       }
       if (allowed_indels > INDEL_COUNT_LIMIT) {
-        WARNING__(("%s may not handle more than %d indels in the SIMD (local alignment) filter code (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels));
+        WARNING__("%s may not handle more than %d indels in the SIMD (local alignment) filter code (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels);
       simd_allowed_diags = INDEL_COUNT_LIMIT;
       } else {
       simd_allowed_diags = allowed_indels;
@@ -302,7 +302,7 @@ int main (int argc, char* argv[]) {
         output = fopen(optarg, "w");
         if (output == NULL) {
           char confirmation;
-          ERROR__(("Could not open or create output file %s.\n", optarg));
+          ERROR__("Could not open or create output file %s.\n", optarg);
           do {
             printf("Continue (c) and output to stdout, or abort (a)?\n");
           } while(scanf("%c", &confirmation) && confirmation != 'a' && confirmation != 'A' && confirmation != 'c' && confirmation != 'C');
@@ -320,7 +320,7 @@ int main (int argc, char* argv[]) {
       } else {
         unmapped_FASTQ_output = fopen(optarg, "w");
         if (unmapped_FASTQ_output == NULL) {
-          ERROR__(("Could not open or create FASTQ output file %s.\n", optarg));
+          ERROR__("Could not open or create FASTQ output file %s.\n", optarg);
           exit(-1);
         }
       }
@@ -405,11 +405,11 @@ int main (int argc, char* argv[]) {
       printf("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)");
       reads_against_references(reads_file, qual_file, genome_file, seeds, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output, unmapped_FASTQ_output);
     } else {
-      ERROR__(("\nNot enough mandatory parameters provided.\n"));
+      ERROR__("\nNot enough mandatory parameters provided.\n");
       show_usage(argv[0], seeds);
     }
   } else {
-    ERROR__(("\nNot enough mandatory parameters provided.\n"));
+    ERROR__("\nNot enough mandatory parameters provided.\n");
     show_usage(argv[0], seeds);
   }
 

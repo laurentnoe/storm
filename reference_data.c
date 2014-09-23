@@ -16,10 +16,10 @@ static int load_reference_sequence(FILE* ref_in, int readlen, ReferenceDBType* d
   long i_start = ftell(ref_in);
 
   db->name = NULL;
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("pre-loading reference sequence chunk name ...")));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reference sequence chunk name ..."));
   /* 1) read first line */
   if (!fgets(line, MAX_LINE_LEN, ref_in)) {
-    ERROR__(("Empty first dataline in the reference sequence.\n"));
+    ERROR__("Empty first dataline in the reference sequence.\n");
     return RETURN_INPUT_ERR;
   }
 
@@ -35,19 +35,19 @@ static int load_reference_sequence(FILE* ref_in, int readlen, ReferenceDBType* d
         db->name[0] = '-';
       }
       db->name[name_len] = '\0';
-      VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("fasta chunk name found : \"%s\"",db->name)));
+      VERB_FILTER(VERBOSITY_ANNOYING, INFO__("fasta chunk name found : \"%s\"",db->name));
       i_start = ftell(ref_in);
     } else {
-      ERROR__(("Empty fasta header line in the reference sequence.\n"));
+      ERROR__("Empty fasta header line in the reference sequence.\n");
       return RETURN_INPUT_ERR;
     }
   } else {
     /* 2.2) if full ascii sequence, come back to the beginning of it */
-    WARNING__(("No fasta header line in the reference sequence.\n"));
+    WARNING__("No fasta header line in the reference sequence.\n");
     fseek(ref_in, i_start, SEEK_SET);
   }
 
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("pre-loading reference sequence chunk ...")));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reference sequence chunk ..."));
 
   /* 3) read nucleotide data to measure its size */
   int c;
@@ -65,11 +65,11 @@ static int load_reference_sequence(FILE* ref_in, int readlen, ReferenceDBType* d
   }
 
   if (size == 0) {
-    ERROR__(("Empty fasta chunk line in the reference sequence.\n"));
+    ERROR__("Empty fasta chunk line in the reference sequence.\n");
     return RETURN_INPUT_ERR;
   }
 
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("estimated chunk size : %ld, allocating ...",size)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("estimated chunk size : %ld, allocating ...",size));
 
   /* 3.2) Allocate the estimated size (>= true size) for sequence and sequence_masked */
   size_t size_shift     = COMPRESSED_LEN_N_BYTES(readlen+allowed_indels,N_BYTES);
@@ -86,7 +86,7 @@ static int load_reference_sequence(FILE* ref_in, int readlen, ReferenceDBType* d
   /* (x) ... end will be masked once the precise size is known */
   db->sequence_masked = db->sequence_masked_alloc + size_shift;
 
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("loading reference sequence chunk ...")));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("loading reference sequence chunk ..."));
 
   /* 3.3) Go back to first base and load the nucleotides sequence */
   fseek(ref_in, i_start, SEEK_SET);
@@ -140,7 +140,7 @@ static int load_reference_sequence(FILE* ref_in, int readlen, ReferenceDBType* d
         crt_masked_region->next  = NULL;
         crt_masked_region->start = masked_region_start;
         crt_masked_region->end   = i;
-        VERB_FILTER(VERBOSITY_HIGH, WARNING__(("(%9d-%9d) region masked for reference sequence chunk \"%s\"", crt_masked_region->start+1, crt_masked_region->end, db->name?db->name:"(null)")););
+        VERB_FILTER(VERBOSITY_HIGH, WARNING__("(%9d-%9d) region masked for reference sequence chunk \"%s\"", crt_masked_region->start+1, crt_masked_region->end, db->name?db->name:"(null)"););
         masked_region_start      = -1;
       }
     }
@@ -172,13 +172,13 @@ static int load_reference_sequence(FILE* ref_in, int readlen, ReferenceDBType* d
     crt_masked_region->next  = NULL;
     crt_masked_region->start = masked_region_start;
     crt_masked_region->end   = i;
-    VERB_FILTER(VERBOSITY_HIGH, WARNING__(("(%9d-%9d) region masked for reference sequence chunk \"%s\"", crt_masked_region->start+1, crt_masked_region->end, db->name?db->name:"(null)")););
+    VERB_FILTER(VERBOSITY_HIGH, WARNING__("(%9d-%9d) region masked for reference sequence chunk \"%s\"", crt_masked_region->start+1, crt_masked_region->end, db->name?db->name:"(null)"););
     masked_region_start      = -1;
   }
 
   db->size = i;
 
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("true chunk size : %d",db->size)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("true chunk size : %d",db->size));
 
   /* (x) end mask here with the last byte, then size_shift */
   while (COMPRESSED_OFFSET(i)) {
@@ -199,20 +199,20 @@ int load_reference_db(const char* reference_filename, int readlen, ReferenceDBTy
   int sequence_count = 0;
   long long int full_size = 0;
   if (!ref_in) {
-    ERROR__(("Failed to read input file %s (reference sequence).\n", reference_filename));
+    ERROR__("Failed to read input file %s (reference sequence).\n", reference_filename);
     exit(RETURN_INPUT_ERR);
   }
   // browse the file once
   /* how many sequences are there?  */
   /* Expected format: multifasta (one 'header' line, followed by the sequence) */
   // So count headers...
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("pre-loading reference sequence \"%s\"", reference_filename)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reference sequence \"%s\"", reference_filename));
   while (fgets(line, MAX_LINE_LEN, ref_in)) {
     if (get_input_line_type(line) == LINE_TYPE_SEQ_HEADER) {
       ++sequence_count;
     }
   }
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("reference sequence \"%s\" : #%d chunks", reference_filename, sequence_count)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("reference sequence \"%s\" : #%d chunks", reference_filename, sequence_count));
 
   if (sequence_count == 0) {
     /* no header in the reference ... lets try without */
@@ -237,17 +237,17 @@ int load_reference_db(const char* reference_filename, int readlen, ReferenceDBTy
 #ifndef NUCLEOTIDES
     (*db)[i].first_base     = 0xff;
 #endif
-    VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("reference sequence \"%s\" : loading chunk %d/%d ...", reference_filename, i+1,sequence_count)));
+    VERB_FILTER(VERBOSITY_ANNOYING, INFO__("reference sequence \"%s\" : loading chunk %d/%d ...", reference_filename, i+1,sequence_count));
     if ((size = load_reference_sequence(ref_in, readlen, &((*db)[i]))) <= 0) {
       /* something strange happened, stop loading and return what we have */
       sequence_count = i;
-      WARNING__(("problem when loading chunk %d for reference sequence \"%s\"", i+1, reference_filename));
+      WARNING__("problem when loading chunk %d for reference sequence \"%s\"", i+1, reference_filename);
       break;
     }
     full_size += size;
   }
   fclose(ref_in);
-  VERB_FILTER(VERBOSITY_HIGH, INFO__(("reference sequence \"%s\" : #%d chunks (full size:%lld)", reference_filename, sequence_count, full_size)));
+  VERB_FILTER(VERBOSITY_HIGH, INFO__("reference sequence \"%s\" : #%d chunks (full size:%lld)", reference_filename, sequence_count, full_size));
   return sequence_count;
 }
 

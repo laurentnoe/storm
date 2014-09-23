@@ -106,14 +106,14 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
     reads_in = fopen(reads_filename, "r");
 
   if (!reads_in) {
-    ERROR__(("Failed to read input file %s (read sequences).", reads_filename));
+    ERROR__("Failed to read input file %s (read sequences).", reads_filename);
     exit(RETURN_INPUT_ERR);
   }
 
   if (quals_filename) {
     quals_in = fopen(quals_filename, "r");
     if (!quals_in) {
-      ERROR__(("Failed to read input file %s (quality of read sequences).\n", quals_filename));
+      ERROR__("Failed to read input file %s (quality of read sequences).\n", quals_filename);
       exit(RETURN_INPUT_ERR);
     }
   }
@@ -123,7 +123,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   db->name = NULL;
 
   /* First scan: count how many reads are there in the file */
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("pre-loading reads from \"%s\" ...",reads_filename)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reads from \"%s\" ...",reads_filename));
 
   /* Skip comments at the beginning; after this, i will point to the start of the first non-comment line */
   long i_start = 0;
@@ -140,7 +140,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   } while (read_result && get_input_line_type(line) == LINE_TYPE_COMMENT);
 
   if (!read_result) {
-    ERROR__(("Failed to read input file %s (read sequences) first line.", reads_filename));
+    ERROR__("Failed to read input file %s (read sequences) first line.", reads_filename);
     exit(RETURN_INPUT_ERR);
   }
 
@@ -165,7 +165,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
           db->read_len += strcspn(line, "\r\n");
 
         if (db->read_len <= 0) {
-          ERROR__(("\nReads file seams corrupt: the first read's length is %d. Aborting.\n\n", db->read_len));
+          ERROR__("\nReads file seams corrupt: the first read's length is %d. Aborting.\n\n", db->read_len);
           exit(RETURN_INPUT_ERR);
         }
       } else {
@@ -179,11 +179,11 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
           current_length += strcspn(line, "\r\n");
 
         if (current_length != db->read_len) {
-          ERROR__(("\nThe read #%ld does not have the expected length (length is %d, expected %d).\n"
+          ERROR__("\nThe read #%ld does not have the expected length (length is %d, expected %d).\n"
                    "All the reads must be of equal length for the parallel processing.\n\n",
                    db->size + 1,
                    current_length,
-                   db->read_len));
+                   db->read_len);
           exit(RETURN_INPUT_ERR);
         }
       }
@@ -192,7 +192,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   } while (read_result);
 
   /* The last line is a read; we can obtain the read length */
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len));
 
   /* Allocate */
   SAFE_FAILURE__ALLOC(db->reads, db->size, ReadDataType);
@@ -226,7 +226,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
           while (line[line_len] > ' ' && line[line_len] <= '~' && line[line_len] != SEQ_HEADER_MARKER_FASTQ){
             line_len++;
             if (line_len >= 256) {
-              WARNING__(("\nRead #%ld : name too long (\"%s\").\n", i+1, line));
+              WARNING__("\nRead #%ld : name too long (\"%s\").\n", i+1, line);
               break;
             }
           }
@@ -254,8 +254,8 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
               linebuffer_shift  += line_len;
               linebuffer_remain -= line_len;
             } else {
-              ERROR__(("\nThe read #%ld does not have the expected format.\n",
-                       i + 1));
+              ERROR__("\nThe read #%ld does not have the expected format.\n",
+                       i + 1);
               exit(-1);
             }
           } while ((read_result = fgets(line, MAX_LINE_LEN, reads_in)) && get_input_line_type(line) == LINE_TYPE_SEQ);
@@ -305,19 +305,19 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
     /* For the moment, no rigorous  verification is done, qualities are considered in the right order */
     for (i = 0; i < db->size; ) {
       if(!fgets(line, MAX_LINE_LEN, quals_in)) {
-        WARNING__(("\nRead #%ld : quality line not readable (\"%s\").\n", i+1, quals_filename));
+        WARNING__("\nRead #%ld : quality line not readable (\"%s\").\n", i+1, quals_filename);
         break;
       }
       if (get_input_line_type(line) == LINE_TYPE_SEQ) {
 #ifndef NUCLEOTIDES
         if (parse_integer_sequence_to(line, quality, db->read_len + 1)) {
-          WARNING__(("\nRead #%ld : quality line too short (\"%s\").\n", i+1, quals_filename));
+          WARNING__("\nRead #%ld : quality line too short (\"%s\").\n", i+1, quals_filename);
         }
         db->reads[i].first_qual = QUALITY_LEVEL(quality[0]);
         db->reads[i].quality = compress_quality_sequence(quality, db->read_len, 1);
 #else
         if (parse_integer_sequence_to(line, quality, db->read_len)) {
-          WARNING__(("\nRead #%ld : quality line too short (\"%s\").\n", i+1, quals_filename));
+          WARNING__("\nRead #%ld : quality line too short (\"%s\").\n", i+1, quals_filename);
         }
         db->reads[i].quality = compress_quality_sequence(quality, db->read_len, 0);
 #endif
@@ -371,7 +371,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
     reads_in = fopen(reads_filename, "r");
 
   if (!reads_in) {
-    ERROR__(("Failed to read input file %s (read sequences).", reads_filename));
+    ERROR__("Failed to read input file %s (read sequences).", reads_filename);
     exit(RETURN_INPUT_ERR);
   }
 
@@ -380,7 +380,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   db->name = NULL;
 
   /* First scan: count how many reads are there in the file */
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("pre-loading reads from \"%s\" ...",reads_filename)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reads from \"%s\" ...",reads_filename));
 
   /* Skip comments at the beginning; after this, i will point to the start of the first non-comment line */
   long i_start = 0;
@@ -399,7 +399,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   } while (read_result && get_input_line_type_fastq(line, lineNo, offset) == LINE_TYPE_COMMENT);
 
   if (!read_result) {
-    ERROR__(("Failed to read input file %s (read sequences) first line.", reads_filename));
+    ERROR__("Failed to read input file %s (read sequences) first line.", reads_filename);
     exit(RETURN_INPUT_ERR);
   }
 
@@ -417,7 +417,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
         /* without the \n and the first 2 chars, which are is a base and the first color, used to obtain the real first base */
 #endif
         if (db->read_len <= 0) {
-          ERROR__(("\nReads file seams corrupt: the first read's length is %d. Aborting.\n\n", db->read_len));
+          ERROR__("\nReads file seams corrupt: the first read's length is %d. Aborting.\n\n", db->read_len);
           exit(RETURN_INPUT_ERR);
         }
       } else {
@@ -427,7 +427,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
         if (strcspn(line, "\r\n") - 2 != db->read_len)
 #endif
           {
-            ERROR__(("\nThe read #%ld does not have the expected length (length is %d, expected %d).\n"
+            ERROR__("\nThe read #%ld does not have the expected length (length is %d, expected %d).\n"
                      "All the reads must be of equal length for the parallel processing.\n\n",
                      db->size + 1,
 #ifdef NUCLEOTIDES
@@ -436,19 +436,19 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
                      (int)strcspn(line, "\r\n") - 2,
 #endif
 
-                     db->read_len));
+                     db->read_len);
             exit(RETURN_INPUT_ERR);
           }
       }
       ++db->size;
     } else if ((lineType == LINE_TYPE_SEQ_HEADER && nextLineType != LINE_TYPE_SEQ) || lineType == LINE_TYPE_UNKNOWN) {
-      ERROR__(("\nReads file seams corrupt at line %d. Exiting.\n", lineNo));
+      ERROR__("\nReads file seams corrupt at line %d. Exiting.\n", lineNo);
       exit(RETURN_INPUT_ERR);
     }
   } while (fgets(line, MAX_LINE_LEN, reads_in));
 
   /* The last line is a read; we can obtain the read length */
-  VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len)));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len));
 
   /* Allocate */
   SAFE_FAILURE__ALLOC(db->reads, db->size, ReadDataType);
@@ -482,7 +482,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
       while (line[line_len] > ' ' && line[line_len] <= '~' && line[line_len] != '@'){
         line_len++;
         if (line_len >= 256) {
-        WARNING__(("\nRead #%ld : name too long (\"%s\").\n", i+1, line));
+        WARNING__("\nRead #%ld : name too long (\"%s\").\n", i+1, line);
           break;
       }
       }

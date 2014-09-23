@@ -585,7 +585,7 @@ static inline void process_read(
       simd_win_start[hits_pos_index] = hit_pos - simd_allowed_diags;
       hits_pos_index++; hits_pos_index %= simd_mul[simd_allowed_diags];
 
-      VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("\nRead:%d@[%d]: HIT Reference:%d@[%d]", read_id, read_pos, ref_id, hit_pos)););
+      VERB_FILTER(VERBOSITY_ANNOYING, INFO__("\nRead:%d@[%d]: HIT Reference:%d@[%d]", read_id, read_pos, ref_id, hit_pos););
 
       if (hits_pos_index == 0) {
         /* alignment with the simd_mul[simd_allowed_diags] hits found */
@@ -600,7 +600,7 @@ static inline void process_read(
 
             int ref_window = MAX(hits_pos[p] - I, -simd_allowed_diags);
 
-            VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("\nRead:%d[%d] PASSED SIMD FILTER Reference:%d@[%d]", read_id, read_pos, ref_id, ref_window)););
+            VERB_FILTER(VERBOSITY_ANNOYING, INFO__("\nRead:%d[%d] PASSED SIMD FILTER Reference:%d@[%d]", read_id, read_pos, ref_id, ref_window););
 
             alignment__reset_with_compressed_ref(alignment, ref_seq, ref_seq_masked, ref_window);
 
@@ -611,7 +611,7 @@ static inline void process_read(
               alignment__traceback(alignment);
 
               /* display the alignment */
-              VERB_FILTER(VERBOSITY_HIGH, INFO__(("\nReference:%d@[%d-%d], Read:%d@[%d–%d]\n%sScore:%d\n", ref_id, ref_window + alignment->best_j0, ref_window + alignment->best_j, read_id,  alignment->best_i0,  alignment->best_i, alignment->to_display, score)););
+              VERB_FILTER(VERBOSITY_HIGH, INFO__("\nReference:%d@[%d-%d], Read:%d@[%d–%d]\n%sScore:%d\n", ref_id, ref_window + alignment->best_j0, ref_window + alignment->best_j, read_id,  alignment->best_i0,  alignment->best_i, alignment->to_display, score););
               /* memorize in a map */
               hit_map__update(map, read_id, ref_id, ref_window, alignment, alignment_sense);
               if (map->map[read_id][MAP_DETAIL_SIZE-1].score > score_threshold) {
@@ -654,7 +654,7 @@ static inline void process_read(
 
         int ref_window = MAX(hits_pos[p] - I, -simd_allowed_diags);
 
-        VERB_FILTER(VERBOSITY_ANNOYING, INFO__(("\nRead %d PASSED SIMD FILTER Reference@%d", read_id, ref_window)););
+        VERB_FILTER(VERBOSITY_ANNOYING, INFO__("\nRead %d PASSED SIMD FILTER Reference@%d", read_id, ref_window););
 
         alignment__reset_with_compressed_ref(alignment, ref_seq, ref_seq_masked, ref_window);
 
@@ -665,7 +665,7 @@ static inline void process_read(
           alignment__traceback(alignment);
 
           /* display the alignment */
-          VERB_FILTER(VERBOSITY_HIGH, INFO__(("\nReference@%d, Read %d\n%sScore: %d\n", ref_window + alignment->best_j0, read_id, alignment->to_display, score)););
+          VERB_FILTER(VERBOSITY_HIGH, INFO__("\nReference@%d, Read %d\n%sScore: %d\n", ref_window + alignment->best_j0, read_id, alignment->to_display, score););
           /* memorize in a map */
           hit_map__update(map, read_id, ref_id, ref_window, alignment, alignment_sense);
           if (map->map[read_id][MAP_DETAIL_SIZE-1].score > score_threshold) {
@@ -726,14 +726,14 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   int seeds_count = seed__parse_list(seedslist, &seeds);
   /* verify seed validity */
   if (seeds_count == RETURN_INPUT_ERR) {
-    ERROR__(("The seed pattern is invalid: \"%s\".\nExpected: {0,1}+ or {-,#}+ with at least one '1'/'#' (seed separator ';').", seedslist));
+    ERROR__("The seed pattern is invalid: \"%s\".\nExpected: {0,1}+ or {-,#}+ with at least one '1'/'#' (seed separator ';').", seedslist);
     exit (RETURN_INPUT_ERR);
   } else if (seeds_count <= 0) {
-    ERROR__(("The seed input is invalid: \"%s\".\nPlease provide at least one seed.", seedslist));
+    ERROR__("The seed input is invalid: \"%s\".\nPlease provide at least one seed.", seedslist);
     exit (RETURN_INPUT_ERR);
   }
   VERB_FILTER(VERBOSITY_MODERATE,
-            INFO__(("The following %d seed%s will be used:\n", seeds_count, (seeds_count > 1 ? "s" : "")));
+            INFO__("The following %d seed%s will be used:\n", seeds_count, (seeds_count > 1 ? "s" : ""));
             int si; for (si = 0; si < seeds_count; ++si) seed__display(seeds[si]);
             printf("\n");
             );
@@ -743,7 +743,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   VERB_FILTER(VERBOSITY_MODERATE, printf("Loading reads database...\n"););
   crt_time = time(NULL);
   if (load_reads_db(reads_filename, qual_filename, &reads_db) <= 0) {
-    ERROR__(("Reads could not be loaded. Exiting."));
+    ERROR__("Reads could not be loaded. Exiting.");
     exit (RETURN_INPUT_ERR);
   }
   map = hit_map__create(reads_db.size, allowed_indels);
@@ -761,7 +761,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   VERB_FILTER(VERBOSITY_MODERATE, printf("Loading reference database...\n"););
   crt_time = time(NULL);
   if ((ref_dbs_size = load_reference_db(ref_filename, reads_db.read_len, &ref_dbs)) <= 0) {
-    ERROR__(("Reference could not be loaded. Exiting."));
+    ERROR__("Reference could not be loaded. Exiting.");
     exit(RETURN_INPUT_ERR);
   }
   VERB_FILTER(VERBOSITY_MODERATE, printf("Loaded %d reference sequence%s in %ld seconds.\n\n", ref_dbs_size, (ref_dbs_size == 1 ? "" : "s"), time(NULL) - crt_time););
@@ -794,9 +794,9 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   for (ref_id = 0; ref_id < ref_dbs_size; ++ref_id) {
     ReferenceDBType* ref_db = &ref_dbs[ref_id];
 #ifdef NUCLEOTIDES
-    VERB_FILTER(VERBOSITY_MODERATE, INFO__(("\n\nProcessing reference sequence %s (%d of %d, %d bases)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size)););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nProcessing reference sequence %s (%d of %d, %d bases)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size););
 #else
-    VERB_FILTER(VERBOSITY_MODERATE, INFO__(("\n\nProcessing reference sequence %s (%d of %d, %d colors)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size)););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nProcessing reference sequence %s (%d of %d, %d colors)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size););
 #endif
 
     /* create index */
@@ -1014,6 +1014,6 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   free(ref_dbs);
   ref_dbs = NULL;
 
-  VERB_FILTER(VERBOSITY_MODERATE, INFO__(("\nAll done in %ld seconds.\n", time(NULL) - start_time)););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("\nAll done in %ld seconds.\n", time(NULL) - start_time););
   return RETURN_SUCCESS;
 }
