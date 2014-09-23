@@ -173,9 +173,9 @@ void hit_map__display(const HitMapType* map) {
     if (map->map[i]) {
       int k;
       for (k = 0; k < MAP_DETAIL_SIZE && map->map[i][k].ref_start != UNMAPPED; ++k) {
-        INFO__("read:%d:[%d,%d]  ref:%d:[%d-%d]  score: %d  adj_score: %d  len: %d\n", i, map->map[i][k].read_start, map->map[i][k].read_end, map->map[i][k].ref_id, map->map[i][k].ref_start, map->map[i][k].ref_end, map->map[i][k].score, map->map[i][k].adjusted_score, map->map[i][k].traceback_seq_len);
+        MESSAGE__("read:%d:[%d,%d]  ref:%d:[%d-%d]  score: %d  adj_score: %d  len: %d\n", i, map->map[i][k].read_start, map->map[i][k].read_end, map->map[i][k].ref_id, map->map[i][k].ref_start, map->map[i][k].ref_end, map->map[i][k].score, map->map[i][k].adjusted_score, map->map[i][k].traceback_seq_len);
         TRACEBACK_DISPLAY(map->map[i][k].traceback, map->map[i][k].traceback_seq_len, stdout);
-        INFO__("\n");
+        MESSAGE__("\n");
       }
     }
   }

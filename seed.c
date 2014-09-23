@@ -230,18 +230,18 @@ void seed__display(const SeedType *seed) {
   int i;
   for (i = 0; i < seed->length; ++i) {
     if (IS_SEED_MATCH(seed->seed[i])) {
-      INFO__("%c", MATCH_SYMBOL);
+      MESSAGE__("%c", MATCH_SYMBOL);
     } else {
-      INFO__("%c", WILDCARD_SYMBOL);
+      MESSAGE__("%c", WILDCARD_SYMBOL);
     }
   }
   if (seed->positions) {
-    INFO__(":");
+    MESSAGE__(":");
     for (i = 0; i < seed->positions_count; ++i) {
-      INFO__("%d ", seed->positions[i]);
+      MESSAGE__("%d ", seed->positions[i]);
     }
   }
-  INFO__("\n");
+  MESSAGE__("\n");
 }
 
 /**
