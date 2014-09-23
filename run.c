@@ -943,7 +943,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   ALIGNMENT__DESTROY;
   HEAP_KEY_HIT_REVSEQ__DESTROY(seeds_count);
 
-  VERB_FILTER(VERBOSITY_NONE, INFO__("\nAligned %d of %d reads (%5.2f%%) in %ld seconds.\n", map->mapped, map->size, (map->mapped*100.0/map->size), time(NULL) - crt_time));
+  VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nAligned %d of %d reads (%5.2f%%) in %ld seconds.\n", map->mapped, map->size, (map->mapped*100.0/map->size), time(NULL) - crt_time));
 
 
 #ifndef __DONT__MAP__
@@ -969,7 +969,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
     }
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, INFO__("\nMap built in %ld seconds. Generating SAM output...\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nMap built in %ld seconds. Generating SAM output...\n", time(NULL) - crt_time););
     genome_map__generate_SAM_output(genome_map, output);
 
     /* erase the genome_map */
@@ -979,7 +979,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   } else {
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, INFO__("\nGenerating SAM output...\n"););
+    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nGenerating SAM output...\n"););
     hit_map__generate_SAM_output(map,
                                  &reads_db,
                                  ref_dbs, ref_dbs_size,
@@ -990,7 +990,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
   /* output unmmapped reads */
   if (unmapped_FASTQ_output) {
-     VERB_FILTER(VERBOSITY_NONE, INFO__("\nGenerating FastQ output for unmapped reads...\n"););
+     VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nGenerating FastQ output for unmapped reads...\n"););
      hit_map__generate_unmapped_FASTQ_output(map,
                                              &reads_db,
                                              unmapped_FASTQ_output);

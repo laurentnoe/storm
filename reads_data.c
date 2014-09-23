@@ -123,7 +123,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   db->name = NULL;
 
   /* First scan: count how many reads are there in the file */
-  VERB_FILTER(VERBOSITY_ANNOYING, MESSAGE__("pre-loading reads from \"%s\" ...",reads_filename));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reads from \"%s\" ...",reads_filename));
 
   /* Skip comments at the beginning; after this, i will point to the start of the first non-comment line */
   long i_start = 0;
@@ -192,7 +192,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   } while (read_result);
 
   /* The last line is a read; we can obtain the read length */
-  VERB_FILTER(VERBOSITY_ANNOYING, MESSAGE__("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len));
 
   /* Allocate */
   SAFE_FAILURE__ALLOC(db->reads, db->size, ReadDataType);
@@ -380,7 +380,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   db->name = NULL;
 
   /* First scan: count how many reads are there in the file */
-  VERB_FILTER(VERBOSITY_ANNOYING, MESSAGE__("pre-loading reads from \"%s\" ...",reads_filename));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("pre-loading reads from \"%s\" ...",reads_filename));
 
   /* Skip comments at the beginning; after this, i will point to the start of the first non-comment line */
   long i_start = 0;
@@ -448,7 +448,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   } while (fgets(line, MAX_LINE_LEN, reads_in));
 
   /* The last line is a read; we can obtain the read length */
-  VERB_FILTER(VERBOSITY_ANNOYING, MESSAGE__("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len));
+  VERB_FILTER(VERBOSITY_ANNOYING, INFO__("%ld reads found from \"%s\" (read length %d), allocating ...",db->size,reads_filename,db->read_len));
 
   /* Allocate */
   SAFE_FAILURE__ALLOC(db->reads, db->size, ReadDataType);
