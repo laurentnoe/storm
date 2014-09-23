@@ -119,10 +119,10 @@ int alignment_avx512bw__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
-  printf("* compatible avx512bw ? %s\n", _bx & 1<<30 ? "yes":"no");
+  fprintf(stderr,"* compatible avx512bw ? %s\n", _bx & 1<<30 ? "yes":"no");
   return (_bx & 1<<30) != 0;
 #else
-  printf("* compatible avx512bw ? no (32bits compiled)\n");
+  fprintf(stderr,"* compatible avx512bw ? no (32bits compiled)\n");
   return 0;
 #endif
 }
@@ -139,10 +139,10 @@ int alignment_avx2__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
-  printf("* compatible avx2 ? %s\n", _bx & 1<<5 ? "yes":"no");
+  fprintf(stderr,"* compatible avx2 ? %s\n", _bx & 1<<5 ? "yes":"no");
   return (_bx & 1<<5) != 0;
 #else
-  printf("* compatible avx2 ? no (32bits compiled)\n");
+  fprintf(stderr,"* compatible avx2 ? no (32bits compiled)\n");
   return 0;
 #endif
 }
@@ -170,7 +170,7 @@ int alignment_sse2__compatible_proc() {
                 : "a" (1)
                 );
 #endif
-  printf("* compatible sse2 ? %s\n", _dx & 1<<26 ? "yes":"no");
+  fprintf(stderr,"* compatible sse2 ? %s\n", _dx & 1<<26 ? "yes":"no");
   return (_dx & 1<<26) != 0;
 }
 
@@ -197,7 +197,7 @@ int alignment_sse__compatible_proc() {
                 : "a" (1)
                 );
 #endif
-  printf("* compatible sse ? %s\n", _dx & 1<<25 ? "yes":"no");
+  fprintf(stderr,"* compatible sse ? %s\n", _dx & 1<<25 ? "yes":"no");
   return (_dx & 1<<25) != 0;
 }
 
@@ -1132,9 +1132,9 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
     free(vMsk256unaligned);
   vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
   if (!vMsk256unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
@@ -1152,7 +1152,7 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
-    fprintf(stdout,"[0]\t Msk:%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+    fprintf(stderr,"[0]\t Msk:%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
   }
 #endif
   unsigned int l;
@@ -1174,7 +1174,7 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
-      fprintf(stdout,"[0]\t Msk:%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+      fprintf(stderr,"[0]\t Msk:%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
     }
 #endif
   }/* for l */
@@ -1191,9 +1191,9 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
     free(vMsk256unaligned);
   vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
   if (!vMsk256unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
@@ -1211,7 +1211,7 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
-    fprintf(stdout,"[0]\t Msk:%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+    fprintf(stderr,"[0]\t Msk:%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
   }
 #endif
   unsigned int l;
@@ -1233,7 +1233,7 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
-      fprintf(stdout,"[0]\t Msk:%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+      fprintf(stderr,"[0]\t Msk:%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
     }
 #endif
   }/* for l */
@@ -1250,9 +1250,9 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
     free(vMsk256unaligned);
   vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
   if (!vMsk256unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
@@ -1270,7 +1270,7 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
-    fprintf(stdout,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+    fprintf(stderr,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
   }
 #endif
   unsigned int l;
@@ -1292,7 +1292,7 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
-      fprintf(stdout,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+      fprintf(stderr,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
     }
 #endif
   }/* for l */
@@ -1309,9 +1309,9 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
     free(vMsk256unaligned);
   vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
   if (!vMsk256unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
@@ -1329,7 +1329,7 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
-    fprintf(stdout,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+    fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
   }
 #endif
   unsigned int l;
@@ -1351,7 +1351,7 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
-      fprintf(stdout,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+      fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
     }
 #endif
   }/* for l */
@@ -1545,8 +1545,8 @@ int alignment_avx2__align_pair(unsigned char * genome,
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.16llx%.16llx,%.16llx%.16llx\n",(A.u64[3]),(A.u64[2]),(A.u64[1]),(A.u64[0]));
-        fprintf(stdout,"[1]\t   B:%.16llx%.16llx,%.16llx%.16llx\n",(B.u64[3]),(B.u64[2]),(B.u64[1]),(B.u64[0]));
+        fprintf(stderr,"[1]\t   A:%.16llx%.16llx,%.16llx%.16llx\n",(A.u64[3]),(A.u64[2]),(A.u64[1]),(A.u64[0]));
+        fprintf(stderr,"[1]\t   B:%.16llx%.16llx,%.16llx%.16llx\n",(B.u64[3]),(B.u64[2]),(B.u64[1]),(B.u64[0]));
       }
 #endif
 
@@ -1562,8 +1562,8 @@ int alignment_avx2__align_pair(unsigned char * genome,
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.16llx%.16llx,%.16llx%.16llx\n",(S_a.u64[3]),(S_a.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
-          fprintf(stdout,"[1]\t S_s:%.16llx%.16llx,%.16llx%.16llx\n",(S_s.u64[3]),(S_s.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
+          fprintf(stderr,"[1]\t S_a:%.16llx%.16llx,%.16llx%.16llx\n",(S_a.u64[3]),(S_a.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
+          fprintf(stderr,"[1]\t S_s:%.16llx%.16llx,%.16llx%.16llx\n",(S_s.u64[3]),(S_s.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
         }
 #endif
 
@@ -1572,7 +1572,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.16llx%.16llx,%.16llx%.16llx\n",(M_old_old.u64[3]),(M_old_old.u64[2]),(M_old_old.u64[1]),(M_old_old.u64[0]));
+          fprintf(stderr,"[1]\t ooM:%.16llx%.16llx,%.16llx%.16llx\n",(M_old_old.u64[3]),(M_old_old.u64[2]),(M_old_old.u64[1]),(M_old_old.u64[0]));
         }
 #endif
 
@@ -1587,9 +1587,9 @@ int alignment_avx2__align_pair(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx\n",(    M.u64[3]),(    M.u64[2]),(    M.u64[1]),(    M.u64[0]));
-        fprintf(stdout,"[1]\t  oM:%.16llx%.16llx,%.16llx%.16llx\n",(M_old.u64[3]),(M_old.u64[2]),(M_old.u64[1]),(M_old.u64[0]));
-        fprintf(stdout,"[1]\t  oI:%.16llx%.16llx,%.16llx%.16llx\n",(I_old.u64[3]),(I_old.u64[2]),(I_old.u64[1]),(I_old.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx\n",(    M.u64[3]),(    M.u64[2]),(    M.u64[1]),(    M.u64[0]));
+        fprintf(stderr,"[1]\t  oM:%.16llx%.16llx,%.16llx%.16llx\n",(M_old.u64[3]),(M_old.u64[2]),(M_old.u64[1]),(M_old.u64[0]));
+        fprintf(stderr,"[1]\t  oI:%.16llx%.16llx,%.16llx%.16llx\n",(I_old.u64[3]),(I_old.u64[2]),(I_old.u64[1]),(I_old.u64[0]));
       }
 #endif
 
@@ -1618,8 +1618,8 @@ int alignment_avx2__align_pair(unsigned char * genome,
         vector256_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx\n",(M.u64[3]),(M.u64[2]),(M.u64[1]),(M.u64[0]));
-        fprintf(stdout,"[1]\t>  I:%.16llx%.16llx,%.16llx%.16llx\n",(I.u64[3]),(I.u64[2]),(I.u64[1]),(I.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx\n",(M.u64[3]),(M.u64[2]),(M.u64[1]),(M.u64[0]));
+        fprintf(stderr,"[1]\t>  I:%.16llx%.16llx,%.16llx%.16llx\n",(I.u64[3]),(I.u64[2]),(I.u64[1]),(I.u64[0]));
       }
 #endif
 
@@ -1632,9 +1632,9 @@ int alignment_avx2__align_pair(unsigned char * genome,
         Msk.v = vMsk256[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
-        fprintf(stdout,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx\n",(  M.u64[3]),(  M.u64[2]),(  M.u64[1]),(  M.u64[0]));
-        fprintf(stdout,"[1]\t>Max:%.16llx%.16llx,%.16llx%.16llx\n",(Max.u64[3]),(Max.u64[2]),(Max.u64[1]),(Max.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx\n",(  M.u64[3]),(  M.u64[2]),(  M.u64[1]),(  M.u64[0]));
+        fprintf(stderr,"[1]\t>Max:%.16llx%.16llx,%.16llx%.16llx\n",(Max.u64[3]),(Max.u64[2]),(Max.u64[1]),(Max.u64[0]));
       }
 #endif
 
@@ -1643,7 +1643,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     --------------------------------,--------------------------------\n");
+      fprintf(stderr,"[1]\t     --------------------------------,--------------------------------\n");
 #endif
     } /* l */
   }
@@ -1661,7 +1661,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
       result |= 2;
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ================================,================================\n");
+    fprintf(stderr,"[1]\t     ================================,================================\n");
 #endif
     return result;
   }
@@ -1745,8 +1745,8 @@ int alignment_avx2__align_quad(unsigned char * genome,
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.16llx,%.16llx,%.16llx,%.16llx\n",(A.u64[3]),(A.u64[2]),(A.u64[1]),(A.u64[0]));
-        fprintf(stdout,"[1]\t   B:%.16llx,%.16llx,%.16llx,%.16llx\n",(B.u64[3]),(B.u64[2]),(B.u64[1]),(B.u64[0]));
+        fprintf(stderr,"[1]\t   A:%.16llx,%.16llx,%.16llx,%.16llx\n",(A.u64[3]),(A.u64[2]),(A.u64[1]),(A.u64[0]));
+        fprintf(stderr,"[1]\t   B:%.16llx,%.16llx,%.16llx,%.16llx\n",(B.u64[3]),(B.u64[2]),(B.u64[1]),(B.u64[0]));
       }
 #endif
 
@@ -1762,8 +1762,8 @@ int alignment_avx2__align_quad(unsigned char * genome,
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.16llx,%.16llx,%.16llx,%.16llx\n",(S_a.u64[3]),(S_a.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
-          fprintf(stdout,"[1]\t S_s:%.16llx,%.16llx,%.16llx,%.16llx\n",(S_s.u64[3]),(S_s.u64[2]),(S_s.u64[1]),(S_s.u64[0]));
+          fprintf(stderr,"[1]\t S_a:%.16llx,%.16llx,%.16llx,%.16llx\n",(S_a.u64[3]),(S_a.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
+          fprintf(stderr,"[1]\t S_s:%.16llx,%.16llx,%.16llx,%.16llx\n",(S_s.u64[3]),(S_s.u64[2]),(S_s.u64[1]),(S_s.u64[0]));
         }
 #endif
 
@@ -1772,7 +1772,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.16llx,%.16llx,%.16llx,%.16llx\n",(M_old_old.u64[3]),(M_old_old.u64[2]),(M_old_old.u64[1]),(M_old_old.u64[0]));
+          fprintf(stderr,"[1]\t ooM:%.16llx,%.16llx,%.16llx,%.16llx\n",(M_old_old.u64[3]),(M_old_old.u64[2]),(M_old_old.u64[1]),(M_old_old.u64[0]));
         }
 #endif
 
@@ -1787,9 +1787,9 @@ int alignment_avx2__align_quad(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx\n",(    M.u64[3]),(    M.u64[2]),(    M.u64[1]),(    M.u64[0]));
-        fprintf(stdout,"[1]\t  oM:%.16llx,%.16llx,%.16llx,%.16llx\n",(M_old.u64[3]),(M_old.u64[2]),(M_old.u64[1]),(M_old.u64[0]));
-        fprintf(stdout,"[1]\t  oI:%.16llx,%.16llx,%.16llx,%.16llx\n",(I_old.u64[3]),(I_old.u64[2]),(I_old.u64[1]),(I_old.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx\n",(    M.u64[3]),(    M.u64[2]),(    M.u64[1]),(    M.u64[0]));
+        fprintf(stderr,"[1]\t  oM:%.16llx,%.16llx,%.16llx,%.16llx\n",(M_old.u64[3]),(M_old.u64[2]),(M_old.u64[1]),(M_old.u64[0]));
+        fprintf(stderr,"[1]\t  oI:%.16llx,%.16llx,%.16llx,%.16llx\n",(I_old.u64[3]),(I_old.u64[2]),(I_old.u64[1]),(I_old.u64[0]));
       }
 #endif
 
@@ -1818,8 +1818,8 @@ int alignment_avx2__align_quad(unsigned char * genome,
         vector256_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx\n",(M.u64[3]),(M.u64[2]),(M.u64[1]),(M.u64[0]));
-        fprintf(stdout,"[1]\t>  I:%.16llx,%.16llx,%.16llx,%.16llx\n",(I.u64[3]),(I.u64[2]),(I.u64[1]),(I.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx\n",(M.u64[3]),(M.u64[2]),(M.u64[1]),(M.u64[0]));
+        fprintf(stderr,"[1]\t>  I:%.16llx,%.16llx,%.16llx,%.16llx\n",(I.u64[3]),(I.u64[2]),(I.u64[1]),(I.u64[0]));
       }
 #endif
 
@@ -1832,9 +1832,9 @@ int alignment_avx2__align_quad(unsigned char * genome,
         Msk.v = vMsk256[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
-        fprintf(stdout,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx\n",(  M.u64[3]),(  M.u64[2]),(  M.u64[1]),(  M.u64[0]));
-        fprintf(stdout,"[1]\t>Max:%.16llx,%.16llx,%.16llx,%.16llx\n",(Max.u64[3]),(Max.u64[2]),(Max.u64[1]),(Max.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx\n",(  M.u64[3]),(  M.u64[2]),(  M.u64[1]),(  M.u64[0]));
+        fprintf(stderr,"[1]\t>Max:%.16llx,%.16llx,%.16llx,%.16llx\n",(Max.u64[3]),(Max.u64[2]),(Max.u64[1]),(Max.u64[0]));
       }
 #endif
 
@@ -1843,7 +1843,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ----------------,----------------,----------------,----------------\n");
+      fprintf(stderr,"[1]\t     ----------------,----------------,----------------,----------------\n");
 #endif
     } /* l */
   }
@@ -1858,7 +1858,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ================,================,================,================\n");
+    fprintf(stderr,"[1]\t     ================,================,================,================\n");
 #endif
     return result;
   }
@@ -1942,8 +1942,8 @@ int alignment_avx2__align_octa(unsigned char * genome,
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(A.u32[7]),(A.u32[6]),(A.u32[5]),(A.u32[4]),(A.u32[3]),(A.u32[2]),(A.u32[1]),(A.u32[0]));
-        fprintf(stdout,"[1]\t   B:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(B.u32[7]),(B.u32[6]),(B.u32[5]),(B.u32[4]),(B.u32[3]),(B.u32[2]),(B.u32[1]),(B.u32[0]));
+        fprintf(stderr,"[1]\t   A:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(A.u32[7]),(A.u32[6]),(A.u32[5]),(A.u32[4]),(A.u32[3]),(A.u32[2]),(A.u32[1]),(A.u32[0]));
+        fprintf(stderr,"[1]\t   B:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(B.u32[7]),(B.u32[6]),(B.u32[5]),(B.u32[4]),(B.u32[3]),(B.u32[2]),(B.u32[1]),(B.u32[0]));
       }
 #endif
 
@@ -1959,8 +1959,8 @@ int alignment_avx2__align_octa(unsigned char * genome,
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(S_a.u32[7]),(S_a.u32[6]),(S_a.u32[5]),(S_a.u32[4]),(S_a.u32[3]),(S_a.u32[2]),(S_a.u32[1]),(S_a.u32[0]));
-          fprintf(stdout,"[1]\t S_s:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(S_s.u32[7]),(S_s.u32[6]),(S_s.u32[5]),(S_s.u32[4]),(S_s.u32[3]),(S_s.u32[2]),(S_s.u32[1]),(S_s.u32[0]));
+          fprintf(stderr,"[1]\t S_a:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(S_a.u32[7]),(S_a.u32[6]),(S_a.u32[5]),(S_a.u32[4]),(S_a.u32[3]),(S_a.u32[2]),(S_a.u32[1]),(S_a.u32[0]));
+          fprintf(stderr,"[1]\t S_s:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(S_s.u32[7]),(S_s.u32[6]),(S_s.u32[5]),(S_s.u32[4]),(S_s.u32[3]),(S_s.u32[2]),(S_s.u32[1]),(S_s.u32[0]));
         }
 #endif
 
@@ -1969,7 +1969,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(M_old_old.u32[7]),(M_old_old.u32[6]),(M_old_old.u32[5]),(M_old_old.u32[4]),(M_old_old.u32[3]),(M_old_old.u32[2]),(M_old_old.u32[1]),(M_old_old.u32[0]));
+          fprintf(stderr,"[1]\t ooM:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(M_old_old.u32[7]),(M_old_old.u32[6]),(M_old_old.u32[5]),(M_old_old.u32[4]),(M_old_old.u32[3]),(M_old_old.u32[2]),(M_old_old.u32[1]),(M_old_old.u32[0]));
         }
 #endif
 
@@ -1984,9 +1984,9 @@ int alignment_avx2__align_octa(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(    M.u32[7]),(    M.u32[6]),(    M.u32[5]),(    M.u32[4]),(    M.u32[3]),(    M.u32[2]),(    M.u32[1]),(    M.u32[0]));
-        fprintf(stdout,"[1]\t  oM:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(M_old.u32[7]),(M_old.u32[6]),(M_old.u32[5]),(M_old.u32[4]),(M_old.u32[3]),(M_old.u32[2]),(M_old.u32[1]),(M_old.u32[0]));
-        fprintf(stdout,"[1]\t  oI:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(I_old.u32[7]),(I_old.u32[6]),(I_old.u32[5]),(I_old.u32[4]),(I_old.u32[3]),(I_old.u32[2]),(I_old.u32[1]),(I_old.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(    M.u32[7]),(    M.u32[6]),(    M.u32[5]),(    M.u32[4]),(    M.u32[3]),(    M.u32[2]),(    M.u32[1]),(    M.u32[0]));
+        fprintf(stderr,"[1]\t  oM:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(M_old.u32[7]),(M_old.u32[6]),(M_old.u32[5]),(M_old.u32[4]),(M_old.u32[3]),(M_old.u32[2]),(M_old.u32[1]),(M_old.u32[0]));
+        fprintf(stderr,"[1]\t  oI:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(I_old.u32[7]),(I_old.u32[6]),(I_old.u32[5]),(I_old.u32[4]),(I_old.u32[3]),(I_old.u32[2]),(I_old.u32[1]),(I_old.u32[0]));
       }
 #endif
 
@@ -2015,8 +2015,8 @@ int alignment_avx2__align_octa(unsigned char * genome,
         vector256_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(M.u32[7]),(M.u32[6]),(M.u32[5]),(M.u32[4]),(M.u32[3]),(M.u32[2]),(M.u32[1]),(M.u32[0]));
-        fprintf(stdout,"[1]\t>  I:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(I.u32[7]),(I.u32[6]),(I.u32[5]),(I.u32[4]),(I.u32[3]),(I.u32[2]),(I.u32[1]),(I.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(M.u32[7]),(M.u32[6]),(M.u32[5]),(M.u32[4]),(M.u32[3]),(M.u32[2]),(M.u32[1]),(M.u32[0]));
+        fprintf(stderr,"[1]\t>  I:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(I.u32[7]),(I.u32[6]),(I.u32[5]),(I.u32[4]),(I.u32[3]),(I.u32[2]),(I.u32[1]),(I.u32[0]));
       }
 #endif
 
@@ -2029,9 +2029,9 @@ int alignment_avx2__align_octa(unsigned char * genome,
         Msk.v = vMsk256[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(  M.u32[7]),(  M.u32[6]),(  M.u32[5]),(  M.u32[4]),(  M.u32[3]),(  M.u32[2]),(  M.u32[1]),(  M.u32[0]));
-        fprintf(stdout,"[1]\t>Max:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Max.u32[7]),(Max.u32[6]),(Max.u32[5]),(Max.u32[4]),(Max.u32[3]),(Max.u32[2]),(Max.u32[1]),(Max.u32[0]));
+        fprintf(stderr,"[1]\t>Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(  M.u32[7]),(  M.u32[6]),(  M.u32[5]),(  M.u32[4]),(  M.u32[3]),(  M.u32[2]),(  M.u32[1]),(  M.u32[0]));
+        fprintf(stderr,"[1]\t>Max:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Max.u32[7]),(Max.u32[6]),(Max.u32[5]),(Max.u32[4]),(Max.u32[3]),(Max.u32[2]),(Max.u32[1]),(Max.u32[0]));
       }
 #endif
 
@@ -2040,7 +2040,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     --------,--------,--------,--------,--------,--------,--------,--------\n");
+      fprintf(stderr,"[1]\t     --------,--------,--------,--------,--------,--------,--------,--------\n");
 #endif
     } /* l */
   }
@@ -2055,7 +2055,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ========,========,========,========,========,========,========,========\n");
+    fprintf(stderr,"[1]\t     ========,========,========,========,========,========,========,========\n");
 #endif
     return result;
   }
@@ -2139,8 +2139,8 @@ int alignment_avx2__align_hexa(unsigned char * genome,
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(A.u16[15]),(A.u16[14]),(A.u16[13]),(A.u16[12]),(A.u16[11]),(A.u16[10]),(A.u16[9]),(A.u16[8]),(A.u16[7]),(A.u16[6]),(A.u16[5]),(A.u16[4]),(A.u16[3]),(A.u16[2]),(A.u16[1]),(A.u16[0]));
-        fprintf(stdout,"[1]\t   B:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(B.u16[15]),(B.u16[14]),(B.u16[13]),(B.u16[12]),(B.u16[11]),(B.u16[10]),(B.u16[9]),(B.u16[8]),(B.u16[7]),(B.u16[6]),(B.u16[5]),(B.u16[4]),(B.u16[3]),(B.u16[2]),(B.u16[1]),(B.u16[0]));
+        fprintf(stderr,"[1]\t   A:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(A.u16[15]),(A.u16[14]),(A.u16[13]),(A.u16[12]),(A.u16[11]),(A.u16[10]),(A.u16[9]),(A.u16[8]),(A.u16[7]),(A.u16[6]),(A.u16[5]),(A.u16[4]),(A.u16[3]),(A.u16[2]),(A.u16[1]),(A.u16[0]));
+        fprintf(stderr,"[1]\t   B:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(B.u16[15]),(B.u16[14]),(B.u16[13]),(B.u16[12]),(B.u16[11]),(B.u16[10]),(B.u16[9]),(B.u16[8]),(B.u16[7]),(B.u16[6]),(B.u16[5]),(B.u16[4]),(B.u16[3]),(B.u16[2]),(B.u16[1]),(B.u16[0]));
       }
 #endif
 
@@ -2156,8 +2156,8 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[15]),(S_a.u16[14]),(S_a.u16[13]),(S_a.u16[12]),(S_a.u16[11]),(S_a.u16[10]),(S_a.u16[9]),(S_a.u16[8]),(S_a.u16[7]),(S_a.u16[6]),(S_a.u16[5]),(S_a.u16[4]),(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
-          fprintf(stdout,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[15]),(S_s.u16[14]),(S_s.u16[13]),(S_s.u16[12]),(S_s.u16[11]),(S_s.u16[10]),(S_s.u16[9]),(S_s.u16[8]),(S_s.u16[7]),(S_s.u16[6]),(S_s.u16[5]),(S_s.u16[4]),(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
+          fprintf(stderr,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[15]),(S_a.u16[14]),(S_a.u16[13]),(S_a.u16[12]),(S_a.u16[11]),(S_a.u16[10]),(S_a.u16[9]),(S_a.u16[8]),(S_a.u16[7]),(S_a.u16[6]),(S_a.u16[5]),(S_a.u16[4]),(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
+          fprintf(stderr,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[15]),(S_s.u16[14]),(S_s.u16[13]),(S_s.u16[12]),(S_s.u16[11]),(S_s.u16[10]),(S_s.u16[9]),(S_s.u16[8]),(S_s.u16[7]),(S_s.u16[6]),(S_s.u16[5]),(S_s.u16[4]),(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
         }
 #endif
 
@@ -2166,7 +2166,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[15]),(M_old_old.u16[14]),(M_old_old.u16[13]),(M_old_old.u16[12]),(M_old_old.u16[11]),(M_old_old.u16[10]),(M_old_old.u16[9]),(M_old_old.u16[8]),(M_old_old.u16[7]),(M_old_old.u16[6]),(M_old_old.u16[5]),(M_old_old.u16[4]),(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
+          fprintf(stderr,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[15]),(M_old_old.u16[14]),(M_old_old.u16[13]),(M_old_old.u16[12]),(M_old_old.u16[11]),(M_old_old.u16[10]),(M_old_old.u16[9]),(M_old_old.u16[8]),(M_old_old.u16[7]),(M_old_old.u16[6]),(M_old_old.u16[5]),(M_old_old.u16[4]),(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
         }
 #endif
 
@@ -2181,9 +2181,9 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(    M.u16[15]),(    M.u16[14]),(    M.u16[13]),(    M.u16[12]),(    M.u16[11]),(    M.u16[10]),(    M.u16[9]),(    M.u16[8]),(    M.u16[7]),(    M.u16[6]),(    M.u16[5]),(    M.u16[4]),(    M.u16[3]),(    M.u16[2]),(    M.u16[1]),(    M.u16[0]));
-        fprintf(stdout,"[1]\t  oM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old.u16[15]),(M_old.u16[14]),(M_old.u16[13]),(M_old.u16[12]),(M_old.u16[11]),(M_old.u16[10]),(M_old.u16[9]),(M_old.u16[8]),(M_old.u16[7]),(M_old.u16[6]),(M_old.u16[5]),(M_old.u16[4]),(M_old.u16[3]),(M_old.u16[2]),(M_old.u16[1]),(M_old.u16[0]));
-        fprintf(stdout,"[1]\t  oI:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I_old.u16[15]),(I_old.u16[14]),(I_old.u16[13]),(I_old.u16[12]),(I_old.u16[11]),(I_old.u16[10]),(I_old.u16[9]),(I_old.u16[8]),(I_old.u16[7]),(I_old.u16[6]),(I_old.u16[5]),(I_old.u16[4]),(I_old.u16[3]),(I_old.u16[2]),(I_old.u16[1]),(I_old.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(    M.u16[15]),(    M.u16[14]),(    M.u16[13]),(    M.u16[12]),(    M.u16[11]),(    M.u16[10]),(    M.u16[9]),(    M.u16[8]),(    M.u16[7]),(    M.u16[6]),(    M.u16[5]),(    M.u16[4]),(    M.u16[3]),(    M.u16[2]),(    M.u16[1]),(    M.u16[0]));
+        fprintf(stderr,"[1]\t  oM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old.u16[15]),(M_old.u16[14]),(M_old.u16[13]),(M_old.u16[12]),(M_old.u16[11]),(M_old.u16[10]),(M_old.u16[9]),(M_old.u16[8]),(M_old.u16[7]),(M_old.u16[6]),(M_old.u16[5]),(M_old.u16[4]),(M_old.u16[3]),(M_old.u16[2]),(M_old.u16[1]),(M_old.u16[0]));
+        fprintf(stderr,"[1]\t  oI:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I_old.u16[15]),(I_old.u16[14]),(I_old.u16[13]),(I_old.u16[12]),(I_old.u16[11]),(I_old.u16[10]),(I_old.u16[9]),(I_old.u16[8]),(I_old.u16[7]),(I_old.u16[6]),(I_old.u16[5]),(I_old.u16[4]),(I_old.u16[3]),(I_old.u16[2]),(I_old.u16[1]),(I_old.u16[0]));
       }
 #endif
 
@@ -2212,8 +2212,8 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         vector256_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M.u16[15]),(M.u16[14]),(M.u16[13]),(M.u16[12]),(M.u16[11]),(M.u16[10]),(M.u16[9]),(M.u16[8]),(M.u16[7]),(M.u16[6]),(M.u16[5]),(M.u16[4]),(M.u16[3]),(M.u16[2]),(M.u16[1]),(M.u16[0]));
-        fprintf(stdout,"[1]\t>  I:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I.u16[15]),(I.u16[14]),(I.u16[13]),(I.u16[12]),(I.u16[11]),(I.u16[10]),(I.u16[9]),(I.u16[8]),(I.u16[7]),(I.u16[6]),(I.u16[5]),(I.u16[4]),(I.u16[3]),(I.u16[2]),(I.u16[1]),(I.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M.u16[15]),(M.u16[14]),(M.u16[13]),(M.u16[12]),(M.u16[11]),(M.u16[10]),(M.u16[9]),(M.u16[8]),(M.u16[7]),(M.u16[6]),(M.u16[5]),(M.u16[4]),(M.u16[3]),(M.u16[2]),(M.u16[1]),(M.u16[0]));
+        fprintf(stderr,"[1]\t>  I:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I.u16[15]),(I.u16[14]),(I.u16[13]),(I.u16[12]),(I.u16[11]),(I.u16[10]),(I.u16[9]),(I.u16[8]),(I.u16[7]),(I.u16[6]),(I.u16[5]),(I.u16[4]),(I.u16[3]),(I.u16[2]),(I.u16[1]),(I.u16[0]));
       }
 #endif
 
@@ -2226,9 +2226,9 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         Msk.v = vMsk256[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(  M.u16[15]),(  M.u16[14]),(  M.u16[13]),(  M.u16[12]),(  M.u16[11]),(  M.u16[10]),(  M.u16[9]),(  M.u16[8]),(  M.u16[7]),(  M.u16[6]),(  M.u16[5]),(  M.u16[4]),(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
-        fprintf(stdout,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Max.u16[15]),(Max.u16[14]),(Max.u16[13]),(Max.u16[12]),(Max.u16[11]),(Max.u16[10]),(Max.u16[9]),(Max.u16[8]),(Max.u16[7]),(Max.u16[6]),(Max.u16[5]),(Max.u16[4]),(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
+        fprintf(stderr,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(  M.u16[15]),(  M.u16[14]),(  M.u16[13]),(  M.u16[12]),(  M.u16[11]),(  M.u16[10]),(  M.u16[9]),(  M.u16[8]),(  M.u16[7]),(  M.u16[6]),(  M.u16[5]),(  M.u16[4]),(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
+        fprintf(stderr,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Max.u16[15]),(Max.u16[14]),(Max.u16[13]),(Max.u16[12]),(Max.u16[11]),(Max.u16[10]),(Max.u16[9]),(Max.u16[8]),(Max.u16[7]),(Max.u16[6]),(Max.u16[5]),(Max.u16[4]),(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
       }
 #endif
 
@@ -2237,7 +2237,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ----,----,----,----,----,----,----,----,----,----,----,----,----,----,----,----\n");
+      fprintf(stderr,"[1]\t     ----,----,----,----,----,----,----,----,----,----,----,----,----,----,----,----\n");
 #endif
     } /* l */
   }
@@ -2252,7 +2252,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ====,====,====,====,====,====,====,====,====,====,====,====,====,====,====,====\n");
+    fprintf(stderr,"[1]\t     ====,====,====,====,====,====,====,====,====,====,====,====,====,====,====,====\n");
 #endif
     return result;
   }
@@ -2279,9 +2279,9 @@ void alignment_sse2__setlength_mono(const unsigned int readlength) {
     free(vMsk128unaligned);
   vMsk128unaligned = malloc(prlength * sizeof(VTYPE128) + 15);
   if (!vMsk128unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
@@ -2295,7 +2295,7 @@ void alignment_sse2__setlength_mono(const unsigned int readlength) {
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
-    fprintf(stdout,"[0]\t Msk:%.16llx%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
+    fprintf(stderr,"[0]\t Msk:%.16llx%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
   }
 #endif
   unsigned int l;
@@ -2317,7 +2317,7 @@ void alignment_sse2__setlength_mono(const unsigned int readlength) {
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
-      fprintf(stdout,"[0]\t Msk:%.16llx%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
+      fprintf(stderr,"[0]\t Msk:%.16llx%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
     }
 #endif
   }/* for l */
@@ -2334,9 +2334,9 @@ void alignment_sse2__setlength_pair(const unsigned int readlength) {
     free(vMsk128unaligned);
   vMsk128unaligned = malloc(prlength * sizeof(VTYPE128) + 15);
   if (!vMsk128unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
@@ -2350,7 +2350,7 @@ void alignment_sse2__setlength_pair(const unsigned int readlength) {
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
-    fprintf(stdout,"[0]\t Msk:%.16llx,%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
+    fprintf(stderr,"[0]\t Msk:%.16llx,%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
   }
 #endif
   unsigned int l;
@@ -2372,7 +2372,7 @@ void alignment_sse2__setlength_pair(const unsigned int readlength) {
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
-      fprintf(stdout,"[0]\t Msk:%.16llx,%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
+      fprintf(stderr,"[0]\t Msk:%.16llx,%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
     }
 #endif
   }/* for l */
@@ -2389,9 +2389,9 @@ void alignment_sse2__setlength_quad(const unsigned int readlength) {
     free(vMsk128unaligned);
   vMsk128unaligned = malloc(prlength * sizeof(VTYPE128) + 15);
   if (!vMsk128unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
@@ -2405,7 +2405,7 @@ void alignment_sse2__setlength_quad(const unsigned int readlength) {
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
-    fprintf(stdout,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+    fprintf(stderr,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
   }
 #endif
   unsigned int l;
@@ -2427,7 +2427,7 @@ void alignment_sse2__setlength_quad(const unsigned int readlength) {
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
-      fprintf(stdout,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+      fprintf(stderr,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
     }
 #endif
   }/* for l */
@@ -2444,9 +2444,9 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
     free(vMsk128unaligned);
   vMsk128unaligned = malloc(prlength * sizeof(VTYPE128) + 15);
   if (!vMsk128unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
@@ -2460,7 +2460,7 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
-    fprintf(stdout,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+    fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
   }
 #endif
   unsigned int l;
@@ -2482,7 +2482,7 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
-      fprintf(stdout,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+      fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
     }
 #endif
   }/* for l */
@@ -2666,8 +2666,8 @@ int alignment_sse2__align_mono(unsigned char * genome,
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.16llx%.16llx\n",(A.u64[1]),(A.u64[0]));
-        fprintf(stdout,"[1]\t   B:%.16llx%.16llx\n",(B.u64[1]),(B.u64[0]));
+        fprintf(stderr,"[1]\t   A:%.16llx%.16llx\n",(A.u64[1]),(A.u64[0]));
+        fprintf(stderr,"[1]\t   B:%.16llx%.16llx\n",(B.u64[1]),(B.u64[0]));
       }
 #endif
 
@@ -2683,8 +2683,8 @@ int alignment_sse2__align_mono(unsigned char * genome,
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.16llx%.16llx\n",(S_a.u64[1]),(S_a.u64[0]));
-          fprintf(stdout,"[1]\t S_s:%.16llx%.16llx\n",(S_s.u64[1]),(S_s.u64[0]));
+          fprintf(stderr,"[1]\t S_a:%.16llx%.16llx\n",(S_a.u64[1]),(S_a.u64[0]));
+          fprintf(stderr,"[1]\t S_s:%.16llx%.16llx\n",(S_s.u64[1]),(S_s.u64[0]));
         }
 #endif
 
@@ -2693,7 +2693,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.16llx%.16llx\n",(M_old_old.u64[1]),(M_old_old.u64[0]));
+          fprintf(stderr,"[1]\t ooM:%.16llx%.16llx\n",(M_old_old.u64[1]),(M_old_old.u64[0]));
         }
 #endif
 
@@ -2708,9 +2708,9 @@ int alignment_sse2__align_mono(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.16llx%.16llx\n",(    M.u64[1]),(    M.u64[0]));
-        fprintf(stdout,"[1]\t  oM:%.16llx%.16llx\n",(M_old.u64[1]),(M_old.u64[0]));
-        fprintf(stdout,"[1]\t  oI:%.16llx%.16llx\n",(I_old.u64[1]),(I_old.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx%.16llx\n",(    M.u64[1]),(    M.u64[0]));
+        fprintf(stderr,"[1]\t  oM:%.16llx%.16llx\n",(M_old.u64[1]),(M_old.u64[0]));
+        fprintf(stderr,"[1]\t  oI:%.16llx%.16llx\n",(I_old.u64[1]),(I_old.u64[0]));
       }
 #endif
 
@@ -2739,8 +2739,8 @@ int alignment_sse2__align_mono(unsigned char * genome,
         vector128_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.16llx%.16llx\n",(M.u64[1]),(M.u64[0]));
-        fprintf(stdout,"[1]\t>  I:%.16llx%.16llx\n",(I.u64[1]),(I.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx%.16llx\n",(M.u64[1]),(M.u64[0]));
+        fprintf(stderr,"[1]\t>  I:%.16llx%.16llx\n",(I.u64[1]),(I.u64[0]));
       }
 #endif
 
@@ -2753,9 +2753,9 @@ int alignment_sse2__align_mono(unsigned char * genome,
         Msk.v = vMsk128[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.16llx%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
-        fprintf(stdout,"[1]\t>  M:%.16llx%.16llx\n",(  M.u64[1]),(  M.u64[0]));
-        fprintf(stdout,"[1]\t>Max:%.16llx%.16llx\n",(Max.u64[1]),(Max.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx%.16llx\n",(  M.u64[1]),(  M.u64[0]));
+        fprintf(stderr,"[1]\t>Max:%.16llx%.16llx\n",(Max.u64[1]),(Max.u64[0]));
       }
 #endif
 
@@ -2764,7 +2764,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     --------------------------------\n");
+      fprintf(stderr,"[1]\t     --------------------------------\n");
 #endif
     } /* l */
   }
@@ -2777,7 +2777,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
       result |= 1;
     }
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ================================\n");
+      fprintf(stderr,"[1]\t     ================================\n");
 #endif
     return result;
   }
@@ -2861,8 +2861,8 @@ int alignment_sse2__align_pair(unsigned char * genome,
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.16llx,%.16llx\n",(A.u64[1]),(A.u64[0]));
-        fprintf(stdout,"[1]\t   B:%.16llx,%.16llx\n",(B.u64[1]),(B.u64[0]));
+        fprintf(stderr,"[1]\t   A:%.16llx,%.16llx\n",(A.u64[1]),(A.u64[0]));
+        fprintf(stderr,"[1]\t   B:%.16llx,%.16llx\n",(B.u64[1]),(B.u64[0]));
       }
 #endif
 
@@ -2878,8 +2878,8 @@ int alignment_sse2__align_pair(unsigned char * genome,
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.16llx,%.16llx\n",(S_a.u64[1]),(S_a.u64[0]));
-          fprintf(stdout,"[1]\t S_s:%.16llx,%.16llx\n",(S_s.u64[1]),(S_s.u64[0]));
+          fprintf(stderr,"[1]\t S_a:%.16llx,%.16llx\n",(S_a.u64[1]),(S_a.u64[0]));
+          fprintf(stderr,"[1]\t S_s:%.16llx,%.16llx\n",(S_s.u64[1]),(S_s.u64[0]));
         }
 #endif
 
@@ -2888,7 +2888,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.16llx,%.16llx\n",(M_old_old.u64[1]),(M_old_old.u64[0]));
+          fprintf(stderr,"[1]\t ooM:%.16llx,%.16llx\n",(M_old_old.u64[1]),(M_old_old.u64[0]));
         }
 #endif
 
@@ -2903,9 +2903,9 @@ int alignment_sse2__align_pair(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.16llx,%.16llx\n",(    M.u64[1]),(    M.u64[0]));
-        fprintf(stdout,"[1]\t  oM:%.16llx,%.16llx\n",(M_old.u64[1]),(M_old.u64[0]));
-        fprintf(stdout,"[1]\t  oI:%.16llx,%.16llx\n",(I_old.u64[1]),(I_old.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx\n",(    M.u64[1]),(    M.u64[0]));
+        fprintf(stderr,"[1]\t  oM:%.16llx,%.16llx\n",(M_old.u64[1]),(M_old.u64[0]));
+        fprintf(stderr,"[1]\t  oI:%.16llx,%.16llx\n",(I_old.u64[1]),(I_old.u64[0]));
       }
 #endif
 
@@ -2934,8 +2934,8 @@ int alignment_sse2__align_pair(unsigned char * genome,
         vector128_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.16llx,%.16llx\n",(M.u64[1]),(M.u64[0]));
-        fprintf(stdout,"[1]\t>  I:%.16llx,%.16llx\n",(I.u64[1]),(I.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx\n",(M.u64[1]),(M.u64[0]));
+        fprintf(stderr,"[1]\t>  I:%.16llx,%.16llx\n",(I.u64[1]),(I.u64[0]));
       }
 #endif
 
@@ -2948,9 +2948,9 @@ int alignment_sse2__align_pair(unsigned char * genome,
         Msk.v = vMsk128[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.16llx,%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
-        fprintf(stdout,"[1]\t>  M:%.16llx,%.16llx\n",(  M.u64[1]),(  M.u64[0]));
-        fprintf(stdout,"[1]\t>Max:%.16llx,%.16llx\n",(Max.u64[1]),(Max.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx,%.16llx\n",(Msk.u64[1]),(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx\n",(  M.u64[1]),(  M.u64[0]));
+        fprintf(stderr,"[1]\t>Max:%.16llx,%.16llx\n",(Max.u64[1]),(Max.u64[0]));
       }
 #endif
 
@@ -2959,7 +2959,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ----------------,----------------\n");
+      fprintf(stderr,"[1]\t     ----------------,----------------\n");
 #endif
     } /* l */
   }
@@ -2974,7 +2974,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ================,================\n");
+    fprintf(stderr,"[1]\t     ================,================\n");
 #endif
     return result;
   }
@@ -3058,8 +3058,8 @@ int alignment_sse2__align_quad(unsigned char * genome,
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.8x,%.8x,%.8x,%.8x\n",(A.u32[3]),(A.u32[2]),(A.u32[1]),(A.u32[0]));
-        fprintf(stdout,"[1]\t   B:%.8x,%.8x,%.8x,%.8x\n",(B.u32[3]),(B.u32[2]),(B.u32[1]),(B.u32[0]));
+        fprintf(stderr,"[1]\t   A:%.8x,%.8x,%.8x,%.8x\n",(A.u32[3]),(A.u32[2]),(A.u32[1]),(A.u32[0]));
+        fprintf(stderr,"[1]\t   B:%.8x,%.8x,%.8x,%.8x\n",(B.u32[3]),(B.u32[2]),(B.u32[1]),(B.u32[0]));
       }
 #endif
 
@@ -3075,8 +3075,8 @@ int alignment_sse2__align_quad(unsigned char * genome,
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.8x,%.8x,%.8x,%.8x\n",(S_a.u32[3]),(S_a.u32[2]),(S_a.u32[1]),(S_a.u32[0]));
-          fprintf(stdout,"[1]\t S_s:%.8x,%.8x,%.8x,%.8x\n",(S_s.u32[3]),(S_s.u32[2]),(S_s.u32[1]),(S_s.u32[0]));
+          fprintf(stderr,"[1]\t S_a:%.8x,%.8x,%.8x,%.8x\n",(S_a.u32[3]),(S_a.u32[2]),(S_a.u32[1]),(S_a.u32[0]));
+          fprintf(stderr,"[1]\t S_s:%.8x,%.8x,%.8x,%.8x\n",(S_s.u32[3]),(S_s.u32[2]),(S_s.u32[1]),(S_s.u32[0]));
         }
 #endif
 
@@ -3085,7 +3085,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.8x,%.8x,%.8x,%.8x\n",(M_old_old.u32[3]),(M_old_old.u32[2]),(M_old_old.u32[1]),(M_old_old.u32[0]));
+          fprintf(stderr,"[1]\t ooM:%.8x,%.8x,%.8x,%.8x\n",(M_old_old.u32[3]),(M_old_old.u32[2]),(M_old_old.u32[1]),(M_old_old.u32[0]));
         }
 #endif
 
@@ -3100,9 +3100,9 @@ int alignment_sse2__align_quad(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x\n",(    M.u32[3]),(    M.u32[2]),(    M.u32[1]),(    M.u32[0]));
-        fprintf(stdout,"[1]\t  oM:%.8x,%.8x,%.8x,%.8x\n",(M_old.u32[3]),(M_old.u32[2]),(M_old.u32[1]),(M_old.u32[0]));
-        fprintf(stdout,"[1]\t  oI:%.8x,%.8x,%.8x,%.8x\n",(I_old.u32[3]),(I_old.u32[2]),(I_old.u32[1]),(I_old.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x\n",(    M.u32[3]),(    M.u32[2]),(    M.u32[1]),(    M.u32[0]));
+        fprintf(stderr,"[1]\t  oM:%.8x,%.8x,%.8x,%.8x\n",(M_old.u32[3]),(M_old.u32[2]),(M_old.u32[1]),(M_old.u32[0]));
+        fprintf(stderr,"[1]\t  oI:%.8x,%.8x,%.8x,%.8x\n",(I_old.u32[3]),(I_old.u32[2]),(I_old.u32[1]),(I_old.u32[0]));
       }
 #endif
 
@@ -3131,8 +3131,8 @@ int alignment_sse2__align_quad(unsigned char * genome,
         vector128_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x\n",(M.u32[3]),(M.u32[2]),(M.u32[1]),(M.u32[0]));
-        fprintf(stdout,"[1]\t>  I:%.8x,%.8x,%.8x,%.8x\n",(I.u32[3]),(I.u32[2]),(I.u32[1]),(I.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x\n",(M.u32[3]),(M.u32[2]),(M.u32[1]),(M.u32[0]));
+        fprintf(stderr,"[1]\t>  I:%.8x,%.8x,%.8x,%.8x\n",(I.u32[3]),(I.u32[2]),(I.u32[1]),(I.u32[0]));
       }
 #endif
 
@@ -3145,9 +3145,9 @@ int alignment_sse2__align_quad(unsigned char * genome,
         Msk.v = vMsk128[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x\n",(  M.u32[3]),(  M.u32[2]),(  M.u32[1]),(  M.u32[0]));
-        fprintf(stdout,"[1]\t>Max:%.8x,%.8x,%.8x,%.8x\n",(Max.u32[3]),(Max.u32[2]),(Max.u32[1]),(Max.u32[0]));
+        fprintf(stderr,"[1]\t>Msk:%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x\n",(  M.u32[3]),(  M.u32[2]),(  M.u32[1]),(  M.u32[0]));
+        fprintf(stderr,"[1]\t>Max:%.8x,%.8x,%.8x,%.8x\n",(Max.u32[3]),(Max.u32[2]),(Max.u32[1]),(Max.u32[0]));
       }
 #endif
 
@@ -3156,7 +3156,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     --------,--------,--------,--------\n");
+      fprintf(stderr,"[1]\t     --------,--------,--------,--------\n");
 #endif
     } /* l */
   }
@@ -3171,7 +3171,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ========,========,========,========\n");
+    fprintf(stderr,"[1]\t     ========,========,========,========\n");
 #endif
     return result;
   }
@@ -3255,8 +3255,8 @@ int alignment_sse2__align_octa(unsigned char * genome,
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(A.u16[7]),(A.u16[6]),(A.u16[5]),(A.u16[4]),(A.u16[3]),(A.u16[2]),(A.u16[1]),(A.u16[0]));
-        fprintf(stdout,"[1]\t   B:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(B.u16[7]),(B.u16[6]),(B.u16[5]),(B.u16[4]),(B.u16[3]),(B.u16[2]),(B.u16[1]),(B.u16[0]));
+        fprintf(stderr,"[1]\t   A:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(A.u16[7]),(A.u16[6]),(A.u16[5]),(A.u16[4]),(A.u16[3]),(A.u16[2]),(A.u16[1]),(A.u16[0]));
+        fprintf(stderr,"[1]\t   B:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(B.u16[7]),(B.u16[6]),(B.u16[5]),(B.u16[4]),(B.u16[3]),(B.u16[2]),(B.u16[1]),(B.u16[0]));
       }
 #endif
 
@@ -3272,8 +3272,8 @@ int alignment_sse2__align_octa(unsigned char * genome,
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[7]),(S_a.u16[6]),(S_a.u16[5]),(S_a.u16[4]),(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
-          fprintf(stdout,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[7]),(S_s.u16[6]),(S_s.u16[5]),(S_s.u16[4]),(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
+          fprintf(stderr,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[7]),(S_a.u16[6]),(S_a.u16[5]),(S_a.u16[4]),(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
+          fprintf(stderr,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[7]),(S_s.u16[6]),(S_s.u16[5]),(S_s.u16[4]),(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
         }
 #endif
 
@@ -3282,7 +3282,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[7]),(M_old_old.u16[6]),(M_old_old.u16[5]),(M_old_old.u16[4]),(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
+          fprintf(stderr,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[7]),(M_old_old.u16[6]),(M_old_old.u16[5]),(M_old_old.u16[4]),(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
         }
 #endif
 
@@ -3297,9 +3297,9 @@ int alignment_sse2__align_octa(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(    M.u16[7]),(    M.u16[6]),(    M.u16[5]),(    M.u16[4]),(    M.u16[3]),(    M.u16[2]),(    M.u16[1]),(    M.u16[0]));
-        fprintf(stdout,"[1]\t  oM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old.u16[7]),(M_old.u16[6]),(M_old.u16[5]),(M_old.u16[4]),(M_old.u16[3]),(M_old.u16[2]),(M_old.u16[1]),(M_old.u16[0]));
-        fprintf(stdout,"[1]\t  oI:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I_old.u16[7]),(I_old.u16[6]),(I_old.u16[5]),(I_old.u16[4]),(I_old.u16[3]),(I_old.u16[2]),(I_old.u16[1]),(I_old.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(    M.u16[7]),(    M.u16[6]),(    M.u16[5]),(    M.u16[4]),(    M.u16[3]),(    M.u16[2]),(    M.u16[1]),(    M.u16[0]));
+        fprintf(stderr,"[1]\t  oM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old.u16[7]),(M_old.u16[6]),(M_old.u16[5]),(M_old.u16[4]),(M_old.u16[3]),(M_old.u16[2]),(M_old.u16[1]),(M_old.u16[0]));
+        fprintf(stderr,"[1]\t  oI:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I_old.u16[7]),(I_old.u16[6]),(I_old.u16[5]),(I_old.u16[4]),(I_old.u16[3]),(I_old.u16[2]),(I_old.u16[1]),(I_old.u16[0]));
       }
 #endif
 
@@ -3328,8 +3328,8 @@ int alignment_sse2__align_octa(unsigned char * genome,
         vector128_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M.u16[7]),(M.u16[6]),(M.u16[5]),(M.u16[4]),(M.u16[3]),(M.u16[2]),(M.u16[1]),(M.u16[0]));
-        fprintf(stdout,"[1]\t>  I:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I.u16[7]),(I.u16[6]),(I.u16[5]),(I.u16[4]),(I.u16[3]),(I.u16[2]),(I.u16[1]),(I.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M.u16[7]),(M.u16[6]),(M.u16[5]),(M.u16[4]),(M.u16[3]),(M.u16[2]),(M.u16[1]),(M.u16[0]));
+        fprintf(stderr,"[1]\t>  I:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(I.u16[7]),(I.u16[6]),(I.u16[5]),(I.u16[4]),(I.u16[3]),(I.u16[2]),(I.u16[1]),(I.u16[0]));
       }
 #endif
 
@@ -3342,9 +3342,9 @@ int alignment_sse2__align_octa(unsigned char * genome,
         Msk.v = vMsk128[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(  M.u16[7]),(  M.u16[6]),(  M.u16[5]),(  M.u16[4]),(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
-        fprintf(stdout,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Max.u16[7]),(Max.u16[6]),(Max.u16[5]),(Max.u16[4]),(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
+        fprintf(stderr,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(  M.u16[7]),(  M.u16[6]),(  M.u16[5]),(  M.u16[4]),(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
+        fprintf(stderr,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Max.u16[7]),(Max.u16[6]),(Max.u16[5]),(Max.u16[4]),(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
       }
 #endif
 
@@ -3353,7 +3353,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ----,----,----,----,----,----,----,----\n");
+      fprintf(stderr,"[1]\t     ----,----,----,----,----,----,----,----\n");
 #endif
     } /* l */
   }
@@ -3368,7 +3368,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ====,====,====,====,====,====,====,====\n");
+    fprintf(stderr,"[1]\t     ====,====,====,====,====,====,====,====\n");
 #endif
     return result;
   }
@@ -3396,9 +3396,9 @@ void alignment_sse__setlength_mono(const unsigned int readlength) {
     free(vMsk64unaligned);
   vMsk64unaligned = malloc(prlength * sizeof(VTYPE64) + 15);
   if (!vMsk64unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk64 = (void *) ((uintptr_t)(vMsk64unaligned + 15) & ~0x0f);
@@ -3410,7 +3410,7 @@ void alignment_sse__setlength_mono(const unsigned int readlength) {
   {
     vector64_t Msk;
     Msk.v = vMsk64[0];
-    fprintf(stdout,"[0]\t Msk:%.16llx\n",(Msk.u64[0]));
+    fprintf(stderr,"[0]\t Msk:%.16llx\n",(Msk.u64[0]));
   }
 #endif
   unsigned int l;
@@ -3432,7 +3432,7 @@ void alignment_sse__setlength_mono(const unsigned int readlength) {
     {
       vector64_t Msk;
       Msk.v = vMsk64[l];
-      fprintf(stdout,"[0]\t Msk:%.16llx\n",(Msk.u64[0]));
+      fprintf(stderr,"[0]\t Msk:%.16llx\n",(Msk.u64[0]));
     }
 #endif
   }/* for l */
@@ -3450,9 +3450,9 @@ void alignment_sse__setlength_pair(const unsigned int readlength) {
     free(vMsk64unaligned);
   vMsk64unaligned = malloc(prlength * sizeof(VTYPE64) + 15);
   if (!vMsk64unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk64 = (void *) ((uintptr_t)(vMsk64unaligned + 15) & ~0x0f);
@@ -3464,7 +3464,7 @@ void alignment_sse__setlength_pair(const unsigned int readlength) {
   {
     vector64_t Msk;
     Msk.v = vMsk64[0];
-    fprintf(stdout,"[0]\t Msk:%.8x,%.8x\n",(Msk.u32[1]),(Msk.u32[0]));
+    fprintf(stderr,"[0]\t Msk:%.8x,%.8x\n",(Msk.u32[1]),(Msk.u32[0]));
   }
 #endif
   unsigned int l;
@@ -3486,7 +3486,7 @@ void alignment_sse__setlength_pair(const unsigned int readlength) {
     {
       vector64_t Msk;
       Msk.v = vMsk64[l];
-      fprintf(stdout,"[0]\t Msk:%.8x,%.8x\n",(Msk.u32[1]),(Msk.u32[0]));
+      fprintf(stderr,"[0]\t Msk:%.8x,%.8x\n",(Msk.u32[1]),(Msk.u32[0]));
     }
 #endif
   }/* for l */
@@ -3504,9 +3504,9 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
     free(vMsk64unaligned);
   vMsk64unaligned = malloc(prlength * sizeof(VTYPE64) + 15);
   if (!vMsk64unaligned) {
-    printf("\033[31;1m");
-    printf("\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
-    printf("\033[0m\n");
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
+    fprintf(stderr,"\033[0m\n");
     exit(1);
   }
   vMsk64 = (void *) ((uintptr_t)(vMsk64unaligned + 15) & ~0x0f);
@@ -3518,7 +3518,7 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
   {
     vector64_t Msk;
     Msk.v = vMsk64[0];
-    fprintf(stdout,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+    fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
   }
 #endif
   unsigned int l;
@@ -3540,7 +3540,7 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
     {
       vector64_t Msk;
       Msk.v = vMsk64[l];
-      fprintf(stdout,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+      fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
     }
 #endif
   }/* for l */
@@ -3707,8 +3707,8 @@ int alignment_sse__align_mono(unsigned char * genome,
       {
         vector64_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.16llx\n",(A.u64[0]));
-        fprintf(stdout,"[1]\t   B:%.16llx\n",(B.u64[0]));
+        fprintf(stderr,"[1]\t   A:%.16llx\n",(A.u64[0]));
+        fprintf(stderr,"[1]\t   B:%.16llx\n",(B.u64[0]));
       }
 #endif
 
@@ -3724,8 +3724,8 @@ int alignment_sse__align_mono(unsigned char * genome,
         {
           vector64_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.16llx\n",(S_a.u64[0]));
-          fprintf(stdout,"[1]\t S_s:%.16llx\n",(S_s.u64[0]));
+          fprintf(stderr,"[1]\t S_a:%.16llx\n",(S_a.u64[0]));
+          fprintf(stderr,"[1]\t S_s:%.16llx\n",(S_s.u64[0]));
         }
 #endif
 
@@ -3734,7 +3734,7 @@ int alignment_sse__align_mono(unsigned char * genome,
         {
           vector64_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.16llx\n",(M_old_old.u64[0]));
+          fprintf(stderr,"[1]\t ooM:%.16llx\n",(M_old_old.u64[0]));
         }
 #endif
 
@@ -3749,9 +3749,9 @@ int alignment_sse__align_mono(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.16llx\n",(    M.u64[0]));
-        fprintf(stdout,"[1]\t  oM:%.16llx\n",(M_old.u64[0]));
-        fprintf(stdout,"[1]\t  oI:%.16llx\n",(I_old.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx\n",(    M.u64[0]));
+        fprintf(stderr,"[1]\t  oM:%.16llx\n",(M_old.u64[0]));
+        fprintf(stderr,"[1]\t  oI:%.16llx\n",(I_old.u64[0]));
       }
 #endif
 
@@ -3780,8 +3780,8 @@ int alignment_sse__align_mono(unsigned char * genome,
         vector64_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.16llx\n",(M.u64[0]));
-        fprintf(stdout,"[1]\t>  I:%.16llx\n",(I.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx\n",(M.u64[0]));
+        fprintf(stderr,"[1]\t>  I:%.16llx\n",(I.u64[0]));
       }
 #endif
 
@@ -3794,9 +3794,9 @@ int alignment_sse__align_mono(unsigned char * genome,
         Msk.v = vMsk64[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.16llx\n",(Msk.u64[0]));
-        fprintf(stdout,"[1]\t>  M:%.16llx\n",(  M.u64[0]));
-        fprintf(stdout,"[1]\t>Max:%.16llx\n",(Max.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx\n",(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>  M:%.16llx\n",(  M.u64[0]));
+        fprintf(stderr,"[1]\t>Max:%.16llx\n",(Max.u64[0]));
       }
 #endif
 
@@ -3805,7 +3805,7 @@ int alignment_sse__align_mono(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ----------------\n");
+      fprintf(stderr,"[1]\t     ----------------\n");
 #endif
     } /* l */
   }
@@ -3820,7 +3820,7 @@ int alignment_sse__align_mono(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ================\n");
+    fprintf(stderr,"[1]\t     ================\n");
 #endif
     _mm_empty();
     return result;
@@ -3905,8 +3905,8 @@ int alignment_sse__align_pair(unsigned char * genome,
       {
         vector64_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.8x,%.8x\n",(A.u32[1]),(A.u32[0]));
-        fprintf(stdout,"[1]\t   B:%.8x,%.8x\n",(B.u32[1]),(B.u32[0]));
+        fprintf(stderr,"[1]\t   A:%.8x,%.8x\n",(A.u32[1]),(A.u32[0]));
+        fprintf(stderr,"[1]\t   B:%.8x,%.8x\n",(B.u32[1]),(B.u32[0]));
       }
 #endif
 
@@ -3922,8 +3922,8 @@ int alignment_sse__align_pair(unsigned char * genome,
         {
           vector64_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.8x,%.8x\n",(S_a.u32[1]),(S_a.u32[0]));
-          fprintf(stdout,"[1]\t S_s:%.8x,%.8x\n",(S_s.u32[1]),(S_s.u32[0]));
+          fprintf(stderr,"[1]\t S_a:%.8x,%.8x\n",(S_a.u32[1]),(S_a.u32[0]));
+          fprintf(stderr,"[1]\t S_s:%.8x,%.8x\n",(S_s.u32[1]),(S_s.u32[0]));
         }
 #endif
 
@@ -3932,7 +3932,7 @@ int alignment_sse__align_pair(unsigned char * genome,
         {
           vector64_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.8x,%.8x\n",(M_old_old.u32[1]),(M_old_old.u32[0]));
+          fprintf(stderr,"[1]\t ooM:%.8x,%.8x\n",(M_old_old.u32[1]),(M_old_old.u32[0]));
         }
 #endif
 
@@ -3947,9 +3947,9 @@ int alignment_sse__align_pair(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x\n",(    M.u32[1]),(    M.u32[0]));
-        fprintf(stdout,"[1]\t  oM:%.8x,%.8x\n",(M_old.u32[1]),(M_old.u32[0]));
-        fprintf(stdout,"[1]\t  oI:%.8x,%.8x\n",(I_old.u32[1]),(I_old.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x\n",(    M.u32[1]),(    M.u32[0]));
+        fprintf(stderr,"[1]\t  oM:%.8x,%.8x\n",(M_old.u32[1]),(M_old.u32[0]));
+        fprintf(stderr,"[1]\t  oI:%.8x,%.8x\n",(I_old.u32[1]),(I_old.u32[0]));
       }
 #endif
 
@@ -3978,8 +3978,8 @@ int alignment_sse__align_pair(unsigned char * genome,
         vector64_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x\n",(M.u32[1]),(M.u32[0]));
-        fprintf(stdout,"[1]\t>  I:%.8x,%.8x\n",(I.u32[1]),(I.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x\n",(M.u32[1]),(M.u32[0]));
+        fprintf(stderr,"[1]\t>  I:%.8x,%.8x\n",(I.u32[1]),(I.u32[0]));
       }
 #endif
 
@@ -3992,9 +3992,9 @@ int alignment_sse__align_pair(unsigned char * genome,
         Msk.v = vMsk64[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.8x,%.8x\n",(Msk.u32[1]),(Msk.u32[0]));
-        fprintf(stdout,"[1]\t>  M:%.8x,%.8x\n",(  M.u32[1]),(  M.u32[0]));
-        fprintf(stdout,"[1]\t>Max:%.8x,%.8x\n",(Max.u32[1]),(Max.u32[0]));
+        fprintf(stderr,"[1]\t>Msk:%.8x,%.8x\n",(Msk.u32[1]),(Msk.u32[0]));
+        fprintf(stderr,"[1]\t>  M:%.8x,%.8x\n",(  M.u32[1]),(  M.u32[0]));
+        fprintf(stderr,"[1]\t>Max:%.8x,%.8x\n",(Max.u32[1]),(Max.u32[0]));
       }
 #endif
 
@@ -4003,7 +4003,7 @@ int alignment_sse__align_pair(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     --------,--------\n");
+      fprintf(stderr,"[1]\t     --------,--------\n");
 #endif
     } /* l */
   }
@@ -4018,7 +4018,7 @@ int alignment_sse__align_pair(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ========,========\n");
+    fprintf(stderr,"[1]\t     ========,========\n");
 #endif
     _mm_empty();
     return result;
@@ -4103,8 +4103,8 @@ int alignment_sse__align_quad(unsigned char * genome,
       {
         vector64_t A,B;
         A.v = vA; B.v = vB;
-        fprintf(stdout,"[1]\t   A:%.4x,%.4x,%.4x,%.4x\n",(A.u16[3]),(A.u16[2]),(A.u16[1]),(A.u16[0]));
-        fprintf(stdout,"[1]\t   B:%.4x,%.4x,%.4x,%.4x\n",(B.u16[3]),(B.u16[2]),(A.u16[1]),(A.u16[0]));
+        fprintf(stderr,"[1]\t   A:%.4x,%.4x,%.4x,%.4x\n",(A.u16[3]),(A.u16[2]),(A.u16[1]),(A.u16[0]));
+        fprintf(stderr,"[1]\t   B:%.4x,%.4x,%.4x,%.4x\n",(B.u16[3]),(B.u16[2]),(A.u16[1]),(A.u16[0]));
       }
 #endif
 
@@ -4120,8 +4120,8 @@ int alignment_sse__align_quad(unsigned char * genome,
         {
           vector64_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stdout,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
-          fprintf(stdout,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
+          fprintf(stderr,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
+          fprintf(stderr,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
         }
 #endif
 
@@ -4130,7 +4130,7 @@ int alignment_sse__align_quad(unsigned char * genome,
         {
           vector64_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stdout,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
+          fprintf(stderr,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
         }
 #endif
 
@@ -4145,9 +4145,9 @@ int alignment_sse__align_quad(unsigned char * genome,
         M.v     = vM;
         M_old.v = vM_old;
         I_old.v = vI_old;
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x\n",(    M.u16[3]),(    M.u16[2]),(    M.u16[1]),(    M.u16[0]));
-        fprintf(stdout,"[1]\t  oM:%.4x,%.4x,%.4x,%.4x\n",(M_old.u16[3]),(M_old.u16[2]),(M_old.u16[1]),(M_old.u16[0]));
-        fprintf(stdout,"[1]\t  oI:%.4x,%.4x,%.4x,%.4x\n",(I_old.u16[3]),(I_old.u16[2]),(I_old.u16[1]),(I_old.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x\n",(    M.u16[3]),(    M.u16[2]),(    M.u16[1]),(    M.u16[0]));
+        fprintf(stderr,"[1]\t  oM:%.4x,%.4x,%.4x,%.4x\n",(M_old.u16[3]),(M_old.u16[2]),(M_old.u16[1]),(M_old.u16[0]));
+        fprintf(stderr,"[1]\t  oI:%.4x,%.4x,%.4x,%.4x\n",(I_old.u16[3]),(I_old.u16[2]),(I_old.u16[1]),(I_old.u16[0]));
       }
 #endif
 
@@ -4176,8 +4176,8 @@ int alignment_sse__align_quad(unsigned char * genome,
         vector64_t M,I;
         M.v = vM;
         I.v = vI;
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x\n",(M.u16[3]),(M.u16[2]),(M.u16[1]),(M.u16[0]));
-        fprintf(stdout,"[1]\t>  I:%.4x,%.4x,%.4x,%.4x\n",(I.u16[3]),(I.u16[2]),(I.u16[1]),(I.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x\n",(M.u16[3]),(M.u16[2]),(M.u16[1]),(M.u16[0]));
+        fprintf(stderr,"[1]\t>  I:%.4x,%.4x,%.4x,%.4x\n",(I.u16[3]),(I.u16[2]),(I.u16[1]),(I.u16[0]));
       }
 #endif
 
@@ -4190,9 +4190,9 @@ int alignment_sse__align_quad(unsigned char * genome,
         Msk.v = vMsk64[l];
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stdout,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
-        fprintf(stdout,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x\n",(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
-        fprintf(stdout,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x\n",(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
+        fprintf(stderr,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+        fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x\n",(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
+        fprintf(stderr,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x\n",(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
       }
 #endif
 
@@ -4201,7 +4201,7 @@ int alignment_sse__align_quad(unsigned char * genome,
       vI_old     = vI;
 
 #ifdef DEBUG
-      fprintf(stdout,"[1]\t     ----,----,----,----\n");
+      fprintf(stderr,"[1]\t     ----,----,----,----\n");
 #endif
     } /* l */
   }
@@ -4216,7 +4216,7 @@ int alignment_sse__align_quad(unsigned char * genome,
       }
     }
 #ifdef DEBUG
-    fprintf(stdout,"[1]\t     ====,====,====,====\n");
+    fprintf(stderr,"[1]\t     ====,====,====,====\n");
 #endif
     _mm_empty();
     return result;

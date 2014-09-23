@@ -1,5 +1,8 @@
 #include "seed.h"
+#include "index.h"
 #include "load_data.h"
+#include "util.h"
+
 
 #define IS_MATCH(symbol) ((symbol) == MATCH_SYMBOL || (symbol) == MATCH_CODE)
 #define GET_SEED_MASK(symbol) ((symbol) == MATCH_SYMBOL || (symbol) == MATCH_CODE) ? SEED_MATCH_MASK : (((symbol) == WILDCARD_SYMBOL || (symbol) == WILDCARD_CODE) ? SEED_WILDCARD_MASK : (SEED_UNDEFINED))
@@ -227,18 +230,18 @@ void seed__display(const SeedType *seed) {
   int i;
   for (i = 0; i < seed->length; ++i) {
     if (IS_SEED_MATCH(seed->seed[i])) {
-      printf("%c", MATCH_SYMBOL);
+      INFO__("%c", MATCH_SYMBOL);
     } else {
-      printf("%c", WILDCARD_SYMBOL);
+      INFO__("%c", WILDCARD_SYMBOL);
     }
   }
   if (seed->positions) {
-    printf(":");
+    INFO__(":");
     for (i = 0; i < seed->positions_count; ++i) {
-      printf("%d ", seed->positions[i]);
+      INFO__("%d ", seed->positions[i]);
     }
   }
-  printf("\n");
+  INFO__("\n");
 }
 
 /**

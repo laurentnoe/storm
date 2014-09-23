@@ -200,7 +200,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
 
   /* Second scan: load reads */
   /* Go back to the first non-comment line */
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Loading reads..."););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loading reads..."););
   fseek(reads_in, i_start, SEEK_SET);
 
   {
@@ -259,7 +259,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
               exit(-1);
             }
           } while ((read_result = fgets(line, MAX_LINE_LEN, reads_in)) && get_input_line_type(line) == LINE_TYPE_SEQ);
-          // printf("%8d/%8d : \"%s\" strlen:%d\n", i, db->size, linebuffer, (int)strlen(linebuffer));fflush(NULL);
+          // INFO__("%8d/%8d : \"%s\" strlen:%d\n", i, db->size, linebuffer, (int)strlen(linebuffer));fflush(NULL);
 #ifdef NUCLEOTIDES
           db->reads[i].sequence = string_to_compressed_code(linebuffer);
 #else
@@ -293,7 +293,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   /* Try to load qualities (csfasta only, not fasta) */
   if (quals_in) {
     long i;
-    VERB_FILTER(VERBOSITY_MODERATE, printf("Loading qualities..."););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loading qualities..."););
 #ifndef NUCLEOTIDES
     SAFE_FAILURE__ALLOC(quality, db->read_len + 1, short);
     memset(quality, '\0', (db->read_len + 1) * sizeof(short));
@@ -460,7 +460,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   /* Second scan: load reads */
   /* Go back to the first non-comment line */
   fseek(reads_in, i_start, SEEK_SET);
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Loading reads..."););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loading reads..."););
 
   long i = -1;
   int line_len = 0;

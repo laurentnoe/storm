@@ -5,6 +5,7 @@
 #include <omp.h>
 #endif
 
+#include "util.h"
 #include "run.h"
 
 char** cmd_line;
@@ -36,7 +37,7 @@ int allowed_indels      = ALLOWED_INDELS;
 int simd_allowed_diags  = ALLOWED_INDELS;
 int delta_m;
 
-#define DISPLAY_OPTION(option, info) {printf("\t\033[37;1m-%s\033[0m: ", option); printf info ; printf("\n");}
+#define DISPLAY_OPTION(option,...) {MESSAGE__("\t\033[37;1m-%s\033[0m: ", option); MESSAGE__(__VA_ARGS__) ; MESSAGE__("\n");}
 
 #define INTEGER_VALUE_FROM_OPTION(target) {                                     \
     if (sscanf(optarg, "%d", &target) != 1) {                                   \
@@ -66,12 +67,12 @@ int delta_m;
 
 
 static void show_usage(char * progname, char* default_seeds) {
-  printf("\n%s (beta v%s)\n\n", PROGRAM_NAME, PROGRAM_VERSION);
-  printf("\nUSAGE: %s parameters\n\n",progname);
-  printf("PARAMETERS:\n");
-  printf("\033[37;1mMandatory:\033[0m\n");
-  DISPLAY_OPTION("g <genome_file>", ("Name of the reference genome file (.fasta/.multifasta).\n"));
-  DISPLAY_OPTION("r <reads_file>", ("Name of the reads file (.csfasta/.fastq/.multifasta)."));
+  MESSAGE__("\n%s (beta v%s)\n\n", PROGRAM_NAME, PROGRAM_VERSION);
+  MESSAGE__("\nUSAGE: %s parameters\n\n",progname);
+  MESSAGE__("PARAMETERS:\n");
+  MESSAGE__("\033[37;1mMandatory:\033[0m\n");
+  DISPLAY_OPTION("g <genome_file>", "Name of the reference genome file (.fasta/.multifasta).\n");
+  DISPLAY_OPTION("r <reads_file>",  "Name of the reads file (.csfasta/.fastq/.multifasta)." );
   /* [FIXME] :
    */
   /*
@@ -83,80 +84,80 @@ static void show_usage(char * progname, char* default_seeds) {
    * Hiding options that are very unlikely to be used in practice
    */
   /*
-   * printf("or\n");
-   * DISPLAY_OPTION("f <color sequence>", ("Reference sequence.  To be used with  -a and\n"
+   * MESSAGE__("or\n");
+   * DISPLAY_OPTION("f <color sequence>", "Reference sequence.  To be used with  -a and\n"
    *                "\t   optionally -q,  when just the alignment of two  small sequences\n"
-   *                "\t   is wanted, instead of -r and -g.\n"));
-   * DISPLAY_OPTION("a <color sequence>", ("Query sequence. To be used with -f and optionally\n"
+   *                "\t   is wanted, instead of -r and -g.\n");
+   * DISPLAY_OPTION("a <color sequence>", "Query sequence. To be used with -f and optionally\n"
    *                "\t   -p,  when just  the alignment of two  small sequences  is wanted,\n"
-   *                "\t   instead of -r and -g.\n"));
+   *                "\t   instead of -r and -g.\n");
    */
-  printf("\n\t\033[37;1mWARNING\033[0m:\033[33;1m Default is at most \"1 read kept per reference position\" : use -M <number> (-M 1)\033[0m\n\n");
-  printf("\n\033[37;1mOptional:\033[0m\n");
-  DISPLAY_OPTION("q <qualities_file>", ("Name of the qualities file (qual).\n"));
-  DISPLAY_OPTION("s <seed list>", ("The seed family to be used for filtering.  The list should \n"
+  MESSAGE__("\n\t\033[37;1mWARNING\033[0m:\033[33;1m Default is at most \"1 read kept per reference position\" : use -M <number> (-M 1)\033[0m\n\n");
+  MESSAGE__("\n\033[37;1mOptional:\033[0m\n");
+  DISPLAY_OPTION("q <qualities_file>",  "Name of the qualities file (qual).\n");
+  DISPLAY_OPTION("s <seed list>", "The seed family to be used for filtering.  The list should \n"
          "\t   be of the form  \"#-#-#;##--#\" or \"10101;11001\" (seeds separated by ';').\n"
          "\t   These seeds will be applied on every position of the read.  To restrict \n"
          "\t   to certain positions, the  list of wanted positions w.r.t. the read can \n"
          "\t   be mentioned after each seed, as follows: \n"
          "\t   \"#-#-#:0 3 5;##--#:1 2 4 6\". \n"
-         "\t   Default seeds:  %s.\n", default_seeds));
-  DISPLAY_OPTION("S <seed file>", ("The file containing the seeds to be used for filtering, in \n"
+         "\t   Default seeds:  %s.\n", default_seeds);
+  DISPLAY_OPTION("S <seed file>",  "The file containing the seeds to be used for filtering, in \n"
                  "\t   a format similar to the one described for the 's' parameter. Optionally, \n"
                  "\t   for more clarity,  the seeds can be separated by '\\n' instead of ';' in \n"
-                 "\t   the file. Default seed file: %s\n", DEFAULT_SEED_FILE));
-  DISPLAY_OPTION("l <number>", ("If this option is present,  very frequent k-mers are  removed \n"
+                 "\t   the file. Default seed file: %s\n", DEFAULT_SEED_FILE);
+  DISPLAY_OPTION("l <number>",  "If this option is present,  very frequent k-mers are  removed \n"
                  "\t   from the index.  The numeric parameter establishes which k-mers will be \n"
                  "\t   erased: it expresses the acceptable distance from the average number of \n"
                  "\t   occurrences, measured in number of standard deviations.  For example, a \n"
-                                "\t   good value for this parameter is %d. By default, no k-mers are erased. \n", DEFAULT_ACCEPTED_STDEV_DISTANCE));
-  DISPLAY_OPTION("j", ("Ignore lowercase symbols from the reference sequences.\n"));
+                                "\t   good value for this parameter is %d. By default, no k-mers are erased. \n", DEFAULT_ACCEPTED_STDEV_DISTANCE);
+  DISPLAY_OPTION("j", "Ignore lowercase symbols from the reference sequences.\n");
   /*
    * Hiding options that are very unlikely to be used in practice
    */
   /*
-   * DISPLAY_OPTION("p <integer sequence>", ("Read quality sequence. To be used with -a and \n"
+   * DISPLAY_OPTION("p <integer sequence>", "Read quality sequence. To be used with -a and \n"
    *                "\t   -f, when just the alignment of two small sequences is wanted, \n"
-   *                "\t    instead of -r and -g.\n"));
+   *                "\t    instead of -r and -g.\n");
    */
-  DISPLAY_OPTION("F", ("Only align in forward sense.                      Default: both senses. \n"));
-  DISPLAY_OPTION("R", ("Only align in reverse complementary sense.        Default: both senses. \n"));
-  DISPLAY_OPTION("o <output_file>", ("The name of the output file  where the mapping result is\n"
-                 "\t   written, in SAM format. Default: stdout.\n"));
-  DISPLAY_OPTION("O <output_file>", ("The name of the output file where the unmapped reads are\n"
-                 "\t   written, in FASTQ format. Availaible if -M <number>. Default: none.\n"));
+  DISPLAY_OPTION("F", "Only align in forward sense.                      Default: both senses. \n");
+  DISPLAY_OPTION("R", "Only align in reverse complementary sense.        Default: both senses. \n");
+  DISPLAY_OPTION("o <output_file>", "The name of the output file  where the mapping result is\n"
+                 "\t   written, in SAM format. Default: stdout.\n");
+  DISPLAY_OPTION("O <output_file>", "The name of the output file where the unmapped reads are\n"
+                 "\t   written, in FASTQ format. Availaible if -M <number>. Default: none.\n");
 
-  DISPLAY_OPTION("m <number>", ("Match score. Default: %d.\n", SCALE_SCORE(MATCH, MAX_READ_QUALITY_LEVEL)));
-  DISPLAY_OPTION("x <number>", ("Mismatch penalty. Default: %d.\n"
+  DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(MATCH, MAX_READ_QUALITY_LEVEL));
+  DISPLAY_OPTION("x <number>", "Mismatch penalty. Default: %d.\n"
                             "\n\t\033[37;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
-                            "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(MISMATCH, MAX_READ_QUALITY_LEVEL)));
-  DISPLAY_OPTION("d <number>", ("Gap open penalty. Default: %d.\n", GAP_OPEN));
-  DISPLAY_OPTION("e <number>", ("Gap extension penalty. Default: %d.\n", GAP_EXTEND));
-  DISPLAY_OPTION("i <number>", ("Maximum number of indels in the alignment. Default: %d.\n", ALLOWED_INDELS));
-  DISPLAY_OPTION("t <number>", ("Minimum accepted score, above which an alignment is\n"
-                                "\t   considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE));
-  DISPLAY_OPTION("z <number>", ("The minimum score accepted by the SIMD filter,  above which an \n"
-                                "\t   alignment is considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE_SIMD_FILTER));
-  DISPLAY_OPTION("u <number>", ("The minimum difference between the first and second \n"
-                        "\t   alignment of a given read to consider it unique; Default: disabled.\n"));
-  DISPLAY_OPTION("b <number>", ("base for FASTQ qual: worst val. (ASCII decimal). Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code));
-  DISPLAY_OPTION("G", ("Perform an \"ordered greedy\" mapping. By default, multiple alignments of\n"
-                   "\t   overlapping reads are evaluated at the mapping stage in order to establish\n"
-                   "\t   the most relevant candidate mapping position for each read. When this option\n"
-                   "\t   is present, only the score of the read's alignment to the reference genome\n"
-                   "\t   will be taken into account for choosing the right mapping position.\n"));
-  DISPLAY_OPTION("M <number>", ("Perform an \"unordered\" mapping. By default, or in greedy mode, only\n"
-                   "\t   one read is kept per reference position.  This option enables any read to\n"
-                   "\t   be mapped at any <number> (1..%d) positions per read without considering\n"
-                   "\t   this read is necessary the \"best one\" for the reference.\n"
-                   "\n\t\033[37;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be mapped\033[0m without this option set to >= 1.\n"
-                  , MAP_DETAIL_SIZE));
+                            "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(MISMATCH, MAX_READ_QUALITY_LEVEL));
+  DISPLAY_OPTION("d <number>", "Gap open penalty. Default: %d.\n", GAP_OPEN);
+  DISPLAY_OPTION("e <number>", "Gap extension penalty. Default: %d.\n", GAP_EXTEND);
+  DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment. Default: %d.\n", ALLOWED_INDELS);
+  DISPLAY_OPTION("t <number>", "Minimum accepted score, above which an alignment is\n"
+                                "\t   considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE);
+  DISPLAY_OPTION("z <number>", "The minimum score accepted by the SIMD filter,  above which an \n"
+                               "\t   alignment is considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE_SIMD_FILTER);
+  DISPLAY_OPTION("u <number>", "The minimum difference between the first and second \n"
+                               "\t   alignment of a given read to consider it unique; Default: disabled.\n");
+  DISPLAY_OPTION("b <number>", "base for FASTQ qual: worst val. (ASCII decimal). Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
+  DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping. By default, multiple alignments of\n"
+                      "\t   overlapping reads are evaluated at the mapping stage in order to establish\n"
+                      "\t   the most relevant candidate mapping position for each read. When this option\n"
+                      "\t   is present, only the score of the read's alignment to the reference genome\n"
+                      "\t   will be taken into account for choosing the right mapping position.\n");
+  DISPLAY_OPTION("M <number>", "Perform an \"unordered\" mapping. By default, or in greedy mode, only\n"
+                               "\t   one read is kept per reference position.  This option enables any read to\n"
+                               "\t   be mapped at any <number> (1..%d) positions per read without considering\n"
+                               "\t   this read is necessary the \"best one\" for the reference.\n"
+                               "\n\t\033[37;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be mapped\033[0m without this option set to >= 1.\n",
+                               MAP_DETAIL_SIZE);
 
 
-  DISPLAY_OPTION("v <number>", ("Verbose - output message detail level. %d: no message; \n"
-                        "\t   %d: moderate; %d: high, %d: exaggerate. Default: %d.\n",
-                        VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT));
-  DISPLAY_OPTION("h", ("Displays usage and exists.\n"));
+  DISPLAY_OPTION("v <number>", "Verbose - output message detail level. %d: no message; \n"
+                               "\t   %d: moderate; %d: high, %d: exaggerate. Default: %d.\n",
+                               VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT);
+  DISPLAY_OPTION("h", "Displays usage and exists.\n");
 }
 
 
@@ -226,7 +227,7 @@ int main (int argc, char* argv[]) {
         char confirmation;
         ERROR__("Unable to read seeds input file %s.", optarg);
         do {
-          printf("Continue (c) with default seeds %s, or abort (a)?\n", seeds);
+          MESSAGE__("Continue (c) with default seeds %s, or abort (a)?\n", seeds);
         } while(scanf("%c", &confirmation) && confirmation != 'a' && confirmation != 'A' && confirmation != 'c' && confirmation != 'C');
         if (confirmation == 'a' || confirmation == 'A') {
           exit(-1);
@@ -304,7 +305,7 @@ int main (int argc, char* argv[]) {
           char confirmation;
           ERROR__("Could not open or create output file %s.\n", optarg);
           do {
-            printf("Continue (c) and output to stdout, or abort (a)?\n");
+            MESSAGE__("Continue (c) and output to stdout, or abort (a)?\n");
           } while(scanf("%c", &confirmation) && confirmation != 'a' && confirmation != 'A' && confirmation != 'c' && confirmation != 'C');
           if (confirmation == 'c' || confirmation == 'C') {
             output = stdout;
@@ -395,14 +396,14 @@ int main (int argc, char* argv[]) {
   delta_m = match - mismatch;
 
   if (read && reference) {
-    printf("\nTwo sequence alignment:\n%s\n%s\n", read, reference);
+    MESSAGE__("\nTwo sequence alignment:\n%s\n%s\n", read, reference);
     if (quality) {
-      printf("%s\n", quality);
+      MESSAGE__("%s\n", quality);
     }
     single_alignment(read, reference, reference_masked, quality, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output);
   } else if (reads_file) {
     if (genome_file) {
-      printf("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)");
+      MESSAGE__("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)");
       reads_against_references(reads_file, qual_file, genome_file, seeds, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output, unmapped_FASTQ_output);
     } else {
       ERROR__("\nNot enough mandatory parameters provided.\n");

@@ -735,36 +735,36 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   VERB_FILTER(VERBOSITY_MODERATE,
             INFO__("The following %d seed%s will be used:\n", seeds_count, (seeds_count > 1 ? "s" : ""));
             int si; for (si = 0; si < seeds_count; ++si) seed__display(seeds[si]);
-            printf("\n");
+            INFO__("\n");
             );
 
   /* load the two databases */
   /* load the reads */
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Loading reads database...\n"););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loading reads database...\n"););
   crt_time = time(NULL);
   if (load_reads_db(reads_filename, qual_filename, &reads_db) <= 0) {
     ERROR__("Reads could not be loaded. Exiting.");
     exit (RETURN_INPUT_ERR);
   }
   map = hit_map__create(reads_db.size, allowed_indels);
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Loaded %ld reads (read length %d) in %ld seconds.\n\n", reads_db.size, reads_db.read_len, time(NULL) - crt_time););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loaded %ld reads (read length %d) in %ld seconds.\n\n", reads_db.size, reads_db.read_len, time(NULL) - crt_time););
 
   /* sort reads (by using the "maximum" lexicographic common subword of size 32 for each read by now ... ) to get cache efficient read order during the search
    * -> clustering for cache efficiency is an interesting question!!
    */
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Sorting reads database...\n"););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Sorting reads database...\n"););
   crt_time = time(NULL);
   sort_reads_db(&reads_db);
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Sorted %ld reads in %ld seconds.\n\n", reads_db.size, time(NULL) - crt_time););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Sorted %ld reads in %ld seconds.\n\n", reads_db.size, time(NULL) - crt_time););
 
   /* load the reference */
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Loading reference database...\n"););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loading reference database...\n"););
   crt_time = time(NULL);
   if ((ref_dbs_size = load_reference_db(ref_filename, reads_db.read_len, &ref_dbs)) <= 0) {
     ERROR__("Reference could not be loaded. Exiting.");
     exit(RETURN_INPUT_ERR);
   }
-  VERB_FILTER(VERBOSITY_MODERATE, printf("Loaded %d reference sequence%s in %ld seconds.\n\n", ref_dbs_size, (ref_dbs_size == 1 ? "" : "s"), time(NULL) - crt_time););
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("Loaded %d reference sequence%s in %ld seconds.\n\n", ref_dbs_size, (ref_dbs_size == 1 ? "" : "s"), time(NULL) - crt_time););
 
   /* SIMD filter initialization */
   simd_init_fct_table[simd_allowed_diags](abs(match), abs(mismatch), abs(gap_open), abs(gap_extend), min_accepted_score_simd_filter, reads_db.read_len);
@@ -800,7 +800,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 #endif
 
     /* create index */
-    VERB_FILTER(VERBOSITY_MODERATE, printf("Creating reference index...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("Creating reference index...\n"););
     crt_time1 = time(NULL);
     int si;
 #ifdef _OPENMP
@@ -809,15 +809,15 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
     for (si = 0; si < seeds_count; ++si) {
       ref_index[si] = index__build_reference(ref_db, seeds[si]);
     }
-    VERB_FILTER(VERBOSITY_MODERATE, printf("Created %d indexes in %ld seconds.\n\n", seeds_count, time(NULL) - crt_time1););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("Created %d indexes in %ld seconds.\n\n", seeds_count, time(NULL) - crt_time1););
 
 
     /* on each read, pass each seed, find the hits, and align */
-    VERB_FILTER(VERBOSITY_MODERATE, printf("Start search...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("Start search...\n"););
 
     crt_time1 = time(NULL);
     if (ALIGNMENT_SENSE & ALIGNMENT_SENSE_FORWARD) {
-      VERB_FILTER(VERBOSITY_MODERATE, printf("Forward...\n"););
+      VERB_FILTER(VERBOSITY_MODERATE, INFO__("Forward...\n"););
 
       int p_read_id = 0;
       int read_id;
@@ -858,14 +858,14 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
       }
 
       VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped););
-      VERB_FILTER(VERBOSITY_NONE, printf("Forward completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
+      VERB_FILTER(VERBOSITY_NONE, INFO__("Forward completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
     }
 
 
 
     crt_time1 = time(NULL);
     if (ALIGNMENT_SENSE & ALIGNMENT_SENSE_REVERSE) {
-      VERB_FILTER(VERBOSITY_MODERATE, printf("Reverse complementary...\n"););
+      VERB_FILTER(VERBOSITY_MODERATE, INFO__("Reverse complementary...\n"););
 
       int p_read_id = 0;
       int read_id;
@@ -907,7 +907,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
       }
 
       VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped));
-      VERB_FILTER(VERBOSITY_NONE, printf("Reverse complementary completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
+      VERB_FILTER(VERBOSITY_NONE, INFO__("Reverse complementary completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
     }
 
     /* clear the index for each seed of the current reference */
@@ -943,7 +943,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   ALIGNMENT__DESTROY;
   HEAP_KEY_HIT_REVSEQ__DESTROY(seeds_count);
 
-  VERB_FILTER(VERBOSITY_NONE, printf("\nAligned %d of %d reads (%5.2f%%) in %ld seconds.\n", map->mapped, map->size, (map->mapped*100.0/map->size), time(NULL) - crt_time));
+  VERB_FILTER(VERBOSITY_NONE, INFO__("\nAligned %d of %d reads (%5.2f%%) in %ld seconds.\n", map->mapped, map->size, (map->mapped*100.0/map->size), time(NULL) - crt_time));
 
 
 #ifndef __DONT__MAP__
@@ -953,7 +953,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
     crt_time = time(NULL);
 
-    VERB_FILTER(VERBOSITY_MODERATE, printf("Reference mapping...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("Reference mapping...\n"););
     GenomeMapType*  genome_map = genome_map__create(map, ref_dbs, ref_dbs_size, &reads_db);
     genome_map__build(genome_map);
 
@@ -969,7 +969,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
     }
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, printf("\nMap built in %ld seconds. Generating SAM output...\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_NONE, INFO__("\nMap built in %ld seconds. Generating SAM output...\n", time(NULL) - crt_time););
     genome_map__generate_SAM_output(genome_map, output);
 
     /* erase the genome_map */
@@ -979,7 +979,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   } else {
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, printf("\nGenerating SAM output...\n"););
+    VERB_FILTER(VERBOSITY_NONE, INFO__("\nGenerating SAM output...\n"););
     hit_map__generate_SAM_output(map,
                                  &reads_db,
                                  ref_dbs, ref_dbs_size,
@@ -990,7 +990,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
   /* output unmmapped reads */
   if (unmapped_FASTQ_output) {
-     VERB_FILTER(VERBOSITY_NONE, printf("\nGenerating FastQ output for unmapped reads...\n"););
+     VERB_FILTER(VERBOSITY_NONE, INFO__("\nGenerating FastQ output for unmapped reads...\n"););
      hit_map__generate_unmapped_FASTQ_output(map,
                                              &reads_db,
                                              unmapped_FASTQ_output);

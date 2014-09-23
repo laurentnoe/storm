@@ -28,31 +28,30 @@ inline void display_progress(long int p, long int total, long int selected) {
 OMP_INTERNAL_CRITICAL_PROGRESS
 #endif
     {
-      printf("\r\033[36;1m[");
+      fprintf(stderr,"\r\033[36;1m[");
       long int p2;
       for (p2 = 0; p2 < perbar; ++p2) {
-      printf("%c", COMPLETED_SYMBOL);
+        fprintf(stderr,"%c", COMPLETED_SYMBOL);
       }
       if (perbar && perbar != 60) {
-      printf("\b%c", LAST_COMPLETED_SYMBOL);
+        fprintf(stderr,"\b%c", LAST_COMPLETED_SYMBOL);
       }
       for (p2=perbar ; p2 < 60; ++p2) {
-      printf("%c", UNCOMPLETED_SYMBOL);
+        fprintf(stderr,"%c", UNCOMPLETED_SYMBOL);
       }
-      printf("]");
-      printf(" %3d%%",  (int)percent);
+      fprintf(stderr,"]");
+      fprintf(stderr," %3d%%",  (int)percent);
       if (selected > 0) {
-      printf("  >> %12ld - %5.2lf%%", selected, (selected * 100.0 / (total+1)));
+        fprintf(stderr,"  >> %12ld - %5.2lf%%", selected, (selected * 100.0 / (total+1)));
       }
-      printf("\033[0m");
-      fflush(stdout);
+      fprintf(stderr,"\033[0m");
       if (perbar == 60) {
-      printf("\n");
+        fprintf(stderr,"\n");
       }
       fflush(NULL);
     }
   }
-  }
+}
 
 /**
  * Sort the first array (values) without changing it and put the indices in the right order

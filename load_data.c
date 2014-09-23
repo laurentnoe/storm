@@ -31,6 +31,7 @@ int parse_integer_sequence_to(const char* src, short* dest, int len) {
   }
   return (j < len) ? RETURN_INPUT_ERR : RETURN_SUCCESS;
 }
+
 /**
  * Creates and populates a short integer array from a string that represents an integer enumeration, delimited by " ".
  * Useful for parsing read quality files and command line read quality parameters.
@@ -68,7 +69,6 @@ int get_input_line_type(char* line) {
   }
   // if the input does not end with newline or the input is a sequence, the next input will be of the same type as the current
   crt_line_type = ((line_type == LINE_TYPE_SEQ) || (line[strlen(line) - 1] != '\n')) ? line_type : LINE_TYPE_UNKNOWN ;
-  //printf("\n[%s] --> line type=%d, crt_line_type=%d\n", line, line_type, crt_line_type);
   return line_type;
 }
 
@@ -104,9 +104,8 @@ int get_input_line_type_fastq(char* line, int lineNo, int offset) {
   crt_line_type = ((line_type == LINE_TYPE_SEQ) || (line_type == LINE_TYPE_SEQ_HEADER) ||
                   (line_type == LINE_TYPE_QUAL)  || (line_type == LINE_TYPE_QUAL_HEADER))
                   ? line_type : LINE_TYPE_UNKNOWN ;
-  //printf("\n[%s] --> line type=%d, crt_line_type=%d\n", line, line_type, crt_line_type);
   return line_type;
-  }
+}
 
 /**
  * If the last character from the string is '\n', this method replaces it with '\0'.

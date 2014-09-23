@@ -9,7 +9,7 @@
 #define PROGRAM_VERSION "0.0097"
 
 /* flushed write to trace */
-#define __W {printf("\033[35;1m%s %d\033[0m\n", __FILE__, __LINE__);fflush(stdout);}
+#define __W {fprintf(stderr, "\033[35;1m%s %d\033[0m\n", __FILE__, __LINE__); fflush(stderr);}
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -47,19 +47,19 @@ extern int ALIGNMENT_SENSE;
 #ifdef _OPENMP
 
 #define OMP_INTERNAL_CRITICAL_PROGRESS _Pragma("omp critical(progress)")
-#define ERROR__(...)    OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[31;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define WARNING__(...)  OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[33;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define INFO__(...)     OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[32;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define DEBUG__(...)    OMP_INTERNAL_CRITICAL_PROGRESS {printf("\033[35;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define MESSAGE_(...)   OMP_INTERNAL_CRITICAL_PROGRESS {                      fprintf(stderr,__VA_ARGS__);                      fflush(NULL); }
+#define ERROR__(...)    OMP_INTERNAL_CRITICAL_PROGRESS {fprintf(stderr,"\033[31;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define WARNING__(...)  OMP_INTERNAL_CRITICAL_PROGRESS {fprintf(stderr,"\033[33;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define INFO__(...)     OMP_INTERNAL_CRITICAL_PROGRESS {fprintf(stderr,"\033[32;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define DEBUG__(...)    OMP_INTERNAL_CRITICAL_PROGRESS {fprintf(stderr,"\033[35;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define MESSAGE__(...)  OMP_INTERNAL_CRITICAL_PROGRESS {                              fprintf(stderr,__VA_ARGS__);                              fflush(NULL); }
 
 #else
 
-#define ERROR__(...)   {printf("\033[31;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define WARNING__(...) {printf("\033[33;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define INFO__(...)    {printf("\033[32;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define DEBUG__(...)   {printf("\033[35;1m"); fprintf(stderr,__VA_ARGS__); printf("\033[0m\n"); fflush(NULL); }
-#define MESSAGE_(...)  {                      fprintf(stderr,__VA_ARGS__);                      fflush(NULL); }
+#define ERROR__(...)   {fprintf(stderr,"\033[31;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define WARNING__(...) {fprintf(stderr,"\033[33;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define INFO__(...)    {fprintf(stderr,"\033[32;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define DEBUG__(...)   {fprintf(stderr,"\033[35;1m"); fprintf(stderr,__VA_ARGS__); fprintf(stderr,"\033[0m\n"); fflush(NULL); }
+#define MESSAGE__(...) {                              fprintf(stderr,__VA_ARGS__);                              fflush(NULL); }
 
 #endif
 
