@@ -809,7 +809,7 @@ void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output
           /* Read name, flag, reference name, mapping position, alignment quality, CIGAR string */
           fprintf(sam_output, "%s\t%d\t%s\t%d\t%d\t%s\t", read->info, flag, DISPLAY_NAME(ref_dbs[ref_id]), (ref_pos+1) /* genome positions for 1 to N */, alignment_quality, CIGAR_STRING);
           /* The mate information (mate reference name, mate position, inserted size) is not supported yet (TODO) [FIXME] */
-          fprintf(sam_output, "=\t0\t0\t");
+          fprintf(sam_output, "*\t0\t0\t");
 
           /* Sequence (translated) and quality */
 
