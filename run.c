@@ -953,7 +953,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
     crt_time = time(NULL);
 
-    VERB_FILTER(VERBOSITY_MODERATE, INFO__("Reference mapping...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nReference mapping...\n"););
     GenomeMapType*  genome_map = genome_map__create(map, ref_dbs, ref_dbs_size, &reads_db);
     genome_map__build(genome_map);
 
@@ -969,7 +969,8 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
     }
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nMap built in %ld seconds. Generating SAM output...\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nMap built in %ld seconds.\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_NONE, INFO__("\n\nGenerating SAM output...\n"););
     genome_map__generate_SAM_output(genome_map, output);
 
     /* erase the genome_map */
@@ -979,7 +980,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   } else {
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nGenerating SAM output...\n"););
+    VERB_FILTER(VERBOSITY_NONE, INFO__("\n\nGenerating SAM output...\n"););
     hit_map__generate_SAM_output(map,
                                  &reads_db,
                                  ref_dbs, ref_dbs_size,
@@ -990,7 +991,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
   /* output unmmapped reads */
   if (unmapped_FASTQ_output) {
-     VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nGenerating FastQ output for unmapped reads...\n"););
+     VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\n\nGenerating FastQ output for unmapped reads...\n"););
      hit_map__generate_unmapped_FASTQ_output(map,
                                              &reads_db,
                                              unmapped_FASTQ_output);
@@ -1014,6 +1015,6 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   free(ref_dbs);
   ref_dbs = NULL;
 
-  VERB_FILTER(VERBOSITY_MODERATE, INFO__("\nAll done in %ld seconds.\n", time(NULL) - start_time););
+  VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("All done in %ld seconds.\n", time(NULL) - start_time););
   return RETURN_SUCCESS;
 }

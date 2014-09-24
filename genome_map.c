@@ -223,7 +223,7 @@ static void genome_map__build_greedy(GenomeMapType* genome_map) {
           ref_coverage  ++;
           reads_coverage += genome_map->g_maps[ref_id][ref_pos]->read_at_pos_size;
         }
-      INFO__("Reference %d coverage: %5.2f%%. Actually mapped reads: %5.2f%% (%d).\n", ref_id+1, ref_coverage * 100.0 / genome_map->ref_dbs[ref_id].size, reads_coverage * 100.0 / genome_map->hitmap->size, reads_coverage);
+      MESSAGE__("Reference %3d coverage: %6.2f%%. Actually mapped reads: %6.2f%% (%d).\n", ref_id+1, ref_coverage * 100.0 / genome_map->ref_dbs[ref_id].size, reads_coverage * 100.0 / genome_map->hitmap->size, reads_coverage);
     }
   }
 }
@@ -593,7 +593,7 @@ void genome_map__build_contextual(GenomeMapType* genome_map) {
           ref_coverage  ++;
           reads_coverage += genome_map->g_maps[ref_id][ref_pos]->read_at_pos_size;
         }
-      INFO__("Reference %d coverage: %5.2f%%. Actually mapped reads: %5.2f%% (%d).\n", ref_id+1, ref_coverage * 100.0 / genome_map->ref_dbs[ref_id].size, reads_coverage * 100.0 / genome_map->hitmap->size, reads_coverage);
+      MESSAGE__("Reference %d coverage: %6.2f%%. Actually mapped reads: %6.2f%% (%d).\n", ref_id+1, ref_coverage * 100.0 / genome_map->ref_dbs[ref_id].size, reads_coverage * 100.0 / genome_map->hitmap->size, reads_coverage);
     }
   }
 }

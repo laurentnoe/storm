@@ -204,7 +204,7 @@ inline ScoreType alignment__score_for_match(AlignmentType * alignment, CODE_TYPE
  * @param alignment The address of the alignment data structures
  * @param allowed_indels The maximum number of indels allowed in the alignment.
  */
-static inline void alignment__create_martix(AlignmentType * alignment, int allowed_indels) {
+static inline void alignment__create_matrix(AlignmentType * alignment, int allowed_indels) {
   /* Few indels allowed: no need to compute the entire DP matrix, just a neighborhood of the diagonal */
 
   /* Create the alignment matrix */
@@ -237,7 +237,7 @@ static inline void alignment__create_martix(AlignmentType * alignment, int allow
     (alignment->matrix_alloc[mat_k][REF_LINE_LEN + 1]).from       = I_MASK | J_MASK;
     /* the direction masks and indel count are null */
   }
-  /* alignment__init_martix(alignment); */
+  /* alignment__init_matrix(alignment); */
 }
 
 /**
@@ -275,7 +275,7 @@ void alignment__set_params(AlignmentType * alignment, short match, short mismatc
   /* should be followed by __init_matrix for proper effect */
   /*
    *if (alignment->matrix) {
-   *  alignment__init_martix(alignment);
+   *  alignment__init_matrix(alignment);
    *}
    */
 }
@@ -304,7 +304,7 @@ inline void alignment__init(AlignmentType* alignment, short read_len, short ref_
 
   /* The size of the reference sequence indicates the number of indels accepted; not sure if this is a good idea; TODO to be reviewed */
   /* Reference is considered larger than the read; */
-  alignment__create_martix(alignment, allowed_indels);
+  alignment__create_matrix(alignment, allowed_indels);
 
   /* Create the string where the alignment is displayed;
      3 times (the worst case alignment length + 1 for '\n') + '\0' */
@@ -319,7 +319,7 @@ inline void alignment__init(AlignmentType* alignment, short read_len, short ref_
  * Initialize the alignment matrix
  * @param alignment The address of the alignment data structures
  */
-static inline void alignment__init_martix(AlignmentType * alignment) {
+static inline void alignment__init_matrix(AlignmentType * alignment) {
   /* First line should be this for indels ... */
   int mat_k;
   for (mat_k = 0; mat_k < alignment->read_len; ++mat_k) {
@@ -489,7 +489,7 @@ inline int alignment__align(AlignmentType * alignment, ScoreType min_accepted) {
   ScoreType best_possible = (alignment->read_len - 2) * alignment->params.pair_scores[SYMBOL_PAIR_MATCH_IDX][MAX_READ_QUALITY_LEVEL];
 #endif
   /* 1) Compute the matching / mismatches scores for each cell alone (with help of the quality values) */
-  alignment__init_martix(alignment);
+  alignment__init_matrix(alignment);
 
   /* 2) Doing the DP algorithm Forward */
   /* Now starting at 1, since the first line should stay as it was initialized */

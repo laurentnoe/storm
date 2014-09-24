@@ -30,6 +30,7 @@ extern int ACCEPTED_STDEV_DISTANCE;
 extern int IGNORE_LOWERCASE;
 extern int UNIQUENESS;
 extern int UNIQUENESS_SCORE_THRESHOLD;
+extern int PRINT_ALL_READS;
 
 extern int read_quality_min_symbol_code;
 

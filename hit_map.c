@@ -3,6 +3,7 @@
 
 extern int UNIQUENESS;
 extern int UNIQUENESS_SCORE_THRESHOLD;
+       int PRINT_ALL_READS = 1;
 extern int delta_m;
 
 /**
@@ -461,18 +462,38 @@ void hit_map__generate_SAM_output(const HitMapType* map,
         fprintf(sam_output, "\tAS:i:%d\tNM:i:%d\tNH:i:%d\n", map->map[read_id][score_rank].score, edit_distance, nb_reported);
       }
     } else {
-      /* Unmapped read case (for v1.5) : not checked yet */
-      /*
-       * ReadDataType* read = &(reads_db->reads[read_id]);
-       */
-      /*
-       * Read name, flag, reference name, mapping position, alignment quality, CIGAR string, sequence, sequence quality
-       * The mate information (mate reference name, mate position, inserted size) is not supported yet (TODO) [FIXME]
-       */
-      /*
-       * fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t*\t*\t0\t0\n", read->info);
-       */
-    }
+        if (PRINT_ALL_READS) {
+
+          /* Unmapped read are displayed */
+          ReadDataType* read = &(reads_db->reads[read_id]);
+
+#ifndef NUCLEOTIDES
+          /* reads sequence are in color format, but the problem here is that there is no way to mix "unmapped color reads" with "already translated and mapped nucleotide reads" */
+          fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n", read->info);
+#else
+          fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t0\t0\t", read->info);
+
+          /* read sequence are in base format */
+          int q;
+          for (q = 0; q < reads_db->read_len; ++q) {
+            fprintf(sam_output, "%c",  BASE_CODE_LETTER[(int)NTH_CODE(read->sequence, q)]);
+          }
+
+          /* display the quality of a base format read (phread) */
+          if (reads_db->reads[read_id].quality) {
+            int q;
+            for (q = 0; q < reads_db->read_len; ++q) {
+              fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
+            }
+          } else {
+            /* quality replaced by a "*" if no quality */
+            fprintf(sam_output, "*");
+          }
+
+          fprintf(sam_output, "\n");
+#endif
+        }
+      }
   }
   fflush(sam_output);
   free(CIGAR_STRING);
