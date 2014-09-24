@@ -41,9 +41,30 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
     "./storm-nucleotide -M 1 -g reference.fas -r reads.fq -l 500 -o out.sam"
 
   Advanced command line: 
+
     for more sensitive mapping:
 
-     [1] use smaller seeds (slower but secure ):
+     [0] obviously, use -M <int> to have all mapable reads being mapped !!
+
+         Otherwise, only the best read is kept per reference position,
+         which implies that not all the reads (duplicates, lower quality
+         ones at the same reference position) are mapped
+
+
+     [1] increase the number of indels (little bit slower but secure) :
+      -i 7
+      -i 15 
+         for full SIMD support, or even :
+      -i 20
+      ...
+         for final alignment support only : in that case, the SIMD code 
+         generates a warning explaining that il will compute at most 15
+         diagonals : you can thus change the SIMD threshold -z <int> to 
+         a smaller value than the final alignment threshold -t <int>.
+         (see [3] below)
+
+
+     [2] use smaller seeds (slower but secure ):
       -s "####-##-#-####;###-#--##-##--###;####-#---#----#--####"
       -s "##-##-###-###;###--#-#--#--####;####--#--#---#---###
       ...
@@ -71,7 +92,8 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
           ./iedera -spaced -l 40 -w 10,10 -s 10,20 -r 10000 -k -mx "###-##--#-##-#-###,####-#-#--##-###"
              ->  "#####-##-###"
 
-     [2] use smaller scores (prone to more false positives & can be slower)
+
+     [3] use smaller scores (prone to more false positives & can be slower)
       -z 85 -t 100
       -z 75 -t 90
       ...
@@ -79,10 +101,13 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
          http://www.ncbi.nlm.nih.gov/CBBresearch/Spouge/html_ncbi/html/software/program.html?uid=6
       its also a good idea to increase these two values !!
 
-     [3] dont use the -l parameter, or keep it with large values (> 1000)
 
-     [4] check your quality and change the -b 33 to -b 0 (disable quality) or
+     [4] dont use the -l parameter, or keep it with large values (> 1000)
+
+
+     [5] check your quality and change the -b 33 to -b 0 (disable quality) or
          -b 64 (for some Illumina 1.5 to 1.7) accordingly ...
+
 
 [READING THE RESULT]
 
