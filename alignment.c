@@ -291,7 +291,7 @@ inline void alignment__init(AlignmentType* alignment, short read_len, short ref_
   /* what is constructed and "returned" */
   alignment->params.allowed_indels = allowed_indels;
 
-  alignment__set_params(alignment, MATCH, MISMATCH, GAP_OPEN, GAP_EXTEND);
+  alignment__set_params(alignment, DEFAULT_MATCH, DEFAULT_MISMATCH, DEFAULT_GAP_OPEN, DEFAULT_GAP_EXTEND);
 
   SAFE_FAILURE__ALLOC(alignment->read, (size_t)read_len, CODE_TYPE);
   alignment->read_len = read_len;

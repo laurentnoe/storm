@@ -12,7 +12,6 @@ char** cmd_line;
 int    cmd_line_len;
 
 extern char *optarg;
-extern int optind, opterr, optopt;
 
 extern ScoreType min_accepted_score;
 extern ScoreType min_accepted_score_simd_filter;
@@ -34,9 +33,9 @@ extern int PRINT_ALL_READS;
 
 extern int read_quality_min_symbol_code;
 
-int allowed_indels      = ALLOWED_INDELS;
-int simd_allowed_diags  = ALLOWED_INDELS;
-int delta_m;
+       int allowed_indels      = DEFAULT_ALLOWED_INDELS;
+       int simd_allowed_diags  = DEFAULT_ALLOWED_INDELS;
+       int delta_m;
 
 #define DISPLAY_OPTION(option,...) {MESSAGE__("\t\033[37;1m-%s\033[0m: ", option); MESSAGE__(__VA_ARGS__) ; MESSAGE__("\n");}
 
@@ -128,13 +127,13 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("O <output_file>", "The name of the output file where the unmapped reads are\n"
                  "\t   written, in FASTQ format. Availaible if -M <number>. Default: none.\n");
 
-  DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(MATCH, MAX_READ_QUALITY_LEVEL));
+  DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("x <number>", "Mismatch penalty. Default: %d.\n"
                             "\n\t\033[37;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
-                            "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(MISMATCH, MAX_READ_QUALITY_LEVEL));
-  DISPLAY_OPTION("d <number>", "Gap open penalty. Default: %d.\n", GAP_OPEN);
-  DISPLAY_OPTION("e <number>", "Gap extension penalty. Default: %d.\n", GAP_EXTEND);
-  DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment. Default: %d.\n", ALLOWED_INDELS);
+                            "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(DEFAULT_MISMATCH, MAX_READ_QUALITY_LEVEL));
+  DISPLAY_OPTION("d <number>", "Gap open penalty. Default: %d.\n", DEFAULT_GAP_OPEN);
+  DISPLAY_OPTION("e <number>", "Gap extension penalty. Default: %d.\n", DEFAULT_GAP_EXTEND);
+  DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment. Default: %d.\n", DEFAULT_ALLOWED_INDELS);
   DISPLAY_OPTION("t <number>", "Minimum accepted score, above which an alignment is\n"
                                 "\t   considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE);
   DISPLAY_OPTION("z <number>", "The minimum score accepted by the SIMD filter,  above which an \n"
@@ -144,7 +143,7 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("b <number>", "base for FASTQ qual: worst val. (ASCII decimal). Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
   DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping. By default, multiple alignments of\n"
                       "\t   overlapping reads are evaluated at the mapping stage in order to establish\n"
-                      "\t   the most relevant candidate mapping position for each read. When this option\n"
+                      "\t   the most relevant candidate mapping position for best read. When this option\n"
                       "\t   is present, only the score of the read's alignment to the reference genome\n"
                       "\t   will be taken into account for choosing the right mapping position.\n");
   DISPLAY_OPTION("M <number>", "Perform an \"unordered\" mapping. By default, or in greedy mode, only\n"
@@ -153,8 +152,7 @@ static void show_usage(char * progname, char* default_seeds) {
                                "\t   this read is necessary the \"best one\" for the reference.\n"
                                "\n\t\033[37;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be mapped\033[0m without this option set to >= 1.\n",
                                MAP_DETAIL_SIZE);
-
-
+  DISPLAY_OPTION("A", "Output in the sam file the unmapped reads (only available when -M <number> is activated)\n");
   DISPLAY_OPTION("v <number>", "Verbose - output message detail level. %d: no message; \n"
                                "\t   %d: moderate; %d: high, %d: exaggerate. Default: %d.\n",
                                VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT);
@@ -176,13 +174,13 @@ int main (int argc, char* argv[]) {
    * -e gap extension penalty
    * -i number of allowed indels in the alignment
    */
-  char *optstring = "g:r:q:s:S:a:b:f:p:m:x:d:e:t:z:T:i:v:o:O:l:u:M:jFRhcPHUG";
+  char *optstring = "g:r:q:s:S:a:b:f:p:m:x:d:e:t:z:T:i:v:o:O:l:u:M:jFRhcPHUGA";
   /* Input files */
   char *genome_file = NULL, *reads_file = NULL, *qual_file = NULL;
   char *read = NULL, *reference=NULL, *reference_masked=NULL, *quality=NULL;
   char *seeds, *tmp;
   /* Alignment parameters, initialized with the default values from alignment.h */
-  ScoreType match = MATCH, mismatch = MISMATCH, gap_open = GAP_OPEN, gap_extend = GAP_EXTEND;
+  ScoreType match = DEFAULT_MATCH, mismatch = DEFAULT_MISMATCH, gap_open = DEFAULT_GAP_OPEN, gap_extend = DEFAULT_GAP_EXTEND;
 
   /* Output files*/
   FILE* output = stdout;
@@ -347,6 +345,9 @@ int main (int argc, char* argv[]) {
       if (map_unordered > MAP_DETAIL_SIZE) {
       HANDLE_INVALID_NUMERIC_VALUE_FATAL(map_unordered, "a value smaller than MAP_DETAIL_SIZE (4)");
       }
+      break;
+    case 'A':
+      PRINT_ALL_READS = 1;
       break;
 
     case 'v':

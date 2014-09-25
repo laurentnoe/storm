@@ -8,6 +8,7 @@
 int map_greedy;
 
 #include "hit_map.h"
+#include "alignment.h"
 
 #define ALIGNED_POSITION_IDX 0
 #define INSERTED_POSITION_IDX 1
@@ -98,7 +99,7 @@ GenomeMapType* genome_map__create(HitMapType* hitmap, ReferenceDBType* ref_dbs, 
  * Build the map of the genomes
  * @param genome_map The genome map to build
  */
-void genome_map__build(GenomeMapType* genome_map);
+void genome_map__build(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch);
 
 /**
  * Outputs the mapped reads in the SAM fomat (http://samtools.sourceforge.net)

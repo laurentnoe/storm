@@ -21,26 +21,26 @@ typedef char DirectionType;
  */
 
 /* Default alignment parameters (scores, penalties) */
-#define MATCH (+5)
-#define MISMATCH (-4)
-#define GAP_OPEN (-9)
-#define GAP_EXTEND (-4)
-#define ALLOWED_INDELS 3
+#define DEFAULT_MATCH (+5)
+#define DEFAULT_MISMATCH (-4)
+#define DEFAULT_GAP_OPEN (-9)
+#define DEFAULT_GAP_EXTEND (-4)
+#define DEFAULT_ALLOWED_INDELS (3)
 
 /**
  * The number of allowed indels relates to the SIMD filter and the possible size of the bandwidth alignment.
  */
 #ifdef __AVX2__
-#define INDEL_DATA_VECTOR_SIZE 16
+#define INDEL_DATA_VECTOR_SIZE (16)
 #else
 #ifdef __SSE2__
-#define INDEL_DATA_VECTOR_SIZE 16
+#define INDEL_DATA_VECTOR_SIZE (16)
 #else
 #ifdef __SSE__
-#define INDEL_DATA_VECTOR_SIZE 8
+#define INDEL_DATA_VECTOR_SIZE (8)
 #else
 /* No filter. Default to 7 indels (above this, the alignment algorithm would be much too slow). */
-#define INDEL_DATA_VECTOR_SIZE 8
+#define INDEL_DATA_VECTOR_SIZE (8)
 #endif
 #endif
 #endif

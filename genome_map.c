@@ -2,8 +2,8 @@
 #include "genome_map.h"
 #include "alignment.h"
 
-int UNIQUENESS = 0;
-int UNIQUENESS_SCORE_THRESHOLD = 0;
+extern int UNIQUENESS;
+extern int UNIQUENESS_SCORE_THRESHOLD;
 extern int delta_m;
 
 #ifdef NUCLEOTIDES
@@ -290,7 +290,7 @@ inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
  * then the reference code is returned.
  * Otherwise, the first code with the highest number of appearances is returned.
  */
-inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code) {
+inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code, const ScoreType match, const ScoreType mismatch) {
 
   /* no read mapped : set to the "reference" code */
   if (genome_map->g_maps[ref_id][ref_pos] == NULL) {
@@ -333,7 +333,7 @@ inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map
 
 CODE_TYPE crt_checksum = CODE_IDENTITY;
 
-inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_color) {
+inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_color, const ScoreType match, const ScoreType mismatch) {
 
   int         best_color = reference_color;
   CODE_TYPE     checksum = crt_checksum;
@@ -341,7 +341,7 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
   int window = 0;
   int fwd_i = ref_pos, fwd_j = offset;
 
-  best_color = genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, offset, reference_color);
+  best_color = genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, offset, reference_color, match, mismatch);
 
   if (best_color != reference_color) {
 
@@ -360,7 +360,7 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
     while (window < FORWARD_WINDOW_SIZE) {
       ++fwd_j;
       if (fwd_j >= genome_map->hitmap->indel_count ||
-          genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE) == GENOME_MAP_NO_CODE) {
+          genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE, match, mismatch) == GENOME_MAP_NO_CODE) {
         fwd_j = -1;
         ++fwd_i;
       }
@@ -374,11 +374,11 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
                                 COMPOSE_SAFE(
                                              NTH_CODE(genome_map->ref_dbs[ref_id].sequence, fwd_i),
                                              genome_map__get_direct_consensus_code(
-                                                                                   genome_map, ref_id, fwd_i, -1, NTH_CODE(genome_map->ref_dbs[ref_id].sequence, fwd_i))));
+                                                                                   genome_map, ref_id, fwd_i, -1, NTH_CODE(genome_map->ref_dbs[ref_id].sequence, fwd_i), match, mismatch)));
       } else {
         checksum = COMPOSE_SAFE(
                                 checksum,
-                                genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE));
+                                genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE, match, mismatch));
       }
       if(checksum == CODE_IDENTITY) {
         break;
@@ -433,7 +433,7 @@ inline void genome_map__update_consensus_code(GenomeMapType* genome_map, int ref
  * @param rank The rank in the hitmap
  * @return the score adjusted according to the previous reads mapped in the genome map
  */
-ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read_id, int rank) {
+ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read_id, int rank, const ScoreType match, const ScoreType mismatch) {
   ScoreType      score = 0;
   int            indel = 0;
   int            ref_id        = genome_map->hitmap->map[read_id][rank].ref_id;
@@ -455,15 +455,15 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
       {
         CODE_TYPE ref_code = NTH_CODE(genome_map->ref_dbs[ref_id].sequence, ref_pos);
         score += (ref_code ==
-                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, ref_code)) ? MATCH : MISMATCH;
+                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, ref_code, match, mismatch)) ? match : mismatch;
         ++ref_pos;
         indel = 0;
       }
       break;
 
     case TRACEBACK_PAIR_READ_DELETION :
-      score += (genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, GENOME_MAP_NO_CODE)
-                == GENOME_MAP_NO_CODE) ? MATCH : MISMATCH;
+      score += (genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, GENOME_MAP_NO_CODE, match, mismatch)
+                == GENOME_MAP_NO_CODE) ? match : mismatch;
       ++ref_pos;
       indel = 0;
       break;
@@ -475,7 +475,7 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
       {
         CODE_TYPE read_code = (traceback_cell & TRACEBACK_CODE_MASK);
         score += (read_code ==
-                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, read_code)) ? MATCH : MISMATCH;
+                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, read_code, match, mismatch)) ? match : mismatch;
         ++ref_pos;
         indel = 0;
       }
@@ -485,7 +485,7 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
       {
         CODE_TYPE read_code = (traceback_cell & TRACEBACK_CODE_MASK);
         score += (read_code ==
-                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, indel, read_code)) ? MATCH : MISMATCH;
+                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, indel, read_code, match, mismatch)) ? match : mismatch;
         ++indel;
       }
       break;
@@ -497,7 +497,7 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
 /**
  * Build a genome map for a database of mapped reads: multiple alignment approach
  */
-void genome_map__build_contextual(GenomeMapType* genome_map) {
+void genome_map__build_contextual(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch) {
 
   /* 1) sort reads by best score */
   genome_map__radix_sort_reads(genome_map);
@@ -514,7 +514,7 @@ void genome_map__build_contextual(GenomeMapType* genome_map) {
     {
       int rank;
       for (rank = 0; rank < MAP_DETAIL_SIZE && genome_map->hitmap->map[read_id][rank].ref_start != UNMAPPED; ++rank) {
-        ScoreType score = genome_map->hitmap->map[read_id][rank].adjusted_score = genome_map__compute_adjusted_score(genome_map, read_id, rank);
+        ScoreType score = genome_map->hitmap->map[read_id][rank].adjusted_score = genome_map__compute_adjusted_score(genome_map, read_id, rank, match, mismatch);
         if (score > best_score) {
           best_rank  = rank;
           best_score = score;
@@ -598,11 +598,11 @@ void genome_map__build_contextual(GenomeMapType* genome_map) {
   }
 }
 
-void genome_map__build(GenomeMapType* genome_map) {
+void genome_map__build(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch) {
   if (map_greedy) {
     genome_map__build_greedy(genome_map);
   } else {
-    genome_map__build_contextual(genome_map);
+    genome_map__build_contextual(genome_map, match, mismatch);
   }
 }
 

@@ -3,7 +3,7 @@
 
 extern int UNIQUENESS;
 extern int UNIQUENESS_SCORE_THRESHOLD;
-       int PRINT_ALL_READS = 1;
+extern int PRINT_ALL_READS;
 extern int delta_m;
 
 /**

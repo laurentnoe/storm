@@ -171,10 +171,11 @@ void(* const simd_clean_fct)() = &fake_clean;
 #endif
 #endif
 
-
 int SHOW_TRACEBACK_PATTERNS = 0;
 int LIST_UNMAPPED_READS = 0;
-
+int UNIQUENESS = 0;
+int UNIQUENESS_SCORE_THRESHOLD = 0;
+int PRINT_ALL_READS = 0;
 
 /*
  * #define __DONT__MAP__
@@ -738,6 +739,8 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
             MESSAGE__("\n");
             );
 
+  VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nLoading sequences ...\n"););
+
   /* load the two databases */
   /* load the reads */
   VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Loading reads database...\n"););
@@ -767,7 +770,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Loaded %d reference sequence%s in %ld seconds.\n\n", ref_dbs_size, (ref_dbs_size == 1 ? "" : "s"), time(NULL) - crt_time););
 
   /* SIMD filter initialization */
-  simd_init_fct_table[simd_allowed_diags](abs(match), abs(mismatch), abs(gap_open), abs(gap_extend), min_accepted_score_simd_filter, reads_db.read_len);
+  simd_init_fct_table[simd_allowed_diags](ABS(match), ABS(mismatch), ABS(gap_open), ABS(gap_extend), min_accepted_score_simd_filter, reads_db.read_len);
 
   /* compute heap size needed */
   int heap_size = 0;
@@ -955,7 +958,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
     VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nReference mapping ...\n"););
     GenomeMapType*  genome_map = genome_map__create(map, ref_dbs, ref_dbs_size, &reads_db);
-    genome_map__build(genome_map);
+    genome_map__build(genome_map, match, mismatch);
 
     /* it may be useful to see what the alignments look like */
     if (SHOW_TRACEBACK_PATTERNS) {
