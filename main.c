@@ -280,7 +280,7 @@ int main (int argc, char* argv[]) {
         HANDLE_INVALID_NUMERIC_VALUE_FATAL(allowed_indels, "a positive value or zero");
       }
       if (allowed_indels > INDEL_COUNT_LIMIT) {
-        WARNING__("%s may not handle more than %d indels in the SIMD (local alignment) filter code (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels);
+        WARNING__("%s may not handle more than %d indels in SIMD (local alignment) filter (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels);
       simd_allowed_diags = INDEL_COUNT_LIMIT;
       } else {
       simd_allowed_diags = allowed_indels;
@@ -351,7 +351,7 @@ int main (int argc, char* argv[]) {
       break;
     case 'A':
       if (!map_unordered) {
-         ERROR__("The -A (output all reads in SAM) parameter is not available with the Ordered Mapping because not all mappable reads are displayed in this mode.\nPlease use the Unordered Mapping (-M <number>) before using -A.\n");
+         ERROR__("The -A (output all reads in SAM) parameter is not available with the Ordered Mapping\nbecause not all mappable reads are already displayed in this mode.\nPlease use the Unordered Mapping (-M <number>) before using -A.\n");
          exit(1);
       }
       PRINT_ALL_READS = 1;

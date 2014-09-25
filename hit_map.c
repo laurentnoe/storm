@@ -478,7 +478,7 @@ void hit_map__generate_SAM_output(const HitMapType* map,
           for (q = 0; q < reads_db->read_len; ++q) {
             fprintf(sam_output, "%c",  BASE_CODE_LETTER[(int)NTH_CODE(read->sequence, q)]);
           }
-
+        fprintf(sam_output, "\t");
           /* display the quality of a base format read (phread) */
           if (reads_db->reads[read_id].quality) {
             int q;
