@@ -135,7 +135,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
     /* Is there a title in the comment ? */
     if (read_result && !(db->name) && strncmp(line, TITLE_LINE_MARKER, TITLE_LINE_MARKER_LEN) == 0) {
       int name_len = strcspn(line + TITLE_LINE_MARKER_LEN, "\r\n");
-      SAFE_FAILURE__ALLOC(db->name, (name_len + 1), char);
+      SAFE_FAILURE__ALLOC(db->name, name_len + 1, char);
       strncpy(db->name, line + TITLE_LINE_MARKER_LEN, name_len);
       db->name[name_len] = '\0';
     }
@@ -198,7 +198,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
 
   /* Allocate */
   SAFE_FAILURE__ALLOC(db->reads, db->size, ReadDataType);
-  memset(db->reads,'\0',db->size * sizeof(ReadDataType));
+  memset(db->reads,'\0', db->size * sizeof(ReadDataType));
 
   /* Second scan: load reads */
   /* Go back to the first non-comment line */
@@ -208,10 +208,10 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
   {
     char * linebuffer = NULL;
 #ifdef NUCLEOTIDES
-    SAFE_FAILURE__ALLOC(linebuffer,db->read_len+1,char);
+    SAFE_FAILURE__ALLOC(linebuffer, db->read_len + 1, char);
     memset(linebuffer,'\0',db->read_len+1);
 #else
-    SAFE_FAILURE__ALLOC(linebuffer,db->read_len+3,char);
+    SAFE_FAILURE__ALLOC(linebuffer, db->read_len + 3, char);
     memset(linebuffer,'\0',db->read_len+3);
 #endif
     long i = 0;
@@ -352,7 +352,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
         l++;
       }
       if (t > 0) {
-        SAFE_FAILURE__ALLOC(db->name,t+1,sizeof(char));
+        SAFE_FAILURE__ALLOC(db->name, t + 1, char);
         strncpy(db->name, db->reads[0].info, t);
       }
     }
@@ -396,7 +396,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
     /* Is there a title in the comment ? */
     if (read_result && !(db->name) && strncmp(line, TITLE_LINE_MARKER, TITLE_LINE_MARKER_LEN) == 0) {
       int name_len = strcspn(line + TITLE_LINE_MARKER_LEN, "\r\n");
-      SAFE_FAILURE__ALLOC(db->name, (name_len + 1), char);
+      SAFE_FAILURE__ALLOC(db->name, name_len + 1, char);
       strncpy(db->name, line + TITLE_LINE_MARKER_LEN, name_len);
       db->name[name_len] = '\0';
     }
@@ -566,7 +566,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
         l++;
       }
       if (t > 0) {
-        SAFE_FAILURE__ALLOC(db->name,t+1,sizeof(char));
+        SAFE_FAILURE__ALLOC(db->name, t + 1, char);
         strncpy(db->name, db->reads[0].info, t);
       }
     }
