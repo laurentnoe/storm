@@ -1,5 +1,7 @@
-#include "reads_data.h"
 #include <unistd.h>
+#include <string.h>
+#include "reads_data.h"
+
 
 /**
  * Reverse-complement a read
@@ -344,13 +346,15 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
              ) || (
               (t > 0) &&
               (db->reads[0].info[l] >= '!' && db->reads[0].info[l] <= '~')
+             )
            )
-          )
         t = l+1;
         l++;
       }
-      if (t > 0)
-        db->name = strndup(db->reads[0].info,t);
+      if (t > 0) {
+        SAFE_FAILURE__ALLOC(db->name,t+1,sizeof(char));
+        strncpy(db->name, db->reads[0].info, t);
+      }
     }
   }
   return db->size;
@@ -554,15 +558,17 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
               (db->reads[0].info[l] >= '+' && db->reads[0].info[l] <= '<') ||
               (db->reads[0].info[l] >= '>' && db->reads[0].info[l] <= '~'))
              ) || (
-                   (t > 0) &&
-                   (db->reads[0].info[l] >= '!' && db->reads[0].info[l] <= '~')
-                   )
-            )
+              (t > 0) &&
+              (db->reads[0].info[l] >= '!' && db->reads[0].info[l] <= '~')
+             )
+           )
         t = l+1;
         l++;
       }
-      if (t > 0)
-        db->name = strndup(db->reads[0].info,t);
+      if (t > 0) {
+        SAFE_FAILURE__ALLOC(db->name,t+1,sizeof(char));
+        strncpy(db->name, db->reads[0].info, t);
+      }
     }
   }
   return db->size;
