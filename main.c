@@ -92,7 +92,9 @@ static void show_usage(char * progname, char* default_seeds) {
    *                "\t   -p,  when just  the alignment of two  small sequences  is wanted,\n"
    *                "\t   instead of -r and -g.\n");
    */
-  MESSAGE__("\n\t\033[37;1mWARNING\033[0m:\033[33;1m Default is at most \"1 read kept per reference position\" : use -M <number> (-M 1)\033[0m\n\n");
+  MESSAGE__("\n\t\033[33;1mWARNING\033[0m: By default, at most one read is kept per reference position.  This\n"
+            "\t   can be changed with the -M <number> parameter (possibly combining the -A\n"
+            "\t   parameter to output unmapped reads)\n\n");
   MESSAGE__("\n\033[37;1mOptional:\033[0m\n");
   DISPLAY_OPTION("q <qualities_file>",  "Name of the qualities file (qual).\n");
   DISPLAY_OPTION("s <seed list>", "The seed family to be used for filtering.  The list should \n"
@@ -125,7 +127,7 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("o <output_file>", "The name of the output file  where the mapping result is\n"
                  "\t   written, in SAM format. Default: stdout.\n");
   DISPLAY_OPTION("O <output_file>", "The name of the output file where the unmapped reads are\n"
-                 "\t   written, in FASTQ format. Availaible if -M <number>. Default: none.\n");
+                 "\t   written, in FASTQ format. Availaible if -M <number>.     Default: none.\n");
 
   DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("x <number>", "Mismatch penalty. Default: %d.\n"
@@ -136,27 +138,28 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment. Default: %d.\n", DEFAULT_ALLOWED_INDELS);
   DISPLAY_OPTION("t <number>", "Minimum accepted score, above which an alignment is\n"
                                 "\t   considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE);
-  DISPLAY_OPTION("z <number>", "The minimum score accepted by the SIMD filter,  above which an \n"
+  DISPLAY_OPTION("z <number>", "The minimum score accepted by the SIMD filter, above which an\n"
                                "\t   alignment is considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE_SIMD_FILTER);
   DISPLAY_OPTION("u <number>", "The minimum difference between the first and second \n"
                                "\t   alignment of a given read to consider it unique; Default: disabled.\n");
-  DISPLAY_OPTION("b <number>", "base for FASTQ qual: worst val. (ASCII decimal). Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
-  DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping. By default, multiple alignments of\n"
-                      "\t   overlapping reads are evaluated at the mapping stage in order to establish\n"
-                      "\t   the most relevant candidate mapping position for best read. When this option\n"
-                      "\t   is present, only the score of the read's alignment to the reference genome\n"
-                      "\t   will be taken into account for choosing the right mapping position.\n");
-  DISPLAY_OPTION("M <number>", "Perform an \"unordered\" mapping. By default, or in greedy mode, only\n"
-                               "\t   one read is kept per reference position.  This option enables any read to\n"
-                               "\t   be mapped at any <number> (1..%d) positions per read without considering\n"
-                               "\t   this read is necessary the \"best one\" for the reference.\n"
-                               "\n\t\033[37;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be mapped\033[0m without this option set to >= 1.\n",
+  DISPLAY_OPTION("b <number>", "base for FASTQ qualily worst value (ASCII decimal).\n"
+                               "\t   Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
+  DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping.  By default, multiple alignments of\n"
+                      "\t   overlapping reads are evaluated during the mapping stage to establish the\n"
+                      "\t   most relevant candidate read for each reference position.  If this option\n"
+                      "\t   is present, only the score of the read's alignment is taken into account\n");
+  DISPLAY_OPTION("M <number>", "Perform an \"unordered\" mapping. By default/in greedy mode, only\n"
+                      "\t   one read is kept per reference position.  This option enables any read to\n"
+                      "\t   be mapped at any <number>  (1..%d)  positions per read without considering\n"
+                      "\t   this read is necessary the \"best one\" from the reference point of view.\n"
+                      "\n\t\033[33;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be displayed\033[0m if this option is NOT set.\n",
                                MAP_DETAIL_SIZE);
-  DISPLAY_OPTION("A", "Output in the sam file the unmapped reads (only available when -M <number> is activated)\n");
+  DISPLAY_OPTION("A", "Output in the sam file the unmapped reads. This is only possible when\n"
+                               "\t    the -M <number> \"unordered mapping\" is activated.\n");
   DISPLAY_OPTION("v <number>", "Verbose - output message detail level. %d: no message; \n"
                                "\t   %d: moderate; %d: high, %d: exaggerate. Default: %d.\n",
                                VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT);
-  DISPLAY_OPTION("h", "Displays usage and exists.\n");
+  DISPLAY_OPTION("h", "Displays usage and exits.\n");
 }
 
 
@@ -340,13 +343,17 @@ int main (int argc, char* argv[]) {
     case 'M':
       INTEGER_VALUE_FROM_OPTION(map_unordered);
       if (map_unordered <= 0) {
-      HANDLE_INVALID_NUMERIC_VALUE_FATAL(map_unordered, "a strictly positive integer");
+        HANDLE_INVALID_NUMERIC_VALUE_FATAL(map_unordered, "a strictly positive integer");
       }
       if (map_unordered > MAP_DETAIL_SIZE) {
-      HANDLE_INVALID_NUMERIC_VALUE_FATAL(map_unordered, "a value smaller than MAP_DETAIL_SIZE (4)");
+        HANDLE_INVALID_NUMERIC_VALUE_FATAL(map_unordered, "a value smaller than MAP_DETAIL_SIZE (4)");
       }
       break;
     case 'A':
+      if (!map_unordered) {
+         ERROR__("The -A (output all reads in SAM) parameter is not available with the Ordered Mapping because not all mappable reads are displayed in this mode.\nPlease use the Unordered Mapping (-M <number>) before using -A.\n");
+         exit(1);
+      }
       PRINT_ALL_READS = 1;
       break;
 
