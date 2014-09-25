@@ -953,7 +953,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
     crt_time = time(NULL);
 
-    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nReference mapping...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nReference mapping ...\n"););
     GenomeMapType*  genome_map = genome_map__create(map, ref_dbs, ref_dbs_size, &reads_db);
     genome_map__build(genome_map);
 

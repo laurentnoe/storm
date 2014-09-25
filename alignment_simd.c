@@ -119,10 +119,10 @@ int alignment_avx512bw__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
-  fprintf(stderr,"* compatible avx512bw ? %s\n", _bx & 1<<30 ? "yes":"no");
+  fprintf(stderr,"[compatible avx512bw ? %s]\n", _bx & 1<<30 ? "yes":"no");
   return (_bx & 1<<30) != 0;
 #else
-  fprintf(stderr,"* compatible avx512bw ? no (32bits compiled)\n");
+  fprintf(stderr,"[compatible avx512bw ? no (32bits compiled)]\n");
   return 0;
 #endif
 }
@@ -139,10 +139,10 @@ int alignment_avx2__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
-  fprintf(stderr,"* compatible avx2 ? %s\n", _bx & 1<<5 ? "yes":"no");
+  fprintf(stderr,"[compatible avx2 ? %s]\n", _bx & 1<<5 ? "yes":"no");
   return (_bx & 1<<5) != 0;
 #else
-  fprintf(stderr,"* compatible avx2 ? no (32bits compiled)\n");
+  fprintf(stderr,"[compatible avx2 ? no (32bits compiled)]\n");
   return 0;
 #endif
 }
@@ -170,7 +170,7 @@ int alignment_sse2__compatible_proc() {
                 : "a" (1)
                 );
 #endif
-  fprintf(stderr,"* compatible sse2 ? %s\n", _dx & 1<<26 ? "yes":"no");
+  fprintf(stderr,"[compatible sse2 ? %s]\n", _dx & 1<<26 ? "yes":"no");
   return (_dx & 1<<26) != 0;
 }
 
@@ -197,7 +197,7 @@ int alignment_sse__compatible_proc() {
                 : "a" (1)
                 );
 #endif
-  fprintf(stderr,"* compatible sse ? %s\n", _dx & 1<<25 ? "yes":"no");
+  fprintf(stderr,"[compatible sse ? %s]\n", _dx & 1<<25 ? "yes":"no");
   return (_dx & 1<<25) != 0;
 }
 
