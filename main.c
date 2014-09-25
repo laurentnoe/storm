@@ -131,7 +131,7 @@ static void show_usage(char * progname, char* default_seeds) {
 
   DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("x <number>", "Mismatch penalty. Default: %d.\n"
-                            "\n\t\033[37;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
+                            "\n\t\033[33;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
                             "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(DEFAULT_MISMATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("d <number>", "Gap open penalty. Default: %d.\n", DEFAULT_GAP_OPEN);
   DISPLAY_OPTION("e <number>", "Gap extension penalty. Default: %d.\n", DEFAULT_GAP_EXTEND);

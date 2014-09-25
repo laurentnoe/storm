@@ -50,7 +50,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
          which implies that not all the reads (duplicates, lower quality
          ones at the same reference position) are mapped.
 
-     [1] use larger /or/ smaller scores threshold
+     [1] use "larger" /or/ "smaller" scoring thresholds
       ...
       -z 150 -t 150
       -z 120 -t 120
@@ -66,7 +66,6 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
      
       note that E-value "may be somehow" checked with the ALP tool:
          http://www.ncbi.nlm.nih.gov/CBBresearch/Spouge/html_ncbi/html/software/program.html?uid=6
-      its also a good idea to increase these two values !!
 
 
      [2] "increase" /or/ "decrease" the number of indels :
@@ -80,7 +79,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
       -i 20
       ...
          for final alignment support only : in that case, the SIMD code 
-         generates a warning explaining that il will compute at most 15
+         generates a warning explaining that it will compute at most 15
          diagonals : you can thus change the SIMD threshold -z <int> to 
          a smaller value than the final alignment threshold -t <int>.
          (see [1] before)
