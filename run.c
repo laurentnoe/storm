@@ -56,6 +56,7 @@ void(* const simd_init_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned int, unsigned
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {2, 2, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
 void(* const simd_clean_fct)() = &alignment_avx2__clean;
+#define SIMD_SUPPORT_CHECK {if (!alignment_avx2__compatible_proc()) {ERROR__("\nCPU is not compatible with AVX2 instructions set.\nExiting.\n"); exit(1);}}
 #else
 #ifdef __SSE2__
 
@@ -100,6 +101,7 @@ void(* const simd_init_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned int, unsigned
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {2, 2, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
 void(* const simd_clean_fct)() = &alignment_sse2__clean;
+#define SIMD_SUPPORT_CHECK {if (!alignment_sse2__compatible_proc()) {ERROR__("\nCPU is not compatible with SSE2 instructions set.\nExiting.\n"); exit(1);}}
 #else
 #ifdef __SSE__
 
@@ -128,6 +130,7 @@ void(* const simd_init_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned int, unsigned
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {2, 2, 4, 4, 8, 8, 8, 8};
 void(* const simd_clean_fct)() = &alignment_sse__clean;
+#define SIMD_SUPPORT_CHECK {if (!alignment_sse__compatible_proc()) {ERROR__("\nCPU is not compatible with SSE instructions set.\nExiting.\n"); exit(1);}}
 #else
 
 #warning "No __AVX2__, __SSE2__, __SSE__ defined : this program will be slow !!"
@@ -167,6 +170,7 @@ int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsi
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {1, 1, 1, 1, 1, 1, 1, 1};
 void(* const simd_clean_fct)() = &fake_clean;
+#define SIMD_SUPPORT_CHECK
 #endif
 #endif
 #endif
@@ -706,6 +710,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   IndexType**       ref_index;
   SeedType **       seeds;
 
+  SIMD_SUPPORT_CHECK;
 
 #ifdef _OPENMP
   omp_set_dynamic(0);
