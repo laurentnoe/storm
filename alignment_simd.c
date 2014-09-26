@@ -5,7 +5,7 @@
 #include "alignment_simd.h"
 
 /*
- * #define DEBUG
+ * #define DEBUG_SIMD
  */
 
 #ifdef __AVX512BW__
@@ -119,10 +119,14 @@ int alignment_avx512bw__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
+#ifdef DEBUG_SIMD
   fprintf(stderr,"[compatible avx512bw ? %s]\n", _bx & 1<<30 ? "yes":"no");
+#endif
   return (_bx & 1<<30) != 0;
 #else
+#ifdef DEBUG_SIMD
   fprintf(stderr,"[compatible avx512bw ? no (32bits compiled)]\n");
+#endif
   return 0;
 #endif
 }
@@ -139,10 +143,14 @@ int alignment_avx2__compatible_proc() {
                 : "=a" (_ax), "=r" (_bx), "=c" (_cx), "=d" (_dx)
                 : "a" (7), "c" (0)
                 );
+#ifdef DEBUG_SIMD
   fprintf(stderr,"[compatible avx2 ? %s]\n", _bx & 1<<5 ? "yes":"no");
+#endif
   return (_bx & 1<<5) != 0;
 #else
+#ifdef DEBUG_SIMD
   fprintf(stderr,"[compatible avx2 ? no (32bits compiled)]\n");
+#endif
   return 0;
 #endif
 }
@@ -170,7 +178,9 @@ int alignment_sse2__compatible_proc() {
                 : "a" (1)
                 );
 #endif
+#ifdef DEBUG_SIMD
   fprintf(stderr,"[compatible sse2 ? %s]\n", _dx & 1<<26 ? "yes":"no");
+#endif
   return (_dx & 1<<26) != 0;
 }
 
@@ -197,7 +207,9 @@ int alignment_sse__compatible_proc() {
                 : "a" (1)
                 );
 #endif
+#ifdef DEBUG_SIMD
   fprintf(stderr,"[compatible sse ? %s]\n", _dx & 1<<25 ? "yes":"no");
+#endif
   return (_dx & 1<<25) != 0;
 }
 
@@ -1148,7 +1160,7 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
                                      0x00,0x00,0x00,0x00,
                                      0x00,0x00,0x00,0x00,
                                      0x00,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
@@ -1170,7 +1182,7 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
@@ -1207,7 +1219,7 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
                                      0x00,0x00,0x00,0x00,
                                      0xff,0x00,0x00,0x00,
                                      0x00,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
@@ -1229,7 +1241,7 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
@@ -1266,7 +1278,7 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
                                      0xff,0x00,0x00,0x00,
                                      0xff,0x00,0x00,0x00,
                                      0xff,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
@@ -1288,7 +1300,7 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
@@ -1325,7 +1337,7 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
                                      0xff,0x00,0xff,0x00,
                                      0xff,0x00,0xff,0x00,
                                      0xff,0x00,0xff,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector256_t Msk;
     Msk.v = vMsk256[0];
@@ -1347,7 +1359,7 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector256_t Msk;
       Msk.v = vMsk256[l];
@@ -1374,7 +1386,12 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
 
 void alignment_avx2__init_pair(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx2__compatible_proc()) exit(1);
+  if (!alignment_avx2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -1395,7 +1412,12 @@ void alignment_avx2__init_pair(const unsigned int match, const unsigned int mism
 
 void alignment_avx2__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx2__compatible_proc()) exit(1);
+  if (!alignment_avx2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -1416,7 +1438,12 @@ void alignment_avx2__init_quad(const unsigned int match, const unsigned int mism
 
 void alignment_avx2__init_octa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx2__compatible_proc()) exit(1);
+  if (!alignment_avx2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -1437,7 +1464,12 @@ void alignment_avx2__init_octa(const unsigned int match, const unsigned int mism
 
 void alignment_avx2__init_hexa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx2__compatible_proc()) exit(1);
+  if (!alignment_avx2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -1541,7 +1573,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
@@ -1558,7 +1590,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
         VTYPE256 vM_add = SI256_TYPE(_mm256_and)(vM_ab_MatchMask,vMatchS256);
         VTYPE256 vM_sub = SI256_TYPE(_mm256_andnot)(vM_ab_MatchMask,vMismatchS256);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -1568,7 +1600,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -1581,7 +1613,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
         vM = EPU8_TYPE(_mm256_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,M_old,I_old;
         M.v     = vM;
@@ -1613,7 +1645,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm256_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,I;
         M.v = vM;
@@ -1626,7 +1658,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
       vM    = SI256_TYPE(_mm256_and)(vM,vMsk256[l]);
       vMMax = EPU8_TYPE(_mm256_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t Msk,M,Max;
         Msk.v = vMsk256[l];
@@ -1642,7 +1674,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     --------------------------------,--------------------------------\n");
 #endif
     } /* l */
@@ -1660,7 +1692,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
     if ((u2 != (uint64_t) 0) || (u3 != (uint64_t) 0)) {
       result |= 2;
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ================================,================================\n");
 #endif
     return result;
@@ -1741,7 +1773,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
@@ -1758,7 +1790,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
         VTYPE256 vM_add = SI256_TYPE(_mm256_and)(vM_ab_MatchMask,vMatchS256);
         VTYPE256 vM_sub = SI256_TYPE(_mm256_andnot)(vM_ab_MatchMask,vMismatchS256);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -1768,7 +1800,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -1781,7 +1813,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
         vM = EPU8_TYPE(_mm256_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,M_old,I_old;
         M.v     = vM;
@@ -1813,7 +1845,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm256_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,I;
         M.v = vM;
@@ -1826,7 +1858,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
       vM    = SI256_TYPE(_mm256_and)(vM,vMsk256[l]);
       vMMax = EPU8_TYPE(_mm256_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t Msk,M,Max;
         Msk.v = vMsk256[l];
@@ -1842,7 +1874,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ----------------,----------------,----------------,----------------\n");
 #endif
     } /* l */
@@ -1857,7 +1889,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ================,================,================,================\n");
 #endif
     return result;
@@ -1938,7 +1970,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
@@ -1955,7 +1987,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
         VTYPE256 vM_add = SI256_TYPE(_mm256_and)(vM_ab_MatchMask,vMatchS256);
         VTYPE256 vM_sub = SI256_TYPE(_mm256_andnot)(vM_ab_MatchMask,vMismatchS256);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -1965,7 +1997,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -1978,7 +2010,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
         vM = EPU8_TYPE(_mm256_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,M_old,I_old;
         M.v     = vM;
@@ -2010,7 +2042,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm256_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,I;
         M.v = vM;
@@ -2023,7 +2055,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
       vM    = SI256_TYPE(_mm256_and)(vM,vMsk256[l]);
       vMMax = EPU8_TYPE(_mm256_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t Msk,M,Max;
         Msk.v = vMsk256[l];
@@ -2039,7 +2071,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     --------,--------,--------,--------,--------,--------,--------,--------\n");
 #endif
     } /* l */
@@ -2054,7 +2086,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ========,========,========,========,========,========,========,========\n");
 #endif
     return result;
@@ -2135,7 +2167,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         vA  = SI256_TYPE(_mm256_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t A,B;
         A.v = vA; B.v = vB;
@@ -2152,7 +2184,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         VTYPE256 vM_add = SI256_TYPE(_mm256_and)(vM_ab_MatchMask,vMatchS256);
         VTYPE256 vM_sub = SI256_TYPE(_mm256_andnot)(vM_ab_MatchMask,vMismatchS256);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -2162,7 +2194,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector256_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -2175,7 +2207,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         vM = EPU8_TYPE(_mm256_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,M_old,I_old;
         M.v     = vM;
@@ -2207,7 +2239,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm256_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t M,I;
         M.v = vM;
@@ -2220,7 +2252,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
       vM    = SI256_TYPE(_mm256_and)(vM,vMsk256[l]);
       vMMax = EPU8_TYPE(_mm256_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector256_t Msk,M,Max;
         Msk.v = vMsk256[l];
@@ -2236,7 +2268,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ----,----,----,----,----,----,----,----,----,----,----,----,----,----,----,----\n");
 #endif
     } /* l */
@@ -2251,7 +2283,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ====,====,====,====,====,====,====,====,====,====,====,====,====,====,====,====\n");
 #endif
     return result;
@@ -2291,7 +2323,7 @@ void alignment_sse2__setlength_mono(const unsigned int readlength) {
                                   0x00,0x00,0x00,0x00,
                                   0x00,0x00,0x00,0x00,
                                   0x00,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
@@ -2313,7 +2345,7 @@ void alignment_sse2__setlength_mono(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
@@ -2346,7 +2378,7 @@ void alignment_sse2__setlength_pair(const unsigned int readlength) {
                                   0x00,0x00,0x00,0x00,
                                   0xff,0x00,0x00,0x00,
                                   0x00,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
@@ -2368,7 +2400,7 @@ void alignment_sse2__setlength_pair(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
@@ -2401,7 +2433,7 @@ void alignment_sse2__setlength_quad(const unsigned int readlength) {
                                   0xff,0x00,0x00,0x00,
                                   0xff,0x00,0x00,0x00,
                                   0xff,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
@@ -2423,7 +2455,7 @@ void alignment_sse2__setlength_quad(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
@@ -2456,7 +2488,7 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
                                   0xff,0x00,0xff,0x00,
                                   0xff,0x00,0xff,0x00,
                                   0xff,0x00,0xff,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector128_t Msk;
     Msk.v = vMsk128[0];
@@ -2478,7 +2510,7 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector128_t Msk;
       Msk.v = vMsk128[l];
@@ -2503,7 +2535,12 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
 
 void alignment_sse2__init_mono(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse2__compatible_proc()) exit(1);
+  if (!alignment_sse2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -2524,7 +2561,12 @@ void alignment_sse2__init_mono(const unsigned int match, const unsigned int mism
 
 void alignment_sse2__init_pair(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse2__compatible_proc()) exit(1);
+  if (!alignment_sse2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -2545,7 +2587,12 @@ void alignment_sse2__init_pair(const unsigned int match, const unsigned int mism
 
 void alignment_sse2__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse2__compatible_proc()) exit(1);
+  if (!alignment_sse2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -2566,7 +2613,13 @@ void alignment_sse2__init_quad(const unsigned int match, const unsigned int mism
 
 void alignment_sse2__init_octa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse2__compatible_proc()) exit(1);
+  if (!alignment_sse2__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
+
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -2662,7 +2715,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
@@ -2679,7 +2732,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
         VTYPE128 vM_add = SI128_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS128);
         VTYPE128 vM_sub = SI128_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS128);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -2689,7 +2742,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -2702,7 +2755,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
         vM = EPU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,M_old,I_old;
         M.v     = vM;
@@ -2734,7 +2787,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,I;
         M.v = vM;
@@ -2747,7 +2800,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
       vM    = SI128_TYPE(_mm_and)(vM,vMsk128[l]);
       vMMax = EPU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t Msk,M,Max;
         Msk.v = vMsk128[l];
@@ -2763,7 +2816,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     --------------------------------\n");
 #endif
     } /* l */
@@ -2776,7 +2829,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
     if ((u0 != (uint64_t) 0) || (u1 != (uint64_t) 0)) {
       result |= 1;
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ================================\n");
 #endif
     return result;
@@ -2857,7 +2910,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
@@ -2874,7 +2927,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
         VTYPE128 vM_add = SI128_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS128);
         VTYPE128 vM_sub = SI128_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS128);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -2884,7 +2937,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -2897,7 +2950,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
         vM = EPU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,M_old,I_old;
         M.v     = vM;
@@ -2929,7 +2982,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,I;
         M.v = vM;
@@ -2942,7 +2995,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
       vM    = SI128_TYPE(_mm_and)(vM,vMsk128[l]);
       vMMax = EPU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t Msk,M,Max;
         Msk.v = vMsk128[l];
@@ -2958,7 +3011,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ----------------,----------------\n");
 #endif
     } /* l */
@@ -2973,7 +3026,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ================,================\n");
 #endif
     return result;
@@ -3054,7 +3107,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
@@ -3071,7 +3124,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
         VTYPE128 vM_add = SI128_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS128);
         VTYPE128 vM_sub = SI128_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS128);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -3081,7 +3134,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -3094,7 +3147,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
         vM = EPU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,M_old,I_old;
         M.v     = vM;
@@ -3126,7 +3179,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,I;
         M.v = vM;
@@ -3139,7 +3192,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
       vM    = SI128_TYPE(_mm_and)(vM,vMsk128[l]);
       vMMax = EPU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t Msk,M,Max;
         Msk.v = vMsk128[l];
@@ -3155,7 +3208,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     --------,--------,--------,--------\n");
 #endif
     } /* l */
@@ -3170,7 +3223,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ========,========,========,========\n");
 #endif
     return result;
@@ -3251,7 +3304,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
         vA  = SI128_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t A,B;
         A.v = vA; B.v = vB;
@@ -3268,7 +3321,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
         VTYPE128 vM_add = SI128_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS128);
         VTYPE128 vM_sub = SI128_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS128);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -3278,7 +3331,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector128_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -3291,7 +3344,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
         vM = EPU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,M_old,I_old;
         M.v     = vM;
@@ -3323,7 +3376,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
         vM                    = EPU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t M,I;
         M.v = vM;
@@ -3336,7 +3389,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
       vM    = SI128_TYPE(_mm_and)(vM,vMsk128[l]);
       vMMax = EPU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector128_t Msk,M,Max;
         Msk.v = vMsk128[l];
@@ -3352,7 +3405,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ----,----,----,----,----,----,----,----\n");
 #endif
     } /* l */
@@ -3367,7 +3420,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ====,====,====,====,====,====,====,====\n");
 #endif
     return result;
@@ -3406,7 +3459,7 @@ void alignment_sse__setlength_mono(const unsigned int readlength) {
   /* init mask table */
   vMsk64[0] = PI8_TYPE(_mm_set)(0xff,0x00,0x00,0x00,
                                 0x00,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector64_t Msk;
     Msk.v = vMsk64[0];
@@ -3428,7 +3481,7 @@ void alignment_sse__setlength_mono(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector64_t Msk;
       Msk.v = vMsk64[l];
@@ -3460,7 +3513,7 @@ void alignment_sse__setlength_pair(const unsigned int readlength) {
   /* init mask table */
   vMsk64[0] = PI8_TYPE(_mm_set)(0xff,0x00,0x00,0x00,
                                 0xff,0x00,0x00,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector64_t Msk;
     Msk.v = vMsk64[0];
@@ -3482,7 +3535,7 @@ void alignment_sse__setlength_pair(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector64_t Msk;
       Msk.v = vMsk64[l];
@@ -3514,7 +3567,7 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
   /* init mask table */
   vMsk64[0] = PI8_TYPE(_mm_set)(0xff,0x00,0xff,0x00,
                                 0xff,0x00,0xff,0x00);
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
   {
     vector64_t Msk;
     Msk.v = vMsk64[0];
@@ -3536,7 +3589,7 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
         }
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     {
       vector64_t Msk;
       Msk.v = vMsk64[l];
@@ -3562,7 +3615,12 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
 
 void alignment_sse__init_mono(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse__compatible_proc()) exit(1);
+  if (!alignment_sse__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -3584,7 +3642,12 @@ void alignment_sse__init_mono(const unsigned int match, const unsigned int misma
 
 void alignment_sse__init_pair(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse__compatible_proc()) exit(1);
+  if (!alignment_sse__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -3606,7 +3669,12 @@ void alignment_sse__init_pair(const unsigned int match, const unsigned int misma
 
 void alignment_sse__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse__compatible_proc()) exit(1);
+  if (!alignment_sse__compatible_proc()) {
+    fprintf(stderr,"\033[31;1m");
+    fprintf(stderr,"\nCPU is not compatible with SSE instructions set.\nExiting.\n");
+    fprintf(stderr,"\033[0m\n");
+    exit(1);
+  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -3703,7 +3771,7 @@ int alignment_sse__align_mono(unsigned char * genome,
         vA  = SI64_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t A,B;
         A.v = vA; B.v = vB;
@@ -3720,7 +3788,7 @@ int alignment_sse__align_mono(unsigned char * genome,
         VTYPE64 vM_add = SI64_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS64);
         VTYPE64 vM_sub = SI64_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS64);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector64_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -3730,7 +3798,7 @@ int alignment_sse__align_mono(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector64_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -3743,7 +3811,7 @@ int alignment_sse__align_mono(unsigned char * genome,
         vM = PU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t M,M_old,I_old;
         M.v     = vM;
@@ -3775,7 +3843,7 @@ int alignment_sse__align_mono(unsigned char * genome,
         vM                    = PU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t M,I;
         M.v = vM;
@@ -3788,7 +3856,7 @@ int alignment_sse__align_mono(unsigned char * genome,
       vM    = SI64_TYPE(_mm_and)(vM,vMsk64[l]);
       vMMax = PU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t Msk,M,Max;
         Msk.v = vMsk64[l];
@@ -3804,7 +3872,7 @@ int alignment_sse__align_mono(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ----------------\n");
 #endif
     } /* l */
@@ -3819,7 +3887,7 @@ int alignment_sse__align_mono(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ================\n");
 #endif
     _mm_empty();
@@ -3901,7 +3969,7 @@ int alignment_sse__align_pair(unsigned char * genome,
         vA  = SI64_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t A,B;
         A.v = vA; B.v = vB;
@@ -3918,7 +3986,7 @@ int alignment_sse__align_pair(unsigned char * genome,
         VTYPE64 vM_add = SI64_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS64);
         VTYPE64 vM_sub = SI64_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS64);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector64_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -3928,7 +3996,7 @@ int alignment_sse__align_pair(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector64_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -3941,7 +4009,7 @@ int alignment_sse__align_pair(unsigned char * genome,
         vM = PU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t M,M_old,I_old;
         M.v     = vM;
@@ -3973,7 +4041,7 @@ int alignment_sse__align_pair(unsigned char * genome,
         vM                    = PU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t M,I;
         M.v = vM;
@@ -3986,7 +4054,7 @@ int alignment_sse__align_pair(unsigned char * genome,
       vM    = SI64_TYPE(_mm_and)(vM,vMsk64[l]);
       vMMax = PU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t Msk,M,Max;
         Msk.v = vMsk64[l];
@@ -4002,7 +4070,7 @@ int alignment_sse__align_pair(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     --------,--------\n");
 #endif
     } /* l */
@@ -4017,7 +4085,7 @@ int alignment_sse__align_pair(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ========,========\n");
 #endif
     _mm_empty();
@@ -4099,7 +4167,7 @@ int alignment_sse__align_quad(unsigned char * genome,
         vA  = SI64_TYPE(_mm_or)(vA,vLA);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t A,B;
         A.v = vA; B.v = vB;
@@ -4116,7 +4184,7 @@ int alignment_sse__align_quad(unsigned char * genome,
         VTYPE64 vM_add = SI64_TYPE(_mm_and)(vM_ab_MatchMask,vMatchS64);
         VTYPE64 vM_sub = SI64_TYPE(_mm_andnot)(vM_ab_MatchMask,vMismatchS64);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector64_t S_a,S_s;
           S_a.v = vM_add; S_s.v = vM_sub;
@@ -4126,7 +4194,7 @@ int alignment_sse__align_quad(unsigned char * genome,
 #endif
 
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
         {
           vector64_t M_old_old;
           M_old_old.v = vM_old_old;
@@ -4139,7 +4207,7 @@ int alignment_sse__align_quad(unsigned char * genome,
         vM = PU8_TYPE(_mm_subs)(vM,vM_sub);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t M,M_old,I_old;
         M.v     = vM;
@@ -4171,7 +4239,7 @@ int alignment_sse__align_quad(unsigned char * genome,
         vM                    = PU8_TYPE(_mm_max)(vM,vI);
       }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t M,I;
         M.v = vM;
@@ -4184,7 +4252,7 @@ int alignment_sse__align_quad(unsigned char * genome,
       vM    = SI64_TYPE(_mm_and)(vM,vMsk64[l]);
       vMMax = PU8_TYPE(_mm_max)(vMMax,vM);
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       {
         vector64_t Msk,M,Max;
         Msk.v = vMsk64[l];
@@ -4200,7 +4268,7 @@ int alignment_sse__align_quad(unsigned char * genome,
       vM_old     = vM;
       vI_old     = vI;
 
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
       fprintf(stderr,"[1]\t     ----,----,----,----\n");
 #endif
     } /* l */
@@ -4215,7 +4283,7 @@ int alignment_sse__align_quad(unsigned char * genome,
         result |= (1)<<x;
       }
     }
-#ifdef DEBUG
+#ifdef DEBUG_SIMD
     fprintf(stderr,"[1]\t     ====,====,====,====\n");
 #endif
     _mm_empty();
