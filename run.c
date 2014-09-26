@@ -861,7 +861,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
       }
 
       VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped););
-      VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Forward completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Forward completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
     }
 
 
@@ -910,7 +910,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
       }
 
       VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped));
-      VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Reverse complementary completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Reverse complementary completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
     }
 
     /* clear the index for each seed of the current reference */
@@ -946,7 +946,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   ALIGNMENT__DESTROY;
   HEAP_KEY_HIT_REVSEQ__DESTROY(seeds_count);
 
-  VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nAligned %d of %d reads (%5.2f%%) in %ld seconds.\n", map->mapped, map->size, (map->mapped*100.0/map->size), time(NULL) - crt_time));
+  VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("\nAligned %d of %d reads (%5.2f%%) in %ld seconds.\n", map->mapped, map->size, (map->mapped*100.0/map->size), time(NULL) - crt_time));
 
 
 #ifndef __DONT__MAP__
@@ -964,26 +964,26 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
     if (SHOW_TRACEBACK_PATTERNS) {
       display_tracebacks(genome_map);
     }
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("\nMap built in %ld seconds.\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("\nMap built in %ld seconds.\n", time(NULL) - crt_time););
 
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, INFO__("\n\nGenerating outputs...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nGenerating outputs...\n"););
 
     /* it may be useful to see which reads didn't make it */
     if (LIST_UNMAPPED_READS) {
       crt_time = time(NULL);
-      VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Generating Unmmapped Lists [experimental] output...\n"););
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Generating Unmmapped Lists [experimental] output...\n"););
       list_unmapped_reads(genome_map);
       list_unmapped_reads_translated(genome_map);
-      VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Unmmapped Lists [experimental] output generated in %ld seconds.\n\n", time(NULL) - crt_time););
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Unmmapped Lists [experimental] output generated in %ld seconds.\n\n", time(NULL) - crt_time););
     }
 
     /* generate SAM output */
     crt_time = time(NULL);
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Generating SAM output...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Generating SAM output...\n"););
     genome_map__generate_SAM_output(genome_map, output);
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("SAM output generated in %ld seconds.\n\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("SAM output generated in %ld seconds.\n\n", time(NULL) - crt_time););
 
     /* erase the genome_map */
     genome_map__destroy(genome_map);
@@ -992,27 +992,27 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   } else {
 
     /* generate output */
-    VERB_FILTER(VERBOSITY_NONE, INFO__("\n\nGenerating outputs...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nGenerating outputs...\n"););
 
     /* generate SAM output */
     crt_time = time(NULL);
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Generating SAM output...\n"););
+    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Generating SAM output...\n"););
     hit_map__generate_SAM_output(map,
                                  &reads_db,
                                  ref_dbs, ref_dbs_size,
                                  output, map_unordered);
-    VERB_FILTER(VERBOSITY_NONE, MESSAGE__("SAM output generated in %ld seconds.\n\n", time(NULL) - crt_time););
+    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("SAM output generated in %ld seconds.\n\n", time(NULL) - crt_time););
   }
 #endif /* __DONT__MAP__ */
 
   /* output unmmapped reads */
   if (unmapped_FASTQ_output) {
      crt_time = time(NULL);
-     VERB_FILTER(VERBOSITY_NONE, MESSAGE__("Generating FastQ output for unmapped reads...\n"););
+     VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Generating FastQ output for unmapped reads...\n"););
      hit_map__generate_unmapped_FASTQ_output(map,
                                              &reads_db,
                                              unmapped_FASTQ_output);
-     VERB_FILTER(VERBOSITY_NONE, MESSAGE__("FastQ output generated in %ld seconds.\n\n", time(NULL) - crt_time););
+     VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("FastQ output generated in %ld seconds.\n\n", time(NULL) - crt_time););
   }
 
   /* clear the hit_map */

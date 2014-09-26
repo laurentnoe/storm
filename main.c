@@ -405,14 +405,14 @@ int main (int argc, char* argv[]) {
   delta_m = match - mismatch;
 
   if (read && reference) {
-    MESSAGE__("\nTwo sequence alignment:\n%s\n%s\n", read, reference);
+    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("\nTwo sequence alignment:\n%s\n%s\n", read, reference););
     if (quality) {
-      MESSAGE__("%s\n", quality);
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("%s\n", quality););
     }
     single_alignment(read, reference, reference_masked, quality, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output);
   } else if (reads_file) {
     if (genome_file) {
-      MESSAGE__("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)");
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)"););
       reads_against_references(reads_file, qual_file, genome_file, seeds, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output, unmapped_FASTQ_output);
     } else {
       ERROR__("\nNot enough mandatory parameters provided.\n");
