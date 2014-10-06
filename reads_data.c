@@ -354,6 +354,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
       if (t > 0) {
         SAFE_FAILURE__ALLOC(db->name, t + 1, char);
         strncpy(db->name, db->reads[0].info, t);
+        db->name[t] = '\0';
       }
     }
   }
@@ -568,6 +569,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
       if (t > 0) {
         SAFE_FAILURE__ALLOC(db->name, t + 1, char);
         strncpy(db->name, db->reads[0].info, t);
+        db->name[t] = '\0';
       }
     }
   }
