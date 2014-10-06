@@ -21,7 +21,7 @@
 #define VTYPE512            __m512i
 
 /* data conversion union */
-typedef union __attribute__((packed, aligned (16))) {
+typedef union __attribute__((packed, aligned (64))) {
   VTYPE512 v;
   /* __uint128_t u128[sizeof(VTYPE512)/sizeof(__uint128_t)];*/
   /* [FIXME] not availaible on some compilers (e.g. gcc < 4.4 ; clang ?? ; icc ?? ; ) */
@@ -46,7 +46,7 @@ typedef union __attribute__((packed, aligned (16))) {
 #define VTYPE256            __m256i
 
 /* data conversion union */
-typedef union __attribute__((packed, aligned (16))) {
+typedef union __attribute__((packed, aligned (32))) {
   VTYPE256 v;
   /* __uint128_t u128[sizeof(VTYPE256)/sizeof(__uint128_t)];*/
   /* [FIXME] not availaible on some compilers (e.g. gcc < 4.4 ; clang ?? ; icc ?? ; ) */
@@ -74,7 +74,7 @@ typedef union __attribute__((packed, aligned (16))) {
 /* data conversion union */
 typedef union __attribute__((packed, aligned (16))) {
   VTYPE128 v;
-  /* __uint128_t u128[sizeof(VTYPE256)/sizeof(__uint128_t)];*/
+  /* __uint128_t u128[sizeof(VTYPE128)/sizeof(__uint128_t)];*/
   /* [FIXME] not availaible on some compilers (e.g. gcc < 4.4 ; clang ?? ; icc ?? ; ) */
   uint64_t u64[sizeof(VTYPE128)/sizeof(uint64_t)];
   uint32_t u32[sizeof(VTYPE128)/sizeof(uint32_t)];
@@ -375,14 +375,14 @@ int alignment_sse__compatible_proc() {
 
 /* FIXME : DEFINE "NOSUB" AND "NOSUB_NOUP" EQUIVALENT FUNCTIONS */
 
-VTYPE512  vThreshold512     __attribute__ ((aligned (16))),
-          vMatchS512        __attribute__ ((aligned (16))),
-          vMismatchS512     __attribute__ ((aligned (16))),
-          vIndelOpenS512    __attribute__ ((aligned (16))),
-          vIndelExtendsS512 __attribute__ ((aligned (16))),
-          vOnes512          __attribute__ ((aligned (16))),
-          vBufferMask512    __attribute__ ((aligned (16))),
-         *vMsk512           __attribute__ ((aligned (16)));
+VTYPE512  vThreshold512     __attribute__ ((aligned (64))),
+          vMatchS512        __attribute__ ((aligned (64))),
+          vMismatchS512     __attribute__ ((aligned (64))),
+          vIndelOpenS512    __attribute__ ((aligned (64))),
+          vIndelExtendsS512 __attribute__ ((aligned (64))),
+          vOnes512          __attribute__ ((aligned (64))),
+          vBufferMask512    __attribute__ ((aligned (64))),
+         *vMsk512           __attribute__ ((aligned (64)));
 
 void     *vMsk512unaligned = NULL;
 
@@ -652,14 +652,14 @@ void alignment_avx512bw__clean() {if (vMsk512unaligned){ free(vMsk512unaligned);
     inout_nbnuc_vector.v = EPI64_TYPE(_mm256_sub)(inout_nbnuc_vector.v,vOnes256);                                                          \
 }
 
-VTYPE256  vThreshold256     __attribute__ ((aligned (16))),
-          vMatchS256        __attribute__ ((aligned (16))),
-          vMismatchS256     __attribute__ ((aligned (16))),
-          vIndelOpenS256    __attribute__ ((aligned (16))),
-          vIndelExtendsS256 __attribute__ ((aligned (16))),
-          vOnes256          __attribute__ ((aligned (16))),
-          vBufferMask256    __attribute__ ((aligned (16))),
-         *vMsk256           __attribute__ ((aligned (16)));
+VTYPE256  vThreshold256     __attribute__ ((aligned (32))),
+          vMatchS256        __attribute__ ((aligned (32))),
+          vMismatchS256     __attribute__ ((aligned (32))),
+          vIndelOpenS256    __attribute__ ((aligned (32))),
+          vIndelExtendsS256 __attribute__ ((aligned (32))),
+          vOnes256          __attribute__ ((aligned (32))),
+          vBufferMask256    __attribute__ ((aligned (32))),
+         *vMsk256           __attribute__ ((aligned (32)));
 
 void     *vMsk256unaligned = NULL;
 
@@ -1142,14 +1142,14 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk256unaligned)
     free(vMsk256unaligned);
-  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
+  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 31);
   if (!vMsk256unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
+  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI8_TYPE(_mm256_set)(0xff,0x00,0x00,0x00,
@@ -1201,14 +1201,14 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk256unaligned)
     free(vMsk256unaligned);
-  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
+  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 31);
   if (!vMsk256unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
+  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI8_TYPE(_mm256_set)(0xff,0x00,0x00,0x00,
@@ -1260,14 +1260,14 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk256unaligned)
     free(vMsk256unaligned);
-  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
+  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 31);
   if (!vMsk256unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
+  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI8_TYPE(_mm256_set)(0xff,0x00,0x00,0x00,
@@ -1319,14 +1319,14 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk256unaligned)
     free(vMsk256unaligned);
-  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 15);
+  vMsk256unaligned = malloc(prlength * sizeof(VTYPE256) + 31);
   if (!vMsk256unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 15) & ~0x0f);
+  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI8_TYPE(_mm256_set)(0xff,0x00,0xff,0x00,
