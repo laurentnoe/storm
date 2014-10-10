@@ -294,8 +294,8 @@ int alignment_sse__compatible_proc() {
             i_nbnuc             -= inout_subpos[__d__];                                                                                    \
             inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
-          inout_vector       = EPI16_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
-          inout_nbnuc_vector = EPI16_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_vector       = EPI16_TYPE(_mm512_mask_set1)(inout_vector,       1 << (__d__), i_nuc);                                      \
+          inout_nbnuc_vector = EPI16_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 1 << (__d__), i_nbnuc);                                    \
           inout_byte[__d__] += 2;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -320,8 +320,8 @@ int alignment_sse__compatible_proc() {
             i_nbnuc             -= inout_subpos[__d__];                                                                                    \
             inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
-          inout_vector       = EPI32_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
-          inout_nbnuc_vector = EPI32_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_vector       = EPI32_TYPE(_mm512_mask_set1)(inout_vector,       1 << (__d__), i_nuc);                                      \
+          inout_nbnuc_vector = EPI32_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 1 << (__d__), i_nbnuc);                                    \
           inout_byte[__d__] += 4;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -346,8 +346,8 @@ int alignment_sse__compatible_proc() {
             i_nbnuc             -= inout_subpos[__d__];                                                                                    \
             inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
-          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
-          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_vector       = EPI64_TYPE(_mm512_mask_set1)(inout_vector,       1 << (__d__), i_nuc);                                      \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 1 << (__d__), i_nbnuc);                                    \
           inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -372,8 +372,8 @@ int alignment_sse__compatible_proc() {
             i_nbnuc             -= inout_subpos[__d__];                                                                                    \
             inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
-          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       3 << (2*__d__), &i_nuc);                                  \
-          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 3 << (2*__d__), &i_nbnuc);                                \
+          inout_vector       = EPI64_TYPE(_mm512_mask_set1)(inout_vector,       3 << (2*__d__), i_nuc);                                    \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 3 << (2*__d__), i_nbnuc);                                  \
           inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -393,8 +393,8 @@ int alignment_sse__compatible_proc() {
         if (__u__ & 1 << (__d__)) {                                                                                                        \
           uint16_t i_nuc   = (uint16_t *)inout_byte[__d__];                                                                                \
           uint16_t i_nbnuc = 8;                                                                                                            \
-          inout_vector       = EPI16_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
-          inout_nbnuc_vector = EPI16_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_vector       = EPI16_TYPE(_mm512_mask_set1)(inout_vector,       1 << (__d__), i_nuc);                                      \
+          inout_nbnuc_vector = EPI16_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 1 << (__d__), i_nbnuc);                                    \
           inout_byte[__d__] += 2;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -414,8 +414,8 @@ int alignment_sse__compatible_proc() {
         if (__u__ & 1 << (__d__)) {                                                                                                        \
           uint32_t i_nuc   = (uint32_t *)inout_byte[__d__];                                                                                \
           uint32_t i_nbnuc = 16;                                                                                                           \
-          inout_vector       = EPI32_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
-          inout_nbnuc_vector = EPI32_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_vector       = EPI32_TYPE(_mm512_mask_set1)(inout_vector,       1 << (__d__), i_nuc);                                      \
+          inout_nbnuc_vector = EPI32_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 1 << (__d__), i_nbnuc);                                    \
           inout_byte[__d__] += 4;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -435,8 +435,8 @@ int alignment_sse__compatible_proc() {
         if (__u__ & 1 << (__d__)) {                                                                                                        \
           uint64_t i_nuc   = (uint64_t *)inout_byte[__d__];                                                                                \
           uint64_t i_nbnuc = 32;                                                                                                           \
-          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
-          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_vector       = EPI64_TYPE(_mm512_mask_set1)(inout_vector,       1 << (__d__), i_nuc);                                      \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 1 << (__d__), i_nbnuc);                                    \
           inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -456,8 +456,8 @@ int alignment_sse__compatible_proc() {
         if (__u__ & 3 << (2*__d__)) {                                                                                                      \
           uint64_t i_nuc   = (uint64_t *)inout_byte[__d__];                                                                                \
           uint64_t i_nbnuc = 32;                                                                                                           \
-          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       3 << (2*__d__), &i_nuc);                                  \
-          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 3 << (2*__d__), &i_nbnuc);                                \
+          inout_vector       = EPI64_TYPE(_mm512_mask_set1)(inout_vector,       3 << (2*__d__), i_nuc);                                    \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_set1)(inout_nbnuc_vector, 3 << (2*__d__), i_nbnuc);                                  \
           inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
@@ -1740,8 +1740,8 @@ unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( _ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -1938,8 +1938,8 @@ unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( _ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -2135,8 +2135,8 @@ unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( _ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -2332,8 +2332,8 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( _ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
