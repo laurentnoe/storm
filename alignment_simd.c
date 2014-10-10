@@ -12,13 +12,18 @@
 
 #include <immintrin.h>
 
-#define EPU8_TYPE(ins)   ins##_epu8
-#define EPI8_TYPE(ins)   ins##_epi8
-#define EPI32_TYPE(ins)  ins##_epi32
-#define EPI64_TYPE(ins)  ins##_epi64
-#define EPI128_TYPE(ins) ins##_epi128
-#define SI512_TYPE(ins)  ins##_si512
-#define VTYPE512            __m512i
+#define EPU8_TYPE(ins)        ins##_epu8
+#define EPI8_TYPE(ins)        ins##_epi8
+#define EPI8_MASK_TYPE(ins)   ins##_epi8_mask
+#define EPI16_TYPE(ins)       ins##_epi16
+#define EPI16_MASK_TYPE(ins)  ins##_epi16_mask
+#define EPI32_TYPE(ins)       ins##_epi32
+#define EPI32_MASK_TYPE(ins)  ins##_epi32_mask
+#define EPI64_TYPE(ins)       ins##_epi64
+#define EPI64_MASK_TYPE(ins)  ins##_epi64_mask
+#define EPI128_TYPE(ins)      ins##_epi128
+#define SI512_TYPE(ins)       ins##_si512
+#define VTYPE512                   __m512i
 
 /* data conversion union */
 typedef union __attribute__((packed, aligned (64))) {
@@ -276,21 +281,22 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_TRIA512(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
-    unsigned int __u__;                                                                                                                    \
-    __u__ =  _mm512_movepi16_mask(EPI16_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                            \
+    __mmask32 __u__;                                                                                                                       \
+    __u__ = EPI16_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+      __mmask32 __d__;                                                                                                                     \
       for (__d__ = 0; __d__ < 32; __d__++) {                                                                                               \
         if (__u__ & 1 << (__d__)) {                                                                                                        \
-          inout_vector.u16[__d__] =                                                                                                        \
-            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
-          inout_byte[__d__]            += 2;                                                                                               \
+          uint16_t i_nuc   = (uint16_t *)inout_byte[__d__];                                                                                \
+          uint16_t i_nbnuc = 8;                                                                                                            \
           if (inout_subpos[__d__]) {                                                                                                       \
-            inout_vector.u16[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
-            inout_nbnuc_vector.u16[__d__] -= inout_subpos[__d__];                                                                          \
-            inout_subpos[__d__]            = 0;                                                                                            \
+            i_nuc              >>= inout_subpos[__d__] << 1;                                                                               \
+            i_nbnuc             -= inout_subpos[__d__];                                                                                    \
+            inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
+          inout_vector       = EPI16_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
+          inout_nbnuc_vector = EPI16_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_byte[__d__] += 2;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -301,21 +307,22 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_HEXA512(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
-    unsigned int __u__;                                                                                                                    \
-    __u__ = _mm512_movepi32_mask(EPI32_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    __mmask16 __u__;                                                                                                                       \
+    __u__ = EPI32_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+      __mmask16 __d__;                                                                                                                     \
       for (__d__ = 0; __d__ < 16; __d__++) {                                                                                               \
         if (__u__ & 1 << (__d__)) {                                                                                                        \
-          inout_vector.u32[__d__] =                                                                                                        \
-            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
-          inout_byte[__d__]            += 4;                                                                                               \
+          uint32_t i_nuc   = (uint32_t *)inout_byte[__d__];                                                                                \
+          uint32_t i_nbnuc = 16;                                                                                                           \
           if (inout_subpos[__d__]) {                                                                                                       \
-            inout_vector.u32[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
-            inout_nbnuc_vector.u32[__d__] -= inout_subpos[__d__];                                                                          \
-            inout_subpos[__d__]            = 0;                                                                                            \
+            i_nuc              >>= inout_subpos[__d__] << 1;                                                                               \
+            i_nbnuc             -= inout_subpos[__d__];                                                                                    \
+            inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
+          inout_vector       = EPI32_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
+          inout_nbnuc_vector = EPI32_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_byte[__d__] += 4;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -326,21 +333,22 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_OCTA512(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
-    unsigned int __u__;                                                                                                                    \
-    __u__ = _mm512_movepi64_mask(EPI64_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    __mmask8 __u__;                                                                                                                        \
+    __u__ = EPI64_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+     __mmask8 __d__;                                                                                                                       \
       for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
         if (__u__ & 1 << (__d__)) {                                                                                                        \
-          inout_vector.u64[__d__] =                                                                                                        \
-            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
-          inout_byte[__d__]            += 8;                                                                                               \
+          uint64_t i_nuc   = (uint64_t *)inout_byte[__d__];                                                                                \
+          uint64_t i_nbnuc = 32;                                                                                                           \
           if (inout_subpos[__d__]) {                                                                                                       \
-            inout_vector.u64[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
-            inout_nbnuc_vector.u64[__d__] -= inout_subpos[__d__];                                                                          \
-            inout_subpos[__d__]            = 0;                                                                                            \
+            i_nuc              >>= inout_subpos[__d__] << 1;                                                                               \
+            i_nbnuc             -= inout_subpos[__d__];                                                                                    \
+            inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
+          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -351,23 +359,22 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_QUAD512(inout_subpos,inout_byte,                                                                                       \
                             inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                               \
-    unsigned int __u__;                                                                                                                    \
-    __u__ = _mm512_movepi64_mask(EPI64_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    __mmask8 __u__;                                                                                                                        \
+    __u__ = EPI64_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+     __mmask8 __d__;                                                                                                                       \
       for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
-        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
-          inout_vector.u64[2*__d__] =                                                                                                      \
-            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
-          inout_nbnuc_vector.u64[2*__d__ + 1] = 32;                                                                                        \
-          inout_byte[__d__]                  += 8;                                                                                         \
+        if (__u__ & 3 << (2*__d__)) {                                                                                                      \
+          uint64_t i_nuc   = (uint64_t *)inout_byte[__d__];                                                                                \
+          uint64_t i_nbnuc = 32;                                                                                                           \
           if (inout_subpos[__d__]) {                                                                                                       \
-            inout_vector.u64[2*__d__]          >>= inout_subpos[__d__] << 1;                                                               \
-            inout_nbnuc_vector.u64[2*__d__    ] -= inout_subpos[__d__];                                                                    \
-            inout_nbnuc_vector.u64[2*__d__ + 1] -= inout_subpos[__d__];                                                                    \
-            inout_subpos[__d__]                  = 0;                                                                                      \
+            i_nuc              >>= inout_subpos[__d__] << 1;                                                                               \
+            i_nbnuc             -= inout_subpos[__d__];                                                                                    \
+            inout_subpos[__d__]  = 0;                                                                                                      \
           }                                                                                                                                \
+          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       3 << (2*__d__), &i_nuc);                                  \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 3 << (2*__d__), &i_nbnuc);                                \
+          inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -378,16 +385,17 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_NOSUB_TRIA512(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
-    unsigned int __u__;                                                                                                                    \
-    __u__ =  _mm512_movepi16_mask(EPI16_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                            \
+    __mmask32 __u__;                                                                                                                       \
+    __u__ = EPI16_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+      __mmask32 __d__;                                                                                                                     \
       for (__d__ = 0; __d__ < 32; __d__++) {                                                                                               \
         if (__u__ & 1 << (__d__)) {                                                                                                        \
-          inout_vector.u16[__d__] =                                                                                                        \
-            *((uint16_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u16[__d__] = 8;                                                                                               \
-          inout_byte[__d__]            += 2;                                                                                               \
+          uint16_t i_nuc   = (uint16_t *)inout_byte[__d__];                                                                                \
+          uint16_t i_nbnuc = 8;                                                                                                            \
+          inout_vector       = EPI16_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
+          inout_nbnuc_vector = EPI16_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_byte[__d__] += 2;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -398,16 +406,17 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_NOSUB_HEXA512(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
-    unsigned int __u__;                                                                                                                    \
-    __u__ = _mm512_movepi32_mask(EPI32_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    __mmask16 __u__;                                                                                                                       \
+    __u__ = EPI32_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+      __mmask16 __d__;                                                                                                                     \
       for (__d__ = 0; __d__ < 16; __d__++) {                                                                                               \
         if (__u__ & 1 << (__d__)) {                                                                                                        \
-          inout_vector.u32[__d__] =                                                                                                        \
-            *((uint32_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u32[__d__] = 16;                                                                                              \
-          inout_byte[__d__]            += 4;                                                                                               \
+          uint32_t i_nuc   = (uint32_t *)inout_byte[__d__];                                                                                \
+          uint32_t i_nbnuc = 16;                                                                                                           \
+          inout_vector       = EPI32_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
+          inout_nbnuc_vector = EPI32_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_byte[__d__] += 4;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -418,21 +427,17 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_NOSUB_OCTA512(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
-    unsigned int __u__;                                                                                                                    \
-    __u__ = _mm512_movepi64_mask(EPI64_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    __mmask8 __u__;                                                                                                                        \
+    __u__ = EPI64_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+     __mmask8 __d__;                                                                                                                       \
       for (__d__ = 0; __d__ < 8; __d__++) {                                                                                                \
         if (__u__ & 1 << (__d__)) {                                                                                                        \
-          inout_vector.u64[__d__] =                                                                                                        \
-            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u64[__d__] = 32;                                                                                              \
-          inout_byte[__d__]            += 8;                                                                                               \
-          if (inout_subpos[__d__]) {                                                                                                       \
-            inout_vector.u64[__d__]      >>= inout_subpos[__d__] << 1;                                                                     \
-            inout_nbnuc_vector.u64[__d__] -= inout_subpos[__d__];                                                                          \
-            inout_subpos[__d__]            = 0;                                                                                            \
-          }                                                                                                                                \
+          uint64_t i_nuc   = (uint64_t *)inout_byte[__d__];                                                                                \
+          uint64_t i_nbnuc = 32;                                                                                                           \
+          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       1 << (__d__), &i_nuc);                                    \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 1 << (__d__), &i_nbnuc);                                  \
+          inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -443,17 +448,17 @@ int alignment_sse__compatible_proc() {
 
 #define NEXTGENOSEQ_NOSUB_QUAD512(inout_byte,                                                                                              \
                                   inout_nbnuc_vector,inout_vector,out_vtype_vLB) {                                                         \
-    unsigned int __u__;                                                                                                                    \
-    __u__ = _mm512_movepi64_mask(EPI64_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                             \
+    __mmask8 __u__;                                                                                                                        \
+    __u__ = EPI64_MASK_TYPE(_mm512_cmpeq)(inout_nbnuc_vector.v,SI512_TYPE(_mm512_setzero)()));                                             \
     if (__u__) {                                                                                                                           \
-      unsigned int __d__;                                                                                                                  \
+     __mmask8 __d__;                                                                                                                       \
       for (__d__ = 0; __d__ < 4; __d__++) {                                                                                                \
-        if (__u__ & 1 << (2*__d__)) {                                                                                                      \
-          inout_vector.u64[2*__d__] =                                                                                                      \
-            *((uint64_t *)(inout_byte[__d__]));                                                                                            \
-          inout_nbnuc_vector.u64[2*__d__    ] = 32;                                                                                        \
-          inout_nbnuc_vector.u64[2*__d__ + 1] = 32;                                                                                        \
-          inout_byte[__d__]                  += 8;                                                                                         \
+        if (__u__ & 3 << (2*__d__)) {                                                                                                      \
+          uint64_t i_nuc   = (uint64_t *)inout_byte[__d__];                                                                                \
+          uint64_t i_nbnuc = 32;                                                                                                           \
+          inout_vector       = EPI64_TYPE(_mm512_mask_loadu)(inout_vector,       3 << (2*__d__), &i_nuc);                                  \
+          inout_nbnuc_vector = EPI64_TYPE(_mm512_mask_loadu)(inout_nbnuc_vector, 3 << (2*__d__), &i_nbnuc);                                \
+          inout_byte[__d__] += 8;                                                                                                          \
         }                                                                                                                                  \
       }                                                                                                                                    \
     }                                                                                                                                      \
@@ -1648,9 +1653,9 @@ void alignment_avx512bw__init_tria(const unsigned int match, const unsigned int 
  *         or a bitmask 1<<(x) | 1<<(y) if x or y align correctly.
  */
 
-int alignment_avx512bw__align_quad(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read) {
+unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read) {
   VTYPE512 vA;
   VTYPE512 vB;
 
@@ -1659,8 +1664,8 @@ int alignment_avx512bw__align_quad(unsigned char * genome,
   VTYPE512 vM_old_old;
   VTYPE512 vI_old;
 
-  unsigned char *             byte_pos_genome[2];
-  unsigned int                 sub_pos_genome[2];
+  unsigned char *             byte_pos_genome[4];
+  unsigned int                 sub_pos_genome[4];
   {
     int d;
     for (d = 0; d < 4; d++) {
@@ -1734,9 +1739,9 @@ int alignment_avx512bw__align_quad(unsigned char * genome,
       VTYPE512 vM;
       /* b) compute the matching score */
       {
-        VTYPE512 vM_ab_MatchMask = EPI8_TYPE(_mm512_cmpeq)(vA,vB);
-        VTYPE512 vM_add = SI512_TYPE(_mm512_and)(vM_ab_MatchMask,vMatchS512);
-        VTYPE512 vM_sub = SI512_TYPE(_mm512_andnot)(vM_ab_MatchMask,vMismatchS512);
+        __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -1829,7 +1834,7 @@ int alignment_avx512bw__align_quad(unsigned char * genome,
   }
   {
     VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
-    int result = 0;
+    unsigned int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE512)/(2*(int)sizeof(uint64_t));x++) {
       uint64_t u0 =  ((vector512_t)vThresholdMask).u64[2*x];
@@ -1846,9 +1851,9 @@ int alignment_avx512bw__align_quad(unsigned char * genome,
 }
 
 
-int alignment_avx512bw__align_octa(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read) {
+unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read) {
   VTYPE512 vA;
   VTYPE512 vB;
 
@@ -1857,8 +1862,8 @@ int alignment_avx512bw__align_octa(unsigned char * genome,
   VTYPE512 vM_old_old;
   VTYPE512 vI_old;
 
-  unsigned char *             byte_pos_genome[4];
-  unsigned int                 sub_pos_genome[4];
+  unsigned char *             byte_pos_genome[8];
+  unsigned int                 sub_pos_genome[8];
   {
     int d;
     for (d = 0; d < 8; d++) {
@@ -1932,9 +1937,9 @@ int alignment_avx512bw__align_octa(unsigned char * genome,
       VTYPE512 vM;
       /* b) compute the matching score */
       {
-        VTYPE512 vM_ab_MatchMask = EPI8_TYPE(_mm512_cmpeq)(vA,vB);
-        VTYPE512 vM_add = SI512_TYPE(_mm512_and)(vM_ab_MatchMask,vMatchS512);
-        VTYPE512 vM_sub = SI512_TYPE(_mm512_andnot)(vM_ab_MatchMask,vMismatchS512);
+        __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -2027,7 +2032,7 @@ int alignment_avx512bw__align_octa(unsigned char * genome,
   }
   {
     VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE512)/(int)sizeof(uint64_t);x++) {
       uint64_t u =  ((vector512_t)vThresholdMask).u64[x];
@@ -2043,9 +2048,9 @@ int alignment_avx512bw__align_octa(unsigned char * genome,
 }
 
 
-int alignment_avx512bw__align_hexa(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read) {
+unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read) {
   VTYPE512 vA;
   VTYPE512 vB;
 
@@ -2054,8 +2059,8 @@ int alignment_avx512bw__align_hexa(unsigned char * genome,
   VTYPE512 vM_old_old;
   VTYPE512 vI_old;
 
-  unsigned char *             byte_pos_genome[8];
-  unsigned int                 sub_pos_genome[8];
+  unsigned char *             byte_pos_genome[16];
+  unsigned int                 sub_pos_genome[16];
   {
     int d;
     for (d = 0; d < 16; d++) {
@@ -2129,9 +2134,9 @@ int alignment_avx512bw__align_hexa(unsigned char * genome,
       VTYPE512 vM;
       /* b) compute the matching score */
       {
-        VTYPE512 vM_ab_MatchMask = EPI8_TYPE(_mm512_cmpeq)(vA,vB);
-        VTYPE512 vM_add = SI512_TYPE(_mm512_and)(vM_ab_MatchMask,vMatchS512);
-        VTYPE512 vM_sub = SI512_TYPE(_mm512_andnot)(vM_ab_MatchMask,vMismatchS512);
+        __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -2224,7 +2229,7 @@ int alignment_avx512bw__align_hexa(unsigned char * genome,
   }
   {
     VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE512)/(int)sizeof(uint32_t);x++) {
       uint32_t u =  ((vector512_t)vThresholdMask).u32[x];
@@ -2240,9 +2245,9 @@ int alignment_avx512bw__align_hexa(unsigned char * genome,
 }
 
 
-int alignment_avx512bw__align_tria(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read) {
+unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read) {
   VTYPE512 vA;
   VTYPE512 vB;
 
@@ -2251,8 +2256,8 @@ int alignment_avx512bw__align_tria(unsigned char * genome,
   VTYPE512 vM_old_old;
   VTYPE512 vI_old;
 
-  unsigned char *             byte_pos_genome[16];
-  unsigned int                 sub_pos_genome[16];
+  unsigned char *             byte_pos_genome[32];
+  unsigned int                 sub_pos_genome[32];
   {
     int d;
     for (d = 0; d < 32; d++) {
@@ -2326,9 +2331,9 @@ int alignment_avx512bw__align_tria(unsigned char * genome,
       VTYPE512 vM;
       /* b) compute the matching score */
       {
-        VTYPE512 vM_ab_MatchMask = EPI8_TYPE(_mm512_cmpeq)(vA,vB);
-        VTYPE512 vM_add = SI512_TYPE(_mm512_and)(vM_ab_MatchMask,vMatchS512);
-        VTYPE512 vM_sub = SI512_TYPE(_mm512_andnot)(vM_ab_MatchMask,vMismatchS512);
+        __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
+        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMatchS512);
+        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(_ab_MatchMask,vMismatchS512);
 
 #ifdef DEBUG_SIMD
         {
@@ -2421,7 +2426,7 @@ int alignment_avx512bw__align_tria(unsigned char * genome,
   }
   {
     VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE512)/(int)sizeof(uint16_t);x++) {
       uint16_t u =  ((vector512_t)vThresholdMask).u16[x];
@@ -2815,9 +2820,9 @@ void alignment_avx2__init_hexa(const unsigned int match, const unsigned int mism
  *         or a bitmask 1<<(x) | 1<<(y) if x or y align correctly.
  */
 
-int alignment_avx2__align_pair(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_avx2__align_pair(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE256 vA;
   VTYPE256 vB;
 
@@ -2996,7 +3001,7 @@ int alignment_avx2__align_pair(unsigned char * genome,
   }
   {
     VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE256)/(2*(int)sizeof(uint64_t));x++) {
       uint64_t u0 =  ((vector256_t)vThresholdMask).u64[2*x];
@@ -3013,9 +3018,9 @@ int alignment_avx2__align_pair(unsigned char * genome,
 }
 
 
-int alignment_avx2__align_quad(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_avx2__align_quad(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE256 vA;
   VTYPE256 vB;
 
@@ -3194,7 +3199,7 @@ int alignment_avx2__align_quad(unsigned char * genome,
   }
   {
     VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE256)/(int)sizeof(uint64_t);x++) {
       uint64_t u =  ((vector256_t)vThresholdMask).u64[x];
@@ -3210,9 +3215,9 @@ int alignment_avx2__align_quad(unsigned char * genome,
 }
 
 
-int alignment_avx2__align_octa(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_avx2__align_octa(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE256 vA;
   VTYPE256 vB;
 
@@ -3391,7 +3396,7 @@ int alignment_avx2__align_octa(unsigned char * genome,
   }
   {
     VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE256)/(int)sizeof(uint32_t);x++) {
       uint32_t u =  ((vector256_t)vThresholdMask).u32[x];
@@ -3407,9 +3412,9 @@ int alignment_avx2__align_octa(unsigned char * genome,
 }
 
 
-int alignment_avx2__align_hexa(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_avx2__align_hexa(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE256 vA;
   VTYPE256 vB;
 
@@ -3588,7 +3593,7 @@ int alignment_avx2__align_hexa(unsigned char * genome,
   }
   {
     VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE256)/(int)sizeof(uint16_t);x++) {
       uint16_t u =  ((vector256_t)vThresholdMask).u16[x];
@@ -3967,9 +3972,9 @@ void alignment_sse2__init_octa(const unsigned int match, const unsigned int mism
  *         or a bitmask 1<<(x) | 1<<(y) if x or y align correctly.
  */
 
-int alignment_sse2__align_mono(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_sse2__align_mono(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE128 vA;
   VTYPE128 vB;
 
@@ -4141,7 +4146,7 @@ int alignment_sse2__align_mono(unsigned char * genome,
   }
   {
     VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
-    int result = 0;
+    unsigned long long int result = 0;
     uint64_t u0 =  ((vector128_t)vThresholdMask).u64[0];
     uint64_t u1 =  ((vector128_t)vThresholdMask).u64[1];
     if ((u0 != (uint64_t) 0) || (u1 != (uint64_t) 0)) {
@@ -4155,9 +4160,9 @@ int alignment_sse2__align_mono(unsigned char * genome,
 }
 
 
-int alignment_sse2__align_pair(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_sse2__align_pair(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE128 vA;
   VTYPE128 vB;
 
@@ -4336,7 +4341,7 @@ int alignment_sse2__align_pair(unsigned char * genome,
   }
   {
     VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE128)/(int)sizeof(uint64_t);x++) {
       uint64_t u =  ((vector128_t)vThresholdMask).u64[x];
@@ -4352,9 +4357,9 @@ int alignment_sse2__align_pair(unsigned char * genome,
 }
 
 
-int alignment_sse2__align_quad(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_sse2__align_quad(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE128 vA;
   VTYPE128 vB;
 
@@ -4533,7 +4538,7 @@ int alignment_sse2__align_quad(unsigned char * genome,
   }
   {
     VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE128)/(int)sizeof(uint32_t);x++) {
       uint32_t u =  ((vector128_t)vThresholdMask).u32[x];
@@ -4549,9 +4554,9 @@ int alignment_sse2__align_quad(unsigned char * genome,
 }
 
 
-int alignment_sse2__align_octa(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read) {
+unsigned int alignment_sse2__align_octa(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read) {
   VTYPE128 vA;
   VTYPE128 vB;
 
@@ -4730,7 +4735,7 @@ int alignment_sse2__align_octa(unsigned char * genome,
   }
   {
     VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE128)/(int)sizeof(uint16_t);x++) {
       uint16_t u =  ((vector128_t)vThresholdMask).u16[x];
@@ -5023,9 +5028,9 @@ void alignment_sse__init_quad(const unsigned int match, const unsigned int misma
  *         or a bitmask 1<<(x) | 1<<(y) if x or y align correctly.
  */
 
-int alignment_sse__align_mono(unsigned char * genome,
-                              int * pos_genome,
-                              unsigned char * read) {
+unsigned int alignment_sse__align_mono(unsigned char * genome,
+                                       int * pos_genome,
+                                       unsigned char * read) {
   VTYPE64 vA;
   VTYPE64 vB;
 
@@ -5197,7 +5202,7 @@ int alignment_sse__align_mono(unsigned char * genome,
   }
   {
     VTYPE64 vThresholdMask = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE64)/(int)sizeof(uint64_t);x++) {
       uint64_t u =  ((vector64_t)vThresholdMask).u64[x];
@@ -5214,9 +5219,9 @@ int alignment_sse__align_mono(unsigned char * genome,
 }
 
 
-int alignment_sse__align_pair(unsigned char * genome,
-                              int * pos_genome,
-                              unsigned char * read) {
+unsigned int alignment_sse__align_pair(unsigned char * genome,
+                                       int * pos_genome,
+                                       unsigned char * read) {
   VTYPE64 vA;
   VTYPE64 vB;
 
@@ -5395,7 +5400,7 @@ int alignment_sse__align_pair(unsigned char * genome,
   }
   {
     VTYPE64 vThresholdMask = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE64)/(int)sizeof(uint32_t);x++) {
       uint32_t u =  ((vector64_t)vThresholdMask).u32[x];
@@ -5412,9 +5417,9 @@ int alignment_sse__align_pair(unsigned char * genome,
 }
 
 
-int alignment_sse__align_quad(unsigned char * genome,
-                              int * pos_genome,
-                              unsigned char * read) {
+unsigned int alignment_sse__align_quad(unsigned char * genome,
+                                       int * pos_genome,
+                                       unsigned char * read) {
   VTYPE64 vA;
   VTYPE64 vB;
 
@@ -5593,7 +5598,7 @@ int alignment_sse__align_quad(unsigned char * genome,
   }
   {
     VTYPE64 vThresholdMask = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
-    int result = 0;
+    unsigned long long int result = 0;
     int x;
     for(x=0;x<(int)sizeof(VTYPE64)/(int)sizeof(uint16_t);x++) {
       uint16_t u =  ((vector64_t)vThresholdMask).u16[x];

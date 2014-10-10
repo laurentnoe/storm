@@ -155,68 +155,68 @@ void alignment_sse__init_mono(const unsigned int match,
 
 
 #ifdef __AVX512BW__
-int alignment_avx512bw__align_tria(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read);
+unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read);
 
-int alignment_avx512bw__align_hexa(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read);
+unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read);
 
-int alignment_avx512bw__align_octa(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read);
+unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read);
 
-int alignment_avx512bw__align_quad(unsigned char * genome,
-                                   int * pos_genome,
-                                   unsigned char * read);
+unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
+                                            int * pos_genome,
+                                            unsigned char * read);
 #endif
 #ifdef __AVX2__
-int alignment_avx2__align_hexa(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_avx2__align_hexa(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 
-int alignment_avx2__align_octa(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_avx2__align_octa(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 
-int alignment_avx2__align_quad(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_avx2__align_quad(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 
-int alignment_avx2__align_pair(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_avx2__align_pair(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 #endif
 #ifdef __SSE2__
-int alignment_sse2__align_octa(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_sse2__align_octa(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 
-int alignment_sse2__align_quad(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_sse2__align_quad(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 
-int alignment_sse2__align_pair(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_sse2__align_pair(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 
-int alignment_sse2__align_mono(unsigned char * genome,
-                               int * pos_genome,
-                               unsigned char * read);
+unsigned int alignment_sse2__align_mono(unsigned char * genome,
+                                        int * pos_genome,
+                                        unsigned char * read);
 #endif
 #ifdef __SSE__
-int alignment_sse__align_quad(unsigned char * genome,
-                              int * pos_genome,
-                              unsigned char * read);
+unsigned int alignment_sse__align_quad(unsigned char * genome,
+                                       int * pos_genome,
+                                       unsigned char * read);
 
-int alignment_sse__align_pair(unsigned char * genome,
-                              int * pos_genome,
-                              unsigned char * read);
+unsigned int alignment_sse__align_pair(unsigned char * genome,
+                                       int * pos_genome,
+                                       unsigned char * read);
 
-int alignment_sse__align_mono(unsigned char * genome,
-                              int * pos_genome,
-                              unsigned char * read);
+unsigned int alignment_sse__align_mono(unsigned char * genome,
+                                       int * pos_genome,
+                                       unsigned char * read);
 #endif
 
 

@@ -18,7 +18,7 @@ int map_unordered = 0;
 #define MAX_MULTIPLE_HITS 16
 
 const int simd_mul[INDEL_DATA_VECTOR_SIZE] = {16, 16, 8, 8, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2};
-int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
+unsigned int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
   &alignment_avx2__align_hexa,
   &alignment_avx2__align_hexa,
   &alignment_avx2__align_octa,
@@ -63,7 +63,7 @@ void(* const simd_clean_fct)() = &alignment_avx2__clean;
 #define MAX_MULTIPLE_HITS 8
 
 const int simd_mul[INDEL_DATA_VECTOR_SIZE] = {8, 8, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1};
-int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
+unsigned int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
   &alignment_sse2__align_octa,
   &alignment_sse2__align_octa,
   &alignment_sse2__align_quad,
@@ -108,7 +108,7 @@ void(* const simd_clean_fct)() = &alignment_sse2__clean;
 #define MAX_MULTIPLE_HITS 4
 
 const int simd_mul[INDEL_DATA_VECTOR_SIZE] = {4, 4, 2, 2, 1, 1, 1, 1};
-int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
+unsigned int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
   &alignment_sse__align_quad,
   &alignment_sse__align_quad,
   &alignment_sse__align_pair,
@@ -170,7 +170,7 @@ int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsi
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {1, 1, 1, 1, 1, 1, 1, 1};
 void(* const simd_clean_fct)() = &fake_clean;
-#define SIMD_SUPPORT_CHECK
+#define SIMD_SUPPORT_CHECK {{WARNING__("\n This program has been compiled without any __AVX2__, __SSE2__, __SSE__ defined : it will be slow !!\n Good night ...\n"); }}
 #endif
 #endif
 #endif
