@@ -108,11 +108,11 @@ static void show_usage(char * progname, char* default_seeds) {
                  "\t   a format similar to the one described for the 's' parameter. Optionally, \n"
                  "\t   for more clarity,  the seeds can be separated by '\\n' instead of ';' in \n"
                  "\t   the file. Default seed file: %s\n", DEFAULT_SEED_FILE);
-  DISPLAY_OPTION("l <number>",  "If this option is present,  very frequent k-mers are  removed \n"
+  DISPLAY_OPTION("l <number>",  "This option controls the removal of very frequent k-mers \n"
                  "\t   from the index.  The numeric parameter establishes which k-mers will be \n"
                  "\t   erased: it expresses the acceptable distance from the average number of \n"
-                 "\t   occurrences, measured in number of standard deviations.  For example, a \n"
-                                "\t   good value for this parameter is %d. By default, no k-mers are erased. \n", DEFAULT_ACCEPTED_STDEV_DISTANCE);
+                 "\t   occurrences, measured in number of standard deviations. By default, the \n"
+                 "\t   value for this parameter is %3d. To disable it, use a Negative value. \n", DEFAULT_ACCEPTED_STDEV_DISTANCE);
   DISPLAY_OPTION("j", "Ignore lowercase symbols from the reference sequences.\n");
   /*
    * Hiding options that are very unlikely to be used in practice
@@ -280,7 +280,7 @@ int main (int argc, char* argv[]) {
         HANDLE_INVALID_NUMERIC_VALUE_FATAL(allowed_indels, "a positive value or zero");
       }
       if (allowed_indels > INDEL_COUNT_LIMIT) {
-        WARNING__("%s may not handle more than %d indels in SIMD (local alignment) filter (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels);
+        VERB_FILTER(VERBOSITY_MODERATE, WARNING__("%s may not handle more than %d indels in SIMD (local alignment) filter (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels));
       simd_allowed_diags = INDEL_COUNT_LIMIT;
       } else {
       simd_allowed_diags = allowed_indels;
@@ -380,7 +380,8 @@ int main (int argc, char* argv[]) {
       FILTER_REPEATS = 1;
       INTEGER_VALUE_FROM_OPTION(ACCEPTED_STDEV_DISTANCE);
       if (ACCEPTED_STDEV_DISTANCE <= 0) {
-        HANDLE_INVALID_NUMERIC_VALUE_FATAL(ACCEPTED_STDEV_DISTANCE, "a strictly positive integer");
+        FILTER_REPEATS = 0;
+        ACCEPTED_STDEV_DISTANCE = 0;
       }
       break;
     case 'j':

@@ -170,7 +170,7 @@ int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsi
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {1, 1, 1, 1, 1, 1, 1, 1};
 void(* const simd_clean_fct)() = &fake_clean;
-#define SIMD_SUPPORT_CHECK {{WARNING__("\n This program has been compiled without any __AVX2__, __SSE2__, __SSE__ defined : it will be slow !!\n Good night ...\n"); }}
+#define SIMD_SUPPORT_CHECK {VERB_FILTER(VERBOSITY_MODERATE, WARNING__("\n This program has been compiled without any __AVX2__, __SSE2__, __SSE__ defined : it will be slow !!\n Good night ...\n"));}
 #endif
 #endif
 #endif

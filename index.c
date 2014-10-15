@@ -6,7 +6,7 @@
 #define COMPRESS 1
 
 int GENERATE_KMER_HISTOGRAM = 0;
-int FILTER_REPEATS = 0;
+int FILTER_REPEATS = 1;
 int ACCEPTED_STDEV_DISTANCE = DEFAULT_ACCEPTED_STDEV_DISTANCE ;
 int KMER_HISTOGRAM_INTERVAL_WIDTH = 1;
 
@@ -143,14 +143,14 @@ IndexType* index__build_reference(ReferenceDBType* db, SeedType* seed) {
 #ifdef _OPENMP
 #pragma omp ordered
 #endif
-        VERB_FILTER(VERBOSITY_HIGH, WARNING__("%8d appearances of key 0x%x removed for seed \"%s\"", counts[key], key, seed_pattern););
+        VERB_FILTER(VERBOSITY_HIGH, WARNING__("%8d appearances of key 0x%x removed for seed \"%s\"", counts[key], key, seed_pattern));
         ++erased;
       }
     }
 #ifdef _OPENMP
 #pragma omp ordered
 #endif
-    WARNING__("%8d key%s erased for seed \"%s\" (appearances > %d).", erased, erased == 1 ? "" : "s", seed_pattern, (int) (avg + ACCEPTED_STDEV_DISTANCE * std_dev + 0.9999));
+    VERB_FILTER(VERBOSITY_MODERATE, WARNING__("%8d key%s erased for seed \"%s\" (appearances > %d).", erased, erased == 1 ? "" : "s", seed_pattern, (int) (avg + ACCEPTED_STDEV_DISTANCE * std_dev + 0.9999)));
     free(seed_pattern);
   }
 

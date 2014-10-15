@@ -6,7 +6,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
  also available now for the classical Illumina technology. First, SToRM is 
  based on seeding techniques adapted to the statistical characteristics of
  reads: the seeds and the alignment algorithms are designed to comply with
- the properties of the SOLiD color encoding or Illumina substitution model, 
+ the properties of the SOLiD color encoding or Illumina substitution model 
  as well as the observed reading error distribution along the read.
 
  More information at  http://bioinfo.lifl.fr/yass/iedera_solid/storm
@@ -37,8 +37,8 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
     "./storm -h" for full parameter list
 
    A classic command line:
-    "./storm-color      -M 1 -g reference.fas -r reads.cs -l 500 -o out.sam"
-    "./storm-nucleotide -M 1 -g reference.fas -r reads.fq -l 500 -o out.sam"
+    "./storm-color      -M 1 -g reference.fas -r reads.cs -o out.sam"
+    "./storm-nucleotide -M 1 -g reference.fas -r reads.fq -o out.sam"
 
   Advanced command line: 
 
@@ -46,8 +46,8 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
 
      [0] obviously, use -M <int> to have all mapable reads being mapped !!
 
-         Otherwise, only the best read is kept per reference position,
-         which implies that not all the reads (duplicates, lower quality
+         Otherwise,  only the best read is kept per reference position,
+         which implies that not all the reads (duplicate, lower quality
          ones at the same reference position) are mapped.
 
      [1] use "larger" /or/ "smaller" scoring thresholds
@@ -56,8 +56,8 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
       -z 120 -t 120
       -z 100 -t 100
       ...
-      By default, setting the "same" value for both -z/-t is a good idea,
-      unless you have some ">15 indels" or "SOLiD color correction" reasons
+      By default, setting the same value for both -z/-t is a good idea,
+      unless you have ">15 indels" or "SOLiD color correction" reasons.
       ...
       -z 105 -t 120
       -z 85 -t 100
@@ -78,13 +78,13 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
       ...
       -i 20
       ...
-         for final alignment support only : in that case, the SIMD code 
+         for final alignment support only : in that case, the SIMD code
          generates a warning explaining that it will compute at most 15
-         diagonals : you can thus change the SIMD threshold -z <int> to 
+         diagonals : you can thus change the SIMD threshold -z <int> to
          a smaller value than the final alignment threshold -t <int>.
          (see [1] before)
 
-     [3] use "less" /or/ "more" seeds of "larger" /or/ "smaller" weight :
+     [3] use "less" /or/ "more" seeds of "large" /or/ "small" weight:  
       ...
       -s "####-##-#-####;###-#--##-##--###;####-#---#----#--####"
       -s "##-##-###-###;###--#-#--#--####;####--#--#---#---###
@@ -94,7 +94,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
          http://bioinfo.lifl.fr/yass/iedera.php
              ./iedera -spaced -n 3 -w 11,11 -s 11,22 -r 10000 -k -l 40
              ./iedera -spaced -n 3 -w 10,10 -s 10,20 -r 10000 -k -l 40
-      => you can send requests to Laurent Noé for specific seeding problems.
+      => you can send requests to Laurent Noé for specific seeding
 
       note also that "chain processing" can be now applied in SToRM :
         unmmaped reads from the first step can be mapped in extra steps
@@ -119,10 +119,11 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
           ./iedera -spaced -l 40 -w 10,10 -s 10,20 -r 10000 -k -mx "###-##--#-##-#-###,####-#-#--##-###"
              ->  "#####-##-###"
 
-     [4] "use" /or/ "dont add" the -l parameter, or keep it with large values (> 1000)
+     [4] "use" the -l option with smaller value (e.g. -l 10) /or/ "use"
+          with bigger value (e.g. -l 1000)/"disable" with "<= 0" value
 
-     [5] check your quality and change the -b 33 to -b 0 (disable quality) or
-         -b 64 (for some Illumina 1.5 to 1.7) accordingly ...
+     [5] check your quality and change the -b 33 to -b 0 or -b 64 (for 
+         some Illumina 1.5 to 1.7) accordingly ...
 
 
 [READING THE RESULT]
