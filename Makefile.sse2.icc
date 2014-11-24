@@ -1,7 +1,7 @@
 CC      = icc
 
 CFLAGS  = -Wall -pipe -march=pentium4 -O3 -D__SSE__ -D__SSE2__ -U__AVX2__
-CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static -static-intel -static-libstdc++
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-intel
 CFLAGS += -fopenmp
 
 LDFLAGS = -lm
