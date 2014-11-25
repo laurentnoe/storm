@@ -1,7 +1,7 @@
-CC      = icc
+CC      = gcc-mp-4.8
 
-CFLAGS  = -Wall -pipe -march=core-avx2 -O3 -D__SSE__ -D__SSE2__ -D__AVX2__
-CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-intel -mmacosx-version-min=10.5
+CFLAGS  = -Wall -pipe -mavx2 -Ofast -D__SSE__ -D__SSE2__ -D__AVX2__ 
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-libgcc -mmacosx-version-min=10.5
 CFLAGS += -fopenmp
 
 LDFLAGS = -lm 

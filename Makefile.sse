@@ -1,7 +1,7 @@
-CC      = icc
+CC      = gcc-mp-4.8
 
-CFLAGS  = -Wall -pipe -march=pentium3 -O3 -D__SSE__ -U__SSE2__ -U__AVX2__
-CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-intel -mmacosx-version-min=10.5
+CFLAGS  = -Wall -pipe -msse -Ofast -D__SSE__ -U__SSE2__ -U__AVX2__
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-libgcc -mmacosx-version-min=10.5
 CFLAGS += -fopenmp
 
 LDFLAGS = -lm
