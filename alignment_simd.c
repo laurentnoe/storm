@@ -1491,7 +1491,7 @@ void alignment_avx512bw__setlength_tria(const unsigned int readlength) {
       } else {
         /* mask at the beginning */
         if (l <= 1*2) {
-          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI32_TYPE(_mm512_srli)(vMsk512[l],(1)*8));
+          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI16_TYPE(_mm512_srli)(vMsk512[l],(1)*8));
         }
       }
     }
