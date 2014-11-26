@@ -5,7 +5,7 @@
 #define MAPPING_ALGO_GREEDY 1
 #define MAPPING_ALGO_SWITCHER MAPPING_ALGO_MA
 
-int map_greedy;
+extern int map_greedy;
 
 #include "hit_map.h"
 #include "alignment.h"
