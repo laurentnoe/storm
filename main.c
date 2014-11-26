@@ -132,8 +132,8 @@ static void show_usage(char * progname, char* default_seeds) {
 
   DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("x <number>", "Mismatch penalty. Default: %d.\n"
-                            "\n\t\033[33;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
-                            "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(DEFAULT_MISMATCH, MAX_READ_QUALITY_LEVEL));
+                 "\n\t\033[33;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
+                 "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(DEFAULT_MISMATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("d <number>", "Gap open penalty. Default: %d.\n", DEFAULT_GAP_OPEN);
   DISPLAY_OPTION("e <number>", "Gap extension penalty. Default: %d.\n", DEFAULT_GAP_EXTEND);
   DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment. Default: %d.\n", DEFAULT_ALLOWED_INDELS);
@@ -146,17 +146,20 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("b <number>", "base for FASTQ qualily worst value (ASCII decimal).\n"
                                "\t   Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
   DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping.  By default, multiple alignments of\n"
-                      "\t   overlapping reads are evaluated during the mapping stage to establish the\n"
-                      "\t   most relevant candidate read for each reference position.  If this option\n"
-                      "\t   is present, only the score of the read's alignment is taken into account\n");
+                               "\t   overlapping reads are evaluated during the mapping stage to establish the\n"
+                               "\t   most relevant candidate read for each reference position.  If this option\n"
+                               "\t   is present, only the score of the read's alignment is taken into account\n");
   DISPLAY_OPTION("M <number>", "Perform an \"unordered\" mapping. By default/in greedy mode, only\n"
-                      "\t   one read is kept per reference position.  This option enables any read to\n"
-                      "\t   be mapped at any <number>  (1..%d)  positions per read without considering\n"
-                      "\t   this read is necessary the \"best one\" from the reference point of view.\n"
-                      "\n\t\033[33;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be displayed\033[0m if this option is NOT set.\n",
+                               "\t   one read is kept per reference position.  This option enables any read to\n"
+                               "\t   be mapped at any <number>  (1..%d)  positions per read without considering\n"
+                               "\t   this read is necessary the \"best one\" from the reference point of view.\n"
+                 "\n\t\033[33;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be displayed\033[0m if this option is NOT set.\n",
                                MAP_DETAIL_SIZE);
   DISPLAY_OPTION("A", "Output in the sam file the unmapped reads. This is only possible when\n"
                                "\t    the -M <number> \"unordered mapping\" is activated.\n");
+#ifdef _OPENMP
+  DISPLAY_OPTION("N <number>", "Limit the number of OPENMP threads.\n");
+#endif
   DISPLAY_OPTION("v <number>", "Verbose - output message detail level. %d: no message; \n"
                                "\t   %d: moderate; %d: high, %d: exaggerate. Default: %d.\n",
                                VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT);
@@ -178,7 +181,7 @@ int main (int argc, char* argv[]) {
    * -e gap extension penalty
    * -i number of allowed indels in the alignment
    */
-  char *optstring = "g:r:q:s:S:a:b:f:p:m:x:d:e:t:z:T:i:v:o:O:l:u:M:jFRhcPHUGA";
+  char *optstring = "g:r:q:s:S:a:b:f:p:m:x:d:e:t:z:T:i:v:o:O:l:u:M:N:jFRhcPHUGA";
   /* Input files */
   char *genome_file = NULL, *reads_file = NULL, *qual_file = NULL;
   char *read = NULL, *reference=NULL, *reference_masked=NULL, *quality=NULL;
@@ -214,6 +217,10 @@ int main (int argc, char* argv[]) {
   if (!seeds) {
     seeds = DEFAULT_SEEDS;
   }
+
+#ifdef _OPENMP
+  MAX_THREADS = omp_get_num_procs();
+#endif
 
   while((option  = getopt(argc, argv, optstring)) != -1) {
     switch (option) {
@@ -387,6 +394,14 @@ int main (int argc, char* argv[]) {
         HANDLE_INVALID_NUMERIC_VALUE(KMER_HISTOGRAM_INTERVAL_WIDTH, 1);
       }
       break;
+#ifdef _OPENMP
+    case 'N':
+      INTEGER_VALUE_FROM_OPTION(MAX_THREADS);
+      if (MAX_THREADS <= 0) {
+        HANDLE_INVALID_NUMERIC_VALUE_FATAL(MAX_THREADS, "a strictly positive integer");
+      }
+      break;
+#endif
     case 'U':
       LIST_UNMAPPED_READS = 1;
       break;
@@ -412,10 +427,6 @@ int main (int argc, char* argv[]) {
       exit(1);
     }
   }
-
-#ifdef _OPENMP
-  MAX_THREADS = omp_get_num_procs();
-#endif
 
   delta_m = match - mismatch;
 
