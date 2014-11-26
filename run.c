@@ -641,7 +641,7 @@ static inline void process_read(
         /* alignment with the simd_mul[simd_allowed_diags] hits found */
 
         /* fast filtering using the SIMD alignment functions */
-        int x = simd_fct_table[simd_allowed_diags](ref_seq, simd_win_start, read_seq);
+        unsigned int x = simd_fct_table[simd_allowed_diags](ref_seq, simd_win_start, read_seq);
         int p = 0;
 
         /* check which alignment has a hit (if any, thus when x != 0)*/
@@ -695,7 +695,7 @@ static inline void process_read(
     }
 
     /* fast filtering using the SIMD alignment functions */
-    int x = simd_fct_table[simd_allowed_diags](ref_seq, simd_win_start, read_seq);
+    unsigned int x = simd_fct_table[simd_allowed_diags](ref_seq, simd_win_start, read_seq);
     int p = 0;
 
     /* check which alignment has a hit (if any, thus when x != 0)*/
