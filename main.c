@@ -194,6 +194,9 @@ int main (int argc, char* argv[]) {
   /* Process command line ... */
   int option;
 
+#ifdef __AVX512BW__
+  if (!alignment_avx512bw__compatible_proc()) {ERROR__("CPU is not compatible with AVX512BW instructions set.\nExiting.\n"); exit(-1);}
+#endif
 #ifdef __AVX2__
   if (!alignment_avx2__compatible_proc()) {ERROR__("CPU is not compatible with AVX2 instructions set.\nExiting.\n"); exit(-1);}
 #endif

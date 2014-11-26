@@ -12,7 +12,51 @@ int map_unordered = 0;
 #include "stats.h"
 
 
+#ifdef __AVX512BW__
 
+#define MAX_MULTIPLE_HITS 32
+
+const int simd_mul[INDEL_DATA_VECTOR_SIZE] = {32, 32, 16, 16, 8, 8, 8, 8, 4, 4, 4, 4, 4, 4, 4, 4};
+unsigned int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsigned char *) = {
+  &alignment_avx512bw__align_tria,
+  &alignment_avx512bw__align_tria,
+  &alignment_avx512bw__align_hexa,
+  &alignment_avx512bw__align_hexa,
+  &alignment_avx512bw__align_octa,
+  &alignment_avx512bw__align_octa,
+  &alignment_avx512bw__align_octa,
+  &alignment_avx512bw__align_octa,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad,
+  &alignment_avx512bw__align_quad
+};
+void(* const simd_init_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int) = {
+  &alignment_avx512bw__init_tria,
+  &alignment_avx512bw__init_tria,
+  &alignment_avx512bw__init_hexa,
+  &alignment_avx512bw__init_hexa,
+  &alignment_avx512bw__init_octa,
+  &alignment_avx512bw__init_octa,
+  &alignment_avx512bw__init_octa,
+  &alignment_avx512bw__init_octa,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad,
+  &alignment_avx512bw__init_quad
+};
+const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {2, 2, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+void(* const simd_clean_fct)() = &alignment_avx512bw__clean;
+#define SIMD_SUPPORT_CHECK {if (!alignment_avx512bw__compatible_proc()) {ERROR__("\nCPU is not compatible with AVX512BW instructions set.\nExiting.\n"); exit(1);}}
+#else
 #ifdef __AVX2__
 
 #define MAX_MULTIPLE_HITS 16
@@ -171,6 +215,7 @@ int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsi
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {1, 1, 1, 1, 1, 1, 1, 1};
 void(* const simd_clean_fct)() = &fake_clean;
 #define SIMD_SUPPORT_CHECK {VERB_FILTER(VERBOSITY_MODERATE, WARNING__("\n This program has been compiled without any __AVX2__, __SSE2__, __SSE__ defined : it will be slow !!\n Good night ...\n"));}
+#endif
 #endif
 #endif
 #endif
