@@ -1603,7 +1603,7 @@ void alignment_avx512bw__init_tria(const unsigned int match, const unsigned int 
 
   if (!alignment_avx512bw__compatible_proc()) {
     fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX512bw instructions set.\nExiting.\n");
+    fprintf(stderr,"\nCPU is not compatible with AVX512BW instructions set.\nExiting.\n");
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
