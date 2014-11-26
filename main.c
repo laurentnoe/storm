@@ -7,6 +7,7 @@
 
 #include "util.h"
 #include "run.h"
+#include "alignment_simd.h"
 
 char** cmd_line;
 int    cmd_line_len;
@@ -192,6 +193,16 @@ int main (int argc, char* argv[]) {
 
   /* Process command line ... */
   int option;
+
+#ifdef __AVX2__
+  if (!alignment_avx2__compatible_proc()) ERROR__("CPU is not compatible with AVX2 instructions set.\nExiting.\n");
+#endif
+#ifdef __SSE2__
+  if (!alignment_sse2__compatible_proc()) ERROR__("CPU is not compatible with SSE2 instructions set.\nExiting.\n");
+#endif
+#ifdef __SSE__
+  if (!alignment_sse__compatible_proc()) ERROR__("CPU is not compatible with SSE instructions set.\nExiting.\n");
+#endif
 
   cmd_line = argv;
   cmd_line_len = argc;
