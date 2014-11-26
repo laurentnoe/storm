@@ -10,13 +10,13 @@ ALL_C   = main.c alignment.c alignment_simd.c codes.c hit_map.c \
    index.c load_data.c genome_map.c reads_data.c read_quality.c \
    reference_data.c run.c seed.c stats.c util.c
 
-all: storm-color-sse storm-nucleotide-sse
+all: storm-color-sse-x-gcc storm-nucleotide-sse-x-gcc
 
-storm-color-sse :
-	${CC} ${ALL_C} -o storm-color-sse ${CFLAGS} ${LDFLAGS}
+storm-color-sse-x-gcc :
+	${CC} ${ALL_C} -o storm-color-sse-x-gcc ${CFLAGS} ${LDFLAGS}
 
-storm-nucleotide-sse :
-	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-sse ${CFLAGS} ${LDFLAGS}
+storm-nucleotide-sse-x-gcc :
+	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-sse-x-gcc ${CFLAGS} ${LDFLAGS}
 
 clean:
-	rm -f *~ storm-color-sse storm-nucleotide-sse
+	rm -f *~ storm-color-sse-x-gcc storm-nucleotide-sse-x-gcc

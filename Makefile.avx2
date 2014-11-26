@@ -1,7 +1,7 @@
 CC      = gcc-mp-4.8
 
 CFLAGS  = -Wall -pipe -mavx2 -Ofast -D__SSE__ -D__SSE2__ -D__AVX2__ 
-CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-libgcc -mmacosx-version-min=10.5
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static-libgcc -mmacosx-version-min=10.5 -Wa,-q
 CFLAGS += -fopenmp
 
 LDFLAGS = -lm 
@@ -10,13 +10,13 @@ ALL_C   = main.c alignment.c alignment_simd.c codes.c hit_map.c \
    index.c load_data.c genome_map.c reads_data.c read_quality.c \
    reference_data.c run.c seed.c stats.c util.c
 
-all: storm-color-avx2 storm-nucleotide-avx2
+all: storm-color-avx2-x-gcc storm-nucleotide-avx2-x-gcc
 
-storm-color-avx2 :
-	${CC} ${ALL_C} -o storm-color-avx2 ${CFLAGS} ${LDFLAGS}
+storm-color-avx2-x-gcc :
+	${CC} ${ALL_C} -o storm-color-avx2-x-gcc ${CFLAGS} ${LDFLAGS}
 
-storm-nucleotide-avx2 :
-	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-avx2 ${CFLAGS} ${LDFLAGS}
+storm-nucleotide-avx2-x-gcc :
+	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-avx2-x-gcc ${CFLAGS} ${LDFLAGS}
 
 clean:
-	rm -f *~ storm-color-avx2 storm-nucleotide-avx2
+	rm -f *~ storm-color-avx2-x-gcc storm-nucleotide-avx2-x-gcc
