@@ -195,13 +195,13 @@ int main (int argc, char* argv[]) {
   int option;
 
 #ifdef __AVX2__
-  if (!alignment_avx2__compatible_proc()) ERROR__("CPU is not compatible with AVX2 instructions set.\nExiting.\n");
+  if (!alignment_avx2__compatible_proc()) {ERROR__("CPU is not compatible with AVX2 instructions set.\nExiting.\n"); exit(-1);}
 #endif
 #ifdef __SSE2__
-  if (!alignment_sse2__compatible_proc()) ERROR__("CPU is not compatible with SSE2 instructions set.\nExiting.\n");
+  if (!alignment_sse2__compatible_proc()) {ERROR__("CPU is not compatible with SSE2 instructions set.\nExiting.\n"); exit(-1);}
 #endif
 #ifdef __SSE__
-  if (!alignment_sse__compatible_proc()) ERROR__("CPU is not compatible with SSE instructions set.\nExiting.\n");
+  if (!alignment_sse__compatible_proc())  {ERROR__("CPU is not compatible with SSE instructions set.\nExiting.\n");  exit(-1);}
 #endif
 
   cmd_line = argv;
