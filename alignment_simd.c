@@ -2333,7 +2333,7 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
         {
           vector512_t M_old_old;
           M_old_old.v = vM_old_old;
-          fprintf(stderr,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[31]),(M_old_old.u16[30]),(M_old_old.u16[29]),(M_old_old.u16[28]),(M_old_old.u16[27]),(M_old_old.u16[26]),(M_old_old.u16[25]),(M_old_old.u16[24]),(M_old_old.u16[23]),(M_old_old.u16[22]),(M_old_old.u16[21]),(M_old_old.u16[20]),(M_old_old.u16[19]),(M_old_old.u16[18]),(M_old_old.u16[17]),(M_old_old.u16[16]));
+          fprintf(stderr,"[1]\t ooM:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(M_old_old.u16[31]),(M_old_old.u16[30]),(M_old_old.u16[29]),(M_old_old.u16[28]),(M_old_old.u16[27]),(M_old_old.u16[26]),(M_old_old.u16[25]),(M_old_old.u16[24]),(M_old_old.u16[23]),(M_old_old.u16[22]),(M_old_old.u16[21]),(M_old_old.u16[20]),(M_old_old.u16[19]),(M_old_old.u16[18]),(M_old_old.u16[17]),(M_old_old.u16[16]),(M_old_old.u16[15]),(M_old_old.u16[14]),(M_old_old.u16[13]),(M_old_old.u16[12]),(M_old_old.u16[11]),(M_old_old.u16[10]),(M_old_old.u16[9]),(M_old_old.u16[8]),(M_old_old.u16[7]),(M_old_old.u16[6]),(M_old_old.u16[5]),(M_old_old.u16[4]),(M_old_old.u16[3]),(M_old_old.u16[2]),(M_old_old.u16[1]),(M_old_old.u16[0]));
         }
 #endif
 
