@@ -2650,7 +2650,7 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
       } else {
         /* mask at the beginning */
         if (l <= 1*2) {
-          vMsk256[l] = SI256_TYPE(_mm256_or)(vMsk256[l-1],EPI32_TYPE(_mm256_srli)(vMsk256[l],(1)*8));
+          vMsk256[l] = SI256_TYPE(_mm256_or)(vMsk256[l-1],EPI16_TYPE(_mm256_srli)(vMsk256[l],(1)*8));
         }
       }
     }
