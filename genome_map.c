@@ -235,7 +235,7 @@ static inline ScoreType genome_map__get_sorted_score(GenomeMapType* genome_map, 
   return genome_map->hitmap->map[genome_map->sorted_read_indices[j_index]][0].score;
 }
 
-inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
+static inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
   int i = 0;
 #define BITS_IN_DIGIT 4
 #define BUCKETS (1 << (BITS_IN_DIGIT))

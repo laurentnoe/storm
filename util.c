@@ -20,10 +20,10 @@ int ALIGNMENT_SENSE = DEFAULT_ALIGNMENT_SENSE;
 inline void display_progress(long int p, long int total, long int selected) {
   static long long int perquantile = 0; /* to fluidify both progress bars : 300 = ppcm(100,60)*/
   static const char COMPLETED_SYMBOL = '=', UNCOMPLETED_SYMBOL = ' ', LAST_COMPLETED_SYMBOL = '>';
-  if (p == 0 || ((long long unsigned)(p + 1) * 300 / (total+1)) > perquantile) {
-    long int      percent = (long long unsigned)(p + 1) * 100 / (total+1);
-    long int      perbar  = (long long unsigned)(p + 1) * 60  / (total+1);
-              perquantile = (long long unsigned)(p + 1) * 300 / (total+1);
+  if (p == 0 || ((long long int)(p + 1) * 300 / (total+1)) > perquantile) {
+    long int      percent = (long long int)(p + 1) * 100 / (total+1);
+    long int      perbar  = (long long int)(p + 1) * 60  / (total+1);
+              perquantile = (long long int)(p + 1) * 300 / (total+1);
 #ifdef _OPENMP
 OMP_INTERNAL_CRITICAL_PROGRESS
 #endif

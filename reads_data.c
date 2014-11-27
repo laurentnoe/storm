@@ -250,7 +250,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
 #endif
           do {
             delete_trailing_nl(line);
-            line_len = strlen(line);
+            line_len = (int)strlen(line);
             if (line_len <= linebuffer_remain) {
               strncpy(linebuffer_shift, line, line_len);
               linebuffer_shift  += line_len;
@@ -396,7 +396,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
     read_result = fgets(line, MAX_LINE_LEN, reads_in);
     /* Is there a title in the comment ? */
     if (read_result && !(db->name) && strncmp(line, TITLE_LINE_MARKER, TITLE_LINE_MARKER_LEN) == 0) {
-      int name_len = strcspn(line + TITLE_LINE_MARKER_LEN, "\r\n");
+      int name_len = (int)strcspn(line + TITLE_LINE_MARKER_LEN, "\r\n");
       SAFE_FAILURE__ALLOC(db->name, name_len + 1, char);
       strncpy(db->name, line + TITLE_LINE_MARKER_LEN, name_len);
       db->name[name_len] = '\0';
@@ -528,7 +528,7 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
 #else
       p = 1;
 #endif
-      for (; p < MIN(db->read_len, strlen(line)); ++p) {
+      for (; p < MIN(db->read_len, (int)strlen(line)); ++p) {
         quality[p] = FASTQ_PARSE_QUALITY_FROM_CHAR(line[p]);
       }
 #ifdef NUCLEOTIDES
