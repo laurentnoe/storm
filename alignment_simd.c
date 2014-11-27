@@ -1294,11 +1294,11 @@ void alignment_avx512bw__setlength_quad(const unsigned int readlength) {
     if (!(l & 1)) {
       /* mask at the end */
       if (l >= prlength - 15*2) {
-        vMsk512[l] = EPI128_TYPE(_mm512_bsrli)(vMsk512[l],(1)*8);
+        vMsk512[l] = EPI128_TYPE(_mm512_bsrli)(vMsk512[l],(1));
       } else {
         /* mask at the beginning */
         if (l <= 15*2) {
-          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI128_TYPE(_mm512_bsrli)(vMsk512[l],(1)*8));
+          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI128_TYPE(_mm512_bsrli)(vMsk512[l],(1)));
         }
       }
     }
