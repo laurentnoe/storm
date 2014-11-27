@@ -43,14 +43,14 @@ extern int read_quality_min_symbol_code;
 #define INTEGER_VALUE_FROM_OPTION(target) {                                     \
     if (sscanf(optarg, "%d", &target) != 1) {                                   \
       ERROR__("Mandatory numeric parameter missing for option %c.", option);    \
-      exit(-1);                                                                 \
+      exit(1);                                                                  \
     }                                                                           \
   }
 
 #define STRING_VALUE_FROM_OPTION(target) {                                                                            \
     if ((strlen(optarg) == 2) && (optarg[0] == '-') && (optarg[1] != ':') && (index(optstring, optarg[1]) != NULL)) { \
       ERROR__("Mandatory parameter missing for option %c.", option);                                                  \
-      exit(-1);                                                                                                       \
+      exit(1);                                                                                                        \
     } else {                                                                                                          \
       target = optarg;                                                                                                \
     }                                                                                                                 \
@@ -63,7 +63,7 @@ extern int read_quality_min_symbol_code;
 
 #define HANDLE_INVALID_NUMERIC_VALUE_FATAL(value, expected) {                            \
     ERROR__("Invalid value %d for option %c. Expected: %s.", value, option, expected);   \
-    exit(-1);                                                                            \
+    exit(1);                                                                             \
   }
 
 
@@ -72,8 +72,8 @@ static void show_usage(char * progname, char* default_seeds) {
   MESSAGE__("\nUSAGE: %s parameters\n\n",progname);
   MESSAGE__("PARAMETERS:\n");
   MESSAGE__("\033[37;1mMandatory:\033[0m\n");
-  DISPLAY_OPTION("g <genome_file>", "Name of the reference genome file (.fasta/.multifasta).\n");
-  DISPLAY_OPTION("r <reads_file>",  "Name of the reads file (.csfasta/.fastq/.multifasta)." );
+  DISPLAY_OPTION("g <genome_file>", "Name of the reference file (.fasta/.multifasta).\n");
+  DISPLAY_OPTION("r <reads_file>",  " Name of the reads file (.csfasta/.fastq/.multifasta)." );
   /* [FIXME] :
    */
   /*
@@ -93,27 +93,28 @@ static void show_usage(char * progname, char* default_seeds) {
    *                "\t   -p,  when just  the alignment of two  small sequences  is wanted,\n"
    *                "\t   instead of -r and -g.\n");
    */
-  MESSAGE__("\n\t\033[33;1mWARNING\033[0m: By default, at most one read is kept per reference position.  This\n"
-            "\t   can be changed with the -M <number> parameter (possibly combining the -A\n"
-            "\t   parameter to output unmapped reads)\n\n");
+  MESSAGE__("\n\t\033[33;1mWARNING\033[0m: By default,  at most  one read is kept  per reference position.\n"
+            "\t         This can be changed with the  -M <number>  parameter  (possibly\n"
+            "\t         adding the -A parameter to output unmapped reads)\n\n");
   MESSAGE__("\n\033[37;1mOptional:\033[0m\n");
-  DISPLAY_OPTION("q <qualities_file>",  "Name of the qualities file (qual).\n");
-  DISPLAY_OPTION("s <seed list>", "The seed family to be used for filtering.  The list should \n"
-         "\t   be of the form  \"#-#-#;##--#\" or \"10101;11001\" (seeds separated by ';').\n"
-         "\t   These seeds will be applied on every position of the read.  To restrict \n"
-         "\t   to certain positions, the  list of wanted positions w.r.t. the read can \n"
-         "\t   be mentioned after each seed, as follows: \n"
-         "\t   \"#-#-#:0 3 5;##--#:1 2 4 6\". \n"
-         "\t   Default seeds:  %s.\n", default_seeds);
-  DISPLAY_OPTION("S <seed file>",  "The file containing the seeds to be used for filtering, in \n"
-                 "\t   a format similar to the one described for the 's' parameter. Optionally, \n"
-                 "\t   for more clarity,  the seeds can be separated by '\\n' instead of ';' in \n"
+  DISPLAY_OPTION("q <quqalities_file>",  "Name of the qualities file (qual).\n");
+  DISPLAY_OPTION("s <seed list>", "The  seed family  to be used for filtering. It should be\n"
+                 "\t   of the form \"#-#-#;##--#\" or \"10101;11001\"  (seeds separated by ';').\n"
+                 "\t   These seeds are applied on every position of the read. To restrict to\n"
+                 "\t   certain positions, the list of wanted positions w.r.t the read can\n"
+                 "\t   be mentioned after each seed, as follows: \n"
+                 "\t           \"#-#-#:0 3 5;##--#:1 2 4 6\".\n"
+                 "\t   Default seeds:  %s\n", default_seeds);
+  DISPLAY_OPTION("S <seed file>",  "The file containing the  seeds to be used for filtering,\n"
+                 "\t   int a format similar to the one described for the -s <seed list>. For\n"
+                 "\t   more clarity,  the seeds can be separated by  '\\n' instead of  ';' in\n"
                  "\t   the file. Default seed file: %s\n", DEFAULT_SEED_FILE);
-  DISPLAY_OPTION("l <number>",  "This option controls the removal of very frequent k-mers \n"
-                 "\t   from the index.  The numeric parameter establishes which k-mers will be \n"
-                 "\t   erased: it expresses the acceptable distance from the average number of \n"
-                 "\t   occurrences, measured in number of standard deviations. By default, the \n"
-                 "\t   value for this parameter is %3d. To disable it, use a Negative value. \n", DEFAULT_ACCEPTED_STDEV_DISTANCE);
+  DISPLAY_OPTION("l <number>",  "This parameter controls the removal of very frequent k-mers\n"
+                 "\t   from the index. The  numeric parameter establishes which  k-mers will\n"
+                 "\t   be erased:  it expresses the  acceptable distance  from  the  average\n"
+                 "\t   number of occurrences,  measured in number of standard deviations. By\n"
+                 "\t   default, the value for this parameter is %3d.  To disable this, use a\n"
+                 "\t   negative value.\n", DEFAULT_ACCEPTED_STDEV_DISTANCE);
   DISPLAY_OPTION("j", "Ignore lowercase symbols from the reference sequences.\n");
   /*
    * Hiding options that are very unlikely to be used in practice
@@ -123,46 +124,48 @@ static void show_usage(char * progname, char* default_seeds) {
    *                "\t   -f, when just the alignment of two small sequences is wanted, \n"
    *                "\t    instead of -r and -g.\n");
    */
-  DISPLAY_OPTION("F", "Only align in forward sense.                      Default: both senses. \n");
-  DISPLAY_OPTION("R", "Only align in reverse complementary sense.        Default: both senses. \n");
-  DISPLAY_OPTION("o <output_file>", "The name of the output file  where the mapping result is\n"
-                 "\t   written, in SAM format. Default: stdout.\n");
-  DISPLAY_OPTION("O <output_file>", "The name of the output file where the unmapped reads are\n"
-                 "\t   written, in FASTQ format. Availaible if -M <number>.     Default: none.\n");
+  DISPLAY_OPTION("F", "Only align in forward sense.                    Default: both senses\n");
+  DISPLAY_OPTION("R", "Only align in reverse complementary sense.      Default: both senses\n");
+  DISPLAY_OPTION("o <output_file>", "Name of the  output file  where the  mapping result is\n"
+                 "\t   written, in SAM format.                               Default: stdout\n");
+  DISPLAY_OPTION("O <output_file>", "Name of the  output file  where the unmapped reads are\n"
+                 "\t   written, in FASTQ format. Availaible if -M <number>.    Default: none\n");
 
-  DISPLAY_OPTION("m <number>", "Match score. Default: %d.\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
-  DISPLAY_OPTION("x <number>", "Mismatch penalty. Default: %d.\n"
-                 "\n\t\033[33;1mWARNING\033[0m: Match and mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
-                 "\n\tif such qualities are available. Please, see the -b <number> parameter.\n", SCALE_SCORE(DEFAULT_MISMATCH, MAX_READ_QUALITY_LEVEL));
-  DISPLAY_OPTION("d <number>", "Gap open penalty. Default: %d.\n", DEFAULT_GAP_OPEN);
-  DISPLAY_OPTION("e <number>", "Gap extension penalty. Default: %d.\n", DEFAULT_GAP_EXTEND);
-  DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment. Default: %d.\n", DEFAULT_ALLOWED_INDELS);
-  DISPLAY_OPTION("t <number>", "Minimum accepted score, above which an alignment is\n"
-                                "\t   considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE);
-  DISPLAY_OPTION("z <number>", "The minimum score accepted by the SIMD filter, above which an\n"
-                               "\t   alignment is considered significant. Default: %d.\n", MIN_ACCEPTED_SCORE_SIMD_FILTER);
-  DISPLAY_OPTION("u <number>", "The minimum difference between the first and second \n"
-                               "\t   alignment of a given read to consider it unique; Default: disabled.\n");
-  DISPLAY_OPTION("b <number>", "base for FASTQ qualily worst value (ASCII decimal).\n"
-                               "\t   Default: %d (\'%c\').\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
-  DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping.  By default, multiple alignments of\n"
-                               "\t   overlapping reads are evaluated during the mapping stage to establish the\n"
-                               "\t   most relevant candidate read for each reference position.  If this option\n"
-                               "\t   is present, only the score of the read's alignment is taken into account\n");
-  DISPLAY_OPTION("M <number>", "Perform an \"unordered\" mapping. By default/in greedy mode, only\n"
-                               "\t   one read is kept per reference position.  This option enables any read to\n"
-                               "\t   be mapped at any <number>  (1..%d)  positions per read without considering\n"
-                               "\t   this read is necessary the \"best one\" from the reference point of view.\n"
-                 "\n\t\033[33;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be displayed\033[0m if this option is NOT set.\n",
-                               MAP_DETAIL_SIZE);
-  DISPLAY_OPTION("A", "Output in the sam file the unmapped reads. This is only possible when\n"
-                               "\t    the -M <number> \"unordered mapping\" is activated.\n");
+  DISPLAY_OPTION("m <number>", "Match score.                                   Default: %3d\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
+  DISPLAY_OPTION("x <number>", "Mismatch penalty.                              Default: %3d\n"
+                 "\n\t\033[33;1mWARNING\033[0m: Match / mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
+                 "\n\t         if qualities are available. Please, see the -b <number> option.\n", SCALE_SCORE(DEFAULT_MISMATCH, MAX_READ_QUALITY_LEVEL));
+  DISPLAY_OPTION("d <number>", "Gap open penalty.                              Default: %3d\n", DEFAULT_GAP_OPEN);
+  DISPLAY_OPTION("e <number>", "Gap extension penalty.                         Default: %3d\n", DEFAULT_GAP_EXTEND);
+  DISPLAY_OPTION("i <number>", "Maximum number of indels in the alignment.     Default: %3d\n", DEFAULT_ALLOWED_INDELS);
+  DISPLAY_OPTION("t <number>", "Minimum accepted score, above which alignments are selected\n"
+                 "\t   because considered significant.                          Default: %3d\n", MIN_ACCEPTED_SCORE);
+  DISPLAY_OPTION("z <number>", "The minimum score accepted by the SIMD filter,  above which\n"
+                 "\t   alignments are selected.                                 Default: %3d\n", MIN_ACCEPTED_SCORE_SIMD_FILTER);
+  DISPLAY_OPTION("u <number>", "The  minimum difference  between  the first and  the second\n"
+                 "\t   alignment of a given read to consider it unique;    Default: disabled\n");
+  DISPLAY_OPTION("b <number>", "The ASCII code for the  worst possible quality value of the\n"
+                 "\t   FASTQ file, given in decimal format.                Default: %2d (\'%c\')\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
+  DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping. By default, multiple alignments\n"
+                 "\t    of overlapping reads are evaluated during the mapping stage in order\n"
+                 "\t    to establish the  most relevant candidate read for each  position of\n"
+                 "\t    the reference. If this option is present, only the score of the read\n"
+                 "\t    alignment is taken into account.\n");
+  DISPLAY_OPTION("M <number>", "Perform an  \"unordered\" mapping. By default/in greedy mode,\n"
+                 "\t    only one read  is kept per reference position.  This option  enables\n"
+                 "\t    any read to be mapped at any number (from 1 to %d) positions per read\n"
+                 "\t    without considering that this read is necessary the best scoring one\n"
+                 "\t    from the reference point of view.\n"
+                 "\n\t\033[33;1mWARNING\033[0m: Not all mappable reads \033[37;1mwill be diplayed\033[0m WITHOUT this option set\n",
+                 MAP_DETAIL_SIZE);
+  DISPLAY_OPTION("A", "Output unmapped reads in the SAM output file.  This is only possible\n"
+                 "\t    when the -M <number> \"unordered mapping\" is activated.\n");
 #ifdef _OPENMP
-  DISPLAY_OPTION("N <number>", "Limit the number of OPENMP threads.\n");
+  DISPLAY_OPTION("N <number>", "Limit the number of OpenMP threads.\n");
 #endif
-  DISPLAY_OPTION("v <number>", "Verbose - output message detail level. %d: no message; \n"
-                               "\t   %d: moderate; %d: high, %d: exaggerate. Default: %d.\n",
-                               VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT);
+  DISPLAY_OPTION("v <number>", "Verbose - output message detail level.\n"
+                 "\t   %1d: no message, %1d: moderate, %d: high, %1d: exaggerate.       Default: %2d\n",
+                 VERBOSITY_NONE, VERBOSITY_MODERATE, VERBOSITY_HIGH, VERBOSITY_ANNOYING, VERBOSITY_DEFAULT);
   DISPLAY_OPTION("h", "Displays usage and exits.\n");
 }
 
@@ -198,16 +201,16 @@ int main (int argc, char* argv[]) {
   int option;
 
 #ifdef __AVX512BW__
-  if (!alignment_avx512bw__compatible_proc()) {ERROR__("CPU is not compatible with AVX512BW instructions set.\nExiting.\n"); exit(-1);}
+  if (!alignment_avx512bw__compatible_proc()) {ERROR__("CPU is not compatible with AVX512BW instructions set.\nExiting.\n"); exit(1);}
 #endif
 #ifdef __AVX2__
-  if (!alignment_avx2__compatible_proc()) {ERROR__("CPU is not compatible with AVX2 instructions set.\nExiting.\n"); exit(-1);}
+  if (!alignment_avx2__compatible_proc()) {ERROR__("CPU is not compatible with AVX2 instructions set.\nExiting.\n"); exit(1);}
 #endif
 #ifdef __SSE2__
-  if (!alignment_sse2__compatible_proc()) {ERROR__("CPU is not compatible with SSE2 instructions set.\nExiting.\n"); exit(-1);}
+  if (!alignment_sse2__compatible_proc()) {ERROR__("CPU is not compatible with SSE2 instructions set.\nExiting.\n"); exit(1);}
 #endif
 #ifdef __SSE__
-  if (!alignment_sse__compatible_proc())  {ERROR__("CPU is not compatible with SSE instructions set.\nExiting.\n");  exit(-1);}
+  if (!alignment_sse__compatible_proc())  {ERROR__("CPU is not compatible with SSE instructions set.\nExiting.\n");  exit(1);}
 #endif
 
   cmd_line = argv;
@@ -227,21 +230,21 @@ int main (int argc, char* argv[]) {
     case 'g':
       if (genome_file != NULL) {
         ERROR__("Genome file previously set with \"%s\".\nUnable to set it again.\n", genome_file);
-        exit(-1);
+        exit(1);
       }
       STRING_VALUE_FROM_OPTION(genome_file);
       break;
     case 'r':
       if (reads_file != NULL) {
         ERROR__("Read file previously set with \"%s\".\nUnable to set it again.\n", reads_file);
-        exit(-1);
+        exit(1);
       }
       STRING_VALUE_FROM_OPTION(reads_file);
       break;
     case 'q':
       if (qual_file != NULL) {
         ERROR__("Quality file previously set with \"%s\".\nUnable to set it again.\n", qual_file);
-        exit(-1);
+        exit(1);
       }
       STRING_VALUE_FROM_OPTION(qual_file);
       break;
@@ -253,7 +256,7 @@ int main (int argc, char* argv[]) {
           MESSAGE__("Continue (c) with default seeds %s, or abort (a)?\n", seeds);
         } while(scanf("%c", &confirmation) && confirmation != 'a' && confirmation != 'A' && confirmation != 'c' && confirmation != 'C');
         if (confirmation == 'a' || confirmation == 'A') {
-          exit(-1);
+          exit(1);
         }
       } else {
         seeds = tmp;
@@ -333,7 +336,7 @@ int main (int argc, char* argv[]) {
           if (confirmation == 'c' || confirmation == 'C') {
             output = stdout;
           } else {
-            exit(-1);
+            exit(1);
           }
         }
       }
@@ -345,7 +348,7 @@ int main (int argc, char* argv[]) {
         unmapped_FASTQ_output = fopen(optarg, "w");
         if (unmapped_FASTQ_output == NULL) {
           ERROR__("Could not open or create FASTQ output file %s.\n", optarg);
-          exit(-1);
+          exit(1);
         }
       }
       break;
