@@ -1269,7 +1269,7 @@ void alignment_avx512bw__setlength_quad(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk512 = (void *) ((uintptr_t)(vMsk512unaligned + 63) & ~0x3f);
+  vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
   vMsk512[0] = EPI64_TYPE(_mm512_set)(0xff00000000000000LL,
@@ -1328,7 +1328,7 @@ void alignment_avx512bw__setlength_octa(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk512 = (void *) ((uintptr_t)(vMsk512unaligned + 63) & ~0x3f);
+  vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
   vMsk512[0] = EPI64_TYPE(_mm512_set)(0xff00000000000000LL,
@@ -1387,7 +1387,7 @@ void alignment_avx512bw__setlength_hexa(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk512 = (void *) ((uintptr_t)(vMsk512unaligned + 63) & ~0x3f);
+  vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
   vMsk512[0] = EPI32_TYPE(_mm512_set)(0xff000000,
@@ -1454,7 +1454,7 @@ void alignment_avx512bw__setlength_tria(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk512 = (void *) ((uintptr_t)(vMsk512unaligned + 63) & ~0x3f);
+  vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
   vMsk512[0] = EPI32_TYPE(_mm512_set)(0xff00ff00,
@@ -1817,14 +1817,13 @@ unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    vector512_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE512)/(2*(int)sizeof(uint64_t));x++) {
-      uint64_t u0 =  ((vector512_t)vThresholdMask).u64[2*x];
-      uint64_t u1 =  ((vector512_t)vThresholdMask).u64[2*x+1];
-      if ((u0 != (uint64_t) 0) || (u1 != (uint64_t) 0)) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    for (x = 0; x < (int) sizeof(VTYPE512) / (2 * (int) sizeof(uint64_t)); x++) {
+      if ((vThresholdMask.u64[2*x] != (uint64_t) 0) || (vThresholdMask.u64[2*x+1] != (uint64_t) 0)) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -2015,13 +2014,13 @@ unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    vector512_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE512)/(int)sizeof(uint64_t);x++) {
-      uint64_t u =  ((vector512_t)vThresholdMask).u64[x];
-      if (u != (uint64_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    for (x = 0; x < (int) sizeof(VTYPE512) / (int) sizeof(uint64_t); x++) {
+      if (vThresholdMask.u64[x] != (uint64_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -2212,13 +2211,13 @@ unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    vector512_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE512)/(int)sizeof(uint32_t);x++) {
-      uint32_t u =  ((vector512_t)vThresholdMask).u32[x];
-      if (u != (uint32_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    for (x = 0; x < (int) sizeof(VTYPE512) / (int) sizeof(uint32_t); x++) {
+      if (vThresholdMask.u32[x] != (uint32_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -2409,13 +2408,13 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE512 vThresholdMask = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    vector512_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE512)/(int)sizeof(uint16_t);x++) {
-      uint16_t u =  ((vector512_t)vThresholdMask).u16[x];
-      if (u != (uint16_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm512_subs)(vMMax,vThreshold512);
+    for (x = 0; x < (int) sizeof(VTYPE512) / (int) sizeof(uint16_t); x++) {
+      if (vThresholdMask.u16[x] != (uint16_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -2452,7 +2451,7 @@ void alignment_avx2__setlength_pair(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
+  vMsk256 = (void *) ((uintptr_t) ((char *) vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI64X_TYPE(_mm256_set)(0xff00000000000000LL,
@@ -2507,7 +2506,7 @@ void alignment_avx2__setlength_quad(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
+  vMsk256 = (void *) ((uintptr_t) ((char *) vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI64X_TYPE(_mm256_set)(0xff00000000000000LL,
@@ -2562,7 +2561,7 @@ void alignment_avx2__setlength_octa(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
+  vMsk256 = (void *) ((uintptr_t) ((char *) vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI32_TYPE(_mm256_set)(0xff000000,
@@ -2621,7 +2620,7 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk256 = (void *) ((uintptr_t)(vMsk256unaligned + 31) & ~0x1f);
+  vMsk256 = (void *) ((uintptr_t) ((char *) vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
   vMsk256[0] = EPI16_TYPE(_mm256_set)(0xff00,0xff00,
@@ -2976,14 +2975,13 @@ unsigned int alignment_avx2__align_pair(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    vector256_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE256)/(2*(int)sizeof(uint64_t));x++) {
-      uint64_t u0 =  ((vector256_t)vThresholdMask).u64[2*x];
-      uint64_t u1 =  ((vector256_t)vThresholdMask).u64[2*x+1];
-      if ((u0 != (uint64_t) 0) || (u1 != (uint64_t) 0)) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    for (x = 0; x < (int) sizeof(VTYPE256) / (2 * (int) sizeof(uint64_t)); x++) {
+      if ((vThresholdMask.u64[2*x] != (uint64_t) 0) || (vThresholdMask.u64[2*x+1] != (uint64_t) 0)) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -3174,13 +3172,13 @@ unsigned int alignment_avx2__align_quad(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    vector256_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE256)/(int)sizeof(uint64_t);x++) {
-      uint64_t u =  ((vector256_t)vThresholdMask).u64[x];
-      if (u != (uint64_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    for (x = 0; x < (int) sizeof(VTYPE256) / (int) sizeof(uint64_t); x++) {
+      if (vThresholdMask.u64[x] != (uint64_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -3371,13 +3369,13 @@ unsigned int alignment_avx2__align_octa(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    vector256_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE256)/(int)sizeof(uint32_t);x++) {
-      uint32_t u =  ((vector256_t)vThresholdMask).u32[x];
-      if (u != (uint32_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    for (x = 0; x < (int) sizeof(VTYPE256) / (int) sizeof(uint32_t); x++) {
+      if (vThresholdMask.u32[x] != (uint32_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -3568,13 +3566,13 @@ unsigned int alignment_avx2__align_hexa(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE256 vThresholdMask = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    vector256_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE256)/(int)sizeof(uint16_t);x++) {
-      uint16_t u =  ((vector256_t)vThresholdMask).u16[x];
-      if (u != (uint16_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm256_subs)(vMMax,vThreshold256);
+    for (x = 0; x < (int) sizeof(VTYPE256) / (int) sizeof(uint16_t); x++) {
+      if (vThresholdMask.u16[x] != (uint16_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -3611,7 +3609,7 @@ void alignment_sse2__setlength_mono(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
+  vMsk128 = (void *) ((uintptr_t) ((char *) vMsk128unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk128[0] = EPI64X_TYPE(_mm_set)(0xff00000000000000LL,
@@ -3664,7 +3662,7 @@ void alignment_sse2__setlength_pair(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
+  vMsk128 = (void *) ((uintptr_t) ((char *) vMsk128unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk128[0] = EPI64X_TYPE(_mm_set)(0xff00000000000000LL,
@@ -3717,7 +3715,7 @@ void alignment_sse2__setlength_quad(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
+  vMsk128 = (void *) ((uintptr_t) ((char *) vMsk128unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk128[0] = EPI32_TYPE(_mm_set)(0xff000000,
@@ -3772,7 +3770,7 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk128 = (void *) ((uintptr_t)(vMsk128unaligned + 15) & ~0x0f);
+  vMsk128 = (void *) ((uintptr_t) ((char *) vMsk128unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk128[0] = EPI16_TYPE(_mm_set)(0xff00,0xff00,
@@ -4117,11 +4115,10 @@ unsigned int alignment_sse2__align_mono(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    vector128_t vThresholdMask;
     unsigned int result = 0;
-    uint64_t u0 =  ((vector128_t)vThresholdMask).u64[0];
-    uint64_t u1 =  ((vector128_t)vThresholdMask).u64[1];
-    if ((u0 != (uint64_t) 0) || (u1 != (uint64_t) 0)) {
+    vThresholdMask.v = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    if ((vThresholdMask.u64[0] != (uint64_t) 0) || (vThresholdMask.u64[1] != (uint64_t) 0)) {
       result |= 1;
     }
 #ifdef DEBUG_SIMD
@@ -4312,13 +4309,13 @@ unsigned int alignment_sse2__align_pair(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    vector128_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE128)/(int)sizeof(uint64_t);x++) {
-      uint64_t u =  ((vector128_t)vThresholdMask).u64[x];
-      if (u != (uint64_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    for (x = 0; x < (int) sizeof(VTYPE128) / (int) sizeof(uint64_t); x++) {
+      if (vThresholdMask.u64[x] != (uint64_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -4509,13 +4506,13 @@ unsigned int alignment_sse2__align_quad(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    vector128_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE128)/(int)sizeof(uint32_t);x++) {
-      uint32_t u =  ((vector128_t)vThresholdMask).u32[x];
-      if (u != (uint32_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    for (x = 0; x < (int) sizeof(VTYPE128) / (int) sizeof(uint32_t); x++) {
+      if (vThresholdMask.u32[x] != (uint32_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -4706,13 +4703,13 @@ unsigned int alignment_sse2__align_octa(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE128 vThresholdMask = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    vector128_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE128)/(int)sizeof(uint16_t);x++) {
-      uint16_t u =  ((vector128_t)vThresholdMask).u16[x];
-      if (u != (uint16_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = EPU8_TYPE(_mm_subs)(vMMax,vThreshold128);
+    for (x = 0; x < (int) sizeof(VTYPE128) / (int) sizeof(uint16_t); x++) {
+      if (vThresholdMask.u16[x] != (uint16_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -4749,7 +4746,7 @@ void alignment_sse__setlength_mono(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk64 = (void *) ((uintptr_t)(vMsk64unaligned + 15) & ~0x0f);
+  vMsk64 = (void *) ((uintptr_t) ((char *) vMsk64unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk64[0] = PI32_TYPE(_mm_set)(0xff000000,
@@ -4803,7 +4800,7 @@ void alignment_sse__setlength_pair(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk64 = (void *) ((uintptr_t)(vMsk64unaligned + 15) & ~0x0f);
+  vMsk64 = (void *) ((uintptr_t) ((char *) vMsk64unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk64[0] = PI32_TYPE(_mm_set)(0xff000000,
@@ -4857,7 +4854,7 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
     fprintf(stderr,"\033[0m\n");
     exit(1);
   }
-  vMsk64 = (void *) ((uintptr_t)(vMsk64unaligned + 15) & ~0x0f);
+  vMsk64 = (void *) ((uintptr_t) ((char *) vMsk64unaligned + 15) & ~0x0f);
 
   /* init mask table */
   vMsk64[0] = PI16_TYPE(_mm_set)(0xff00,0xff00,
@@ -5173,13 +5170,13 @@ unsigned int alignment_sse__align_mono(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE64 vThresholdMask = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
+    vector64_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE64)/(int)sizeof(uint64_t);x++) {
-      uint64_t u =  ((vector64_t)vThresholdMask).u64[x];
-      if (u != (uint64_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
+    for (x = 0; x < (int) sizeof(VTYPE64) / (int) sizeof(uint64_t); x++) {
+      if (vThresholdMask.u64[x] != (uint64_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -5371,13 +5368,13 @@ unsigned int alignment_sse__align_pair(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE64 vThresholdMask = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
+    vector64_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE64)/(int)sizeof(uint32_t);x++) {
-      uint32_t u =  ((vector64_t)vThresholdMask).u32[x];
-      if (u != (uint32_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
+    for (x = 0; x < (int) sizeof(VTYPE64) / (int) sizeof(uint32_t); x++) {
+      if (vThresholdMask.u32[x] != (uint32_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD
@@ -5569,13 +5566,13 @@ unsigned int alignment_sse__align_quad(unsigned char * genome,
     } /* l */
   }
   {
-    VTYPE64 vThresholdMask = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
+    vector64_t vThresholdMask;
     unsigned int result = 0;
     int x;
-    for(x=0;x<(int)sizeof(VTYPE64)/(int)sizeof(uint16_t);x++) {
-      uint16_t u =  ((vector64_t)vThresholdMask).u16[x];
-      if (u != (uint16_t) 0) {
-        result |= (1)<<x;
+    vThresholdMask.v = PU8_TYPE(_mm_subs)(vMMax,vThreshold64);
+    for (x = 0; x < (int) sizeof(VTYPE64) / (int) sizeof(uint16_t); x++) {
+      if (vThresholdMask.u16[x] != (uint16_t) 0) {
+        result |= 1 << x;
       }
     }
 #ifdef DEBUG_SIMD

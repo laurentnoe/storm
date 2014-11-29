@@ -204,7 +204,7 @@ inline ScoreType alignment__score_for_match(AlignmentType * alignment, CODE_TYPE
  * @param alignment The address of the alignment data structures
  * @param allowed_indels The maximum number of indels allowed in the alignment.
  */
-static inline void alignment__create_matrix(AlignmentType * alignment, int allowed_indels) {
+void alignment__create_matrix(AlignmentType * alignment, int allowed_indels) {
   /* Few indels allowed: no need to compute the entire DP matrix, just a neighborhood of the diagonal */
 
   /* Create the alignment matrix */
@@ -287,7 +287,7 @@ void alignment__set_params(AlignmentType * alignment, short match, short mismatc
  * @param read_len Reference sequence length
  * @param allowed_indels Max number of allowed indels in the alignment; usually small, it prevents from computing the entire DP matrix, thus the reducing computation time.
  */
-inline void alignment__init(AlignmentType* alignment, short read_len, short ref_len, short allowed_indels) {
+void alignment__init(AlignmentType* alignment, short read_len, short ref_len, short allowed_indels) {
   /* what is constructed and "returned" */
   alignment->params.allowed_indels = allowed_indels;
 
@@ -472,7 +472,7 @@ static inline ScoreType alignment__color_correction_score_adjustment(CODE_TYPE p
  * @param direction The relative position of the current cell wrt prev_cell, encoded as I_MASK & vertical_dif | J_MASK & horizontal_dif.
  * @returns According to the case, either the gap_open or the gap_extension penalty, stored in the alignment's parameter field.
  */
-inline ScoreType alignment__gap_penalty(AlignmentType * alignment, AlignmentCellType *prev_cell, DirectionType direction) {
+static inline ScoreType alignment__gap_penalty(AlignmentType * alignment, AlignmentCellType *prev_cell, DirectionType direction) {
   return alignment->params.gap[INDEX_FOR(prev_cell->from ^ direction)];
 }
 
@@ -481,7 +481,7 @@ inline ScoreType alignment__gap_penalty(AlignmentType * alignment, AlignmentCell
  * @param alignment The address of the alignment data structure
  * @return The score of the best alignment
  */
-inline int alignment__align(AlignmentType * alignment, ScoreType min_accepted) {
+int alignment__align(AlignmentType * alignment, ScoreType min_accepted) {
   ScoreType best_score, max_on_line;
 #ifdef NUCLEOTIDES
   ScoreType best_possible = (alignment->read_len)     * alignment->params.pair_scores[SYMBOL_PAIR_MATCH_IDX][MAX_READ_QUALITY_LEVEL];

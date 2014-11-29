@@ -415,7 +415,7 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
  * @param code The code counter being incremented
  */
 
-inline void genome_map__update_consensus_code(GenomeMapType* genome_map, int ref_id, int ref_pos, int offset, int code) {
+static inline void genome_map__update_consensus_code(GenomeMapType* genome_map, int ref_id, int ref_pos, int offset, int code) {
   /* only creates the data if null. This ensures counts != null */
   genome_map__create_position_data(genome_map, ref_id, ref_pos);
   /* if offset >= 0, this means that its a given gap position (0, 1 ...) on the reference, otherwise offset == -1 */
