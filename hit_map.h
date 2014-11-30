@@ -98,7 +98,7 @@ int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const 
  * @param rank The rank of that score will be placed at this address
  * @return The score
  */
-inline int hit_map__score_for(const HitMapType* map, const int read_id, const int ref_id, const int ref_pos);
+int hit_map__score_for(const HitMapType* map, const int read_id, const int ref_id, const int ref_pos);
 
 /**
  * Quick display of the successfully matched reads: index, position on the reference, score, alignment length, code sequence, alignment summary
