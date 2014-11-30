@@ -427,21 +427,18 @@ int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
         }
       } else {
 #ifdef NUCLEOTIDES
-        if (strcspn(line, "\r\n") != db->read_len)
+        int read_len = strcspn(line, "\r\n");
 #else
-        if (strcspn(line, "\r\n") - 2 != db->read_len)
+        int read_len = strcspn(line, "\r\n") - 2;
 #endif
+
+        if (read_len != db->read_len)
           {
             ERROR__("\nThe read #%ld does not have the expected length (length is %d, expected %d).\n"
                      "All the reads must be of equal length for the parallel processing.\n\n",
-                     db->size + 1,
-#ifdef NUCLEOTIDES
-                     (int)strcspn(line, "\r\n"),
-#else
-                     (int)strcspn(line, "\r\n") - 2,
-#endif
-
-                     db->read_len);
+                    db->size + 1,
+                    read_len,
+                    db->read_len);
             exit(RETURN_INPUT_ERR);
           }
       }
