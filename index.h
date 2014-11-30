@@ -71,7 +71,7 @@ int index__get_extern_next_hit(const IndexType *index, const int key, int* hit_p
  * @return The position -- in the reference database -- of the subsequence
  * corresponding to the key
  */
-int index__get_extern_current_hit (const IndexType *index, const int key, const int *hit_pointer);
+int index__get_extern_current_hit (const IndexType *index, const int *hit_pointer);
 
 /**
  * Destroy an indexed

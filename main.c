@@ -438,7 +438,7 @@ int main (int argc, char* argv[]) {
     if (quality) {
       VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("%s\n", quality););
     }
-    single_alignment(read, reference, reference_masked, quality, match, mismatch, gap_open, gap_extend, allowed_indels, simd_allowed_diags, output);
+    single_alignment(read, reference, reference_masked, quality, match, mismatch, gap_open, gap_extend, allowed_indels, output);
   } else if (reads_file) {
     if (genome_file) {
       VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("\n\nAligning reads against reference.\nInput files: %s, %s, %s.\n\n", genome_file, reads_file, qual_file?qual_file:"(null)"););

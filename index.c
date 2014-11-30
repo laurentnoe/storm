@@ -240,7 +240,7 @@ inline int index__get_extern_next_hit(const IndexType *index, const int key, int
 #endif /* ndef DISABLE_CONTIG_INDEX */
 }
 
-inline int index__get_extern_current_hit (const IndexType *index, const int key, const int *hit_pointer) {
+inline int index__get_extern_current_hit (const IndexType *index, const int *hit_pointer) {
 #ifdef DISABLE_CONTIG_INDEX
   return *hit_pointer ;
 #else

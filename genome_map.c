@@ -236,7 +236,7 @@ static inline ScoreType genome_map__get_sorted_score(GenomeMapType* genome_map, 
 }
 
 static inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
-  int i = 0;
+  unsigned int i = 0;
 #define BITS_IN_DIGIT 4
 #define BUCKETS (1 << (BITS_IN_DIGIT))
 #define DIGITS  ((sizeof(ScoreType) * 8) / BITS_IN_DIGIT)
@@ -290,7 +290,7 @@ static inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
  * then the reference code is returned.
  * Otherwise, the first code with the highest number of appearances is returned.
  */
-inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code, const ScoreType match, const ScoreType mismatch) {
+inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code) {
 
   /* no read mapped : set to the "reference" code */
   if (genome_map->g_maps[ref_id][ref_pos] == NULL) {
@@ -333,7 +333,7 @@ inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map
 
 CODE_TYPE crt_checksum = CODE_IDENTITY;
 
-inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_color, const ScoreType match, const ScoreType mismatch) {
+inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_color) {
 
   int         best_color = reference_color;
   CODE_TYPE     checksum = crt_checksum;
@@ -341,7 +341,7 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
   int window = 0;
   int fwd_i = ref_pos, fwd_j = offset;
 
-  best_color = genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, offset, reference_color, match, mismatch);
+  best_color = genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, offset, reference_color);
 
   if (best_color != reference_color) {
 
@@ -360,7 +360,7 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
     while (window < FORWARD_WINDOW_SIZE) {
       ++fwd_j;
       if (fwd_j >= genome_map->hitmap->indel_count ||
-          genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE, match, mismatch) == GENOME_MAP_NO_CODE) {
+          genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE) == GENOME_MAP_NO_CODE) {
         fwd_j = -1;
         ++fwd_i;
       }
@@ -374,11 +374,11 @@ inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, cons
                                 COMPOSE_SAFE(
                                              NTH_CODE(genome_map->ref_dbs[ref_id].sequence, fwd_i),
                                              genome_map__get_direct_consensus_code(
-                                                                                   genome_map, ref_id, fwd_i, -1, NTH_CODE(genome_map->ref_dbs[ref_id].sequence, fwd_i), match, mismatch)));
+                                                                                   genome_map, ref_id, fwd_i, -1, NTH_CODE(genome_map->ref_dbs[ref_id].sequence, fwd_i))));
       } else {
         checksum = COMPOSE_SAFE(
                                 checksum,
-                                genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE, match, mismatch));
+                                genome_map__get_direct_consensus_code(genome_map, ref_id, fwd_i, fwd_j, GENOME_MAP_NO_CODE));
       }
       if(checksum == CODE_IDENTITY) {
         break;
@@ -455,14 +455,14 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
       {
         CODE_TYPE ref_code = NTH_CODE(genome_map->ref_dbs[ref_id].sequence, ref_pos);
         score += (ref_code ==
-                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, ref_code, match, mismatch)) ? match : mismatch;
+                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, ref_code)) ? match : mismatch;
         ++ref_pos;
         indel = 0;
       }
       break;
 
     case TRACEBACK_PAIR_READ_DELETION :
-      score += (genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, GENOME_MAP_NO_CODE, match, mismatch)
+      score += (genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, GENOME_MAP_NO_CODE)
                 == GENOME_MAP_NO_CODE) ? match : mismatch;
       ++ref_pos;
       indel = 0;
@@ -475,7 +475,7 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
       {
         CODE_TYPE read_code = (traceback_cell & TRACEBACK_CODE_MASK);
         score += (read_code ==
-                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, read_code, match, mismatch)) ? match : mismatch;
+                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, -1, read_code)) ? match : mismatch;
         ++ref_pos;
         indel = 0;
       }
@@ -485,7 +485,7 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
       {
         CODE_TYPE read_code = (traceback_cell & TRACEBACK_CODE_MASK);
         score += (read_code ==
-                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, indel, read_code, match, mismatch)) ? match : mismatch;
+                  genome_map__get_direct_consensus_code(genome_map, ref_id, ref_pos, indel, read_code)) ? match : mismatch;
         ++indel;
       }
       break;

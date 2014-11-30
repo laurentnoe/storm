@@ -244,7 +244,7 @@ int PRINT_ALL_READS = 0;
  * @param output The output file descriptor
  */
 int single_alignment(const char* read_str, const char* ref_str, const char* ref_masked_str, const char* qual_str,
-                     const ScoreType match, const ScoreType mismatch, const ScoreType gap_open, const ScoreType gap_extend, const int allowed_indels, const int simd_allowed_diags,
+                     const ScoreType match, const ScoreType mismatch, const ScoreType gap_open, const ScoreType gap_extend, const int allowed_indels,
                      FILE* output) {
   CODE_TYPE* read        = string_to_code(read_str);
   CODE_TYPE* ref         = string_to_code(ref_str);
@@ -356,7 +356,7 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
     }                                                                                                \
   }
 
-#define ALIGNMENT__RESET_READ(read, quality) {                              \
+#define ALIGNMENT__RESET_READ(read, quality) {                               \
     alignment__reset_with_compressed_read(&alignment[_ogtn], read, quality); \
   }
 
@@ -381,7 +381,11 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
 #else
 
 /* Heap/Key/Hit Structures for each process */
-#define HEAP_KEY_HIT_REVSEQ__DECLARE HitType * heap = NULL; int ** key = NULL;  int ** hit_pointer = NULL; ReadDataType tmp_sequence = {0};
+#ifndef NUCLEOTIDES
+#define HEAP_KEY_HIT_REVSEQ__DECLARE HitType * heap = NULL; int ** key = NULL;  int ** hit_pointer = NULL; ReadDataType tmp_sequence = {.info = NULL, .first_base = 0, .first_qual = 0, .quality = NULL, .sequence = NULL, .tag = 0};
+#else
+#define HEAP_KEY_HIT_REVSEQ__DECLARE HitType * heap = NULL; int ** key = NULL;  int ** hit_pointer = NULL; ReadDataType tmp_sequence = {.info = NULL, .quality = NULL, .sequence = NULL, .tag = 0};
+#endif
 
 #define HEAP_KEY_HIT_REVSEQ__ALLOC(__heap_size__,__nb_seeds__,__read_len__) {  \
     SAFE_FAILURE__ALLOC(heap, __heap_size__, HitType);                         \
