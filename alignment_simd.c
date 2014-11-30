@@ -2623,14 +2623,14 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
   vMsk256 = (void *) ((uintptr_t) ((char *) vMsk256unaligned + 31) & ~0x1f);
 
   /* init mask table */
-  vMsk256[0] = EPI16_TYPE(_mm256_set)(0xff00,0xff00,
-                                      0xff00,0xff00,
-                                      0xff00,0xff00,
-                                      0xff00,0xff00,
-                                      0xff00,0xff00,
-                                      0xff00,0xff00,
-                                      0xff00,0xff00,
-                                      0xff00,0xff00);
+  vMsk256[0] = EPI16_TYPE(_mm256_set)((short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00,
+                                      (short) 0xff00,(short) 0xff00);
 #ifdef DEBUG_SIMD
   {
     vector256_t Msk;
@@ -3773,10 +3773,10 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
   vMsk128 = (void *) ((uintptr_t) ((char *) vMsk128unaligned + 15) & ~0x0f);
 
   /* init mask table */
-  vMsk128[0] = EPI16_TYPE(_mm_set)(0xff00,0xff00,
-                                   0xff00,0xff00,
-                                   0xff00,0xff00,
-                                   0xff00,0xff00);
+  vMsk128[0] = EPI16_TYPE(_mm_set)((short) 0xff00,(short) 0xff00,
+                                   (short) 0xff00,(short) 0xff00,
+                                   (short) 0xff00,(short) 0xff00,
+                                   (short) 0xff00,(short) 0xff00);
 #ifdef DEBUG_SIMD
   {
     vector128_t Msk;
@@ -4857,8 +4857,8 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
   vMsk64 = (void *) ((uintptr_t) ((char *) vMsk64unaligned + 15) & ~0x0f);
 
   /* init mask table */
-  vMsk64[0] = PI16_TYPE(_mm_set)(0xff00,0xff00,
-                                 0xff00,0xff00);
+  vMsk64[0] = PI16_TYPE(_mm_set)((short) 0xff00,(short) 0xff00,
+                                 (short) 0xff00,(short) 0xff00);
 #ifdef DEBUG_SIMD
   {
     vector64_t Msk;
