@@ -290,7 +290,7 @@ static inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
  * then the reference code is returned.
  * Otherwise, the first code with the highest number of appearances is returned.
  */
-inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code) {
+static inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code) {
 
   /* no read mapped : set to the "reference" code */
   if (genome_map->g_maps[ref_id][ref_pos] == NULL) {
@@ -333,7 +333,7 @@ inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map
 
 CODE_TYPE crt_checksum = CODE_IDENTITY;
 
-inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_color) {
+static inline int genome_map__get_consensus_color(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_color) {
 
   int         best_color = reference_color;
   CODE_TYPE     checksum = crt_checksum;
@@ -433,7 +433,7 @@ static inline void genome_map__update_consensus_code(GenomeMapType* genome_map, 
  * @param rank The rank in the hitmap
  * @return the score adjusted according to the previous reads mapped in the genome map
  */
-ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read_id, int rank, const ScoreType match, const ScoreType mismatch) {
+static ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read_id, int rank, const ScoreType match, const ScoreType mismatch) {
   ScoreType      score = 0;
   int            indel = 0;
   int            ref_id        = genome_map->hitmap->map[read_id][rank].ref_id;
@@ -497,7 +497,7 @@ ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, int read
 /**
  * Build a genome map for a database of mapped reads: multiple alignment approach
  */
-void genome_map__build_contextual(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch) {
+static void genome_map__build_contextual(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch) {
 
   /* 1) sort reads by best score */
   genome_map__radix_sort_reads(genome_map);

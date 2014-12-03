@@ -348,15 +348,6 @@ void alignment__reset_with_compressed_read(AlignmentType *alignment,CODE_TYPE* r
 void alignment__reset_with_compressed_ref(AlignmentType *alignment, CODE_TYPE* reference, CODE_TYPE* reference_masked, int ref_offset);
 
 /**
- * Access the alignment matrix, with coordinates that are not "aware" of the matrix' sparsness
- * @param alignment The address of the alignment data structure
- * @param i The requested cell's line coordinate
- * @param j The requested cell's column coordinate, as a number from 0 to reference length (to be transformed in actual matrix coords)
- * @return A reference to the requested matrix cell, or NULL if the parameters are out of range
- */
-AlignmentCellType* alignment__matrix_access(AlignmentType * alignment, int i, int j);
-
-/**
  * Retrieve a score in the alignment matrix, with coordinates that are not "aware" of the matrix' sparseness
  * @param alignment The address of the alignment data structure
  * @param i The requested cell's line coordinate

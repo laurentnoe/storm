@@ -97,7 +97,7 @@ int sort_reads_db(ReadsDBType * db) {
 /**
  * Load fasta/csfasta reads file
  */
-int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_filename, ReadsDBType* db) {
+static int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_filename, ReadsDBType* db) {
   char line[MAX_LINE_LEN];
   char* read_result;
   FILE* reads_in = NULL;
@@ -365,7 +365,7 @@ int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_fi
 /**
  * Load fastq reads file
  */
-int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
+static int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   char line[MAX_LINE_LEN];
   char* read_result;
   FILE* reads_in = NULL;

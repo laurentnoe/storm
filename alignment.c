@@ -43,9 +43,10 @@ ScoreType min_accepted_score_simd_filter = MIN_ACCEPTED_SCORE_SIMD_FILTER;
  * @param j The requested cell's column coordinate, as a number from 0 to reference length (to be transformed in actual matrix coords)
  * @return A reference to the requested matrix cell, or NULL if the parameters are out of range
  */
-inline AlignmentCellType* alignment__matrix_access(AlignmentType * alignment, int i, int j) {
+static inline AlignmentCellType* alignment__matrix_access(AlignmentType * alignment, int i, int j) {
   return (CHECK_RELATIVE_COORDS(i, j)) ? (alignment->matrix[i] + TO_MATRX_ABS_COORD(j, i)) : NULL;
 }
+
 /**
  * Access the alignment matrix, with coordinates that are not "aware" of the matrix' sparsness, without checking the parameter range
  * @param alignment The address of the alignment data structure
@@ -53,7 +54,7 @@ inline AlignmentCellType* alignment__matrix_access(AlignmentType * alignment, in
  * @param j The requested cell's column coordinate, as a number from 0 to reference length (to be transformed in actual matrix coords)
  * @return A reference to the requested matrix cell,
  */
-inline AlignmentCellType* alignment__matrix_access__no_check(AlignmentType * alignment, int i, int j) {
+static inline AlignmentCellType* alignment__matrix_access__no_check(AlignmentType * alignment, int i, int j) {
   return alignment->matrix[i] + TO_MATRX_ABS_COORD(j, i);
 }
 
@@ -64,9 +65,10 @@ inline AlignmentCellType* alignment__matrix_access__no_check(AlignmentType * ali
  * @param j The requested cell's column coordinate, as a number from 0 to matrix line length
  * @return A reference to the requested matrix cell, or NULL if the parameters are out of range
  */
-inline AlignmentCellType* alignment__matrix_absolute_access(AlignmentType * alignment, int i, int j) {
+static inline AlignmentCellType* alignment__matrix_absolute_access(AlignmentType * alignment, int i, int j) {
   return (CHECK_ABSOLUTE_COORDS(i, j)) ? (alignment->matrix[i] + j) : NULL;
 }
+
 /**
  * Access the alignment matrix, with the true matrix coordinates, without checking the parameter range
  * @param alignment The address of the alignment data structure
@@ -74,9 +76,10 @@ inline AlignmentCellType* alignment__matrix_absolute_access(AlignmentType * alig
  * @param j The requested cell's column coordinate, as a number from 0 to matrix line length
  * @return A reference to the requested matrix cell, or NULL if the parameters are out of range
  */
-inline AlignmentCellType* alignment__matrix_absolute_access__no_check(AlignmentType * alignment, int i, int j) {
+static inline AlignmentCellType* alignment__matrix_absolute_access__no_check(AlignmentType * alignment, int i, int j) {
   return alignment->matrix[i] + j;
 }
+
 /**
  * Retrieve a score in the alignment matrix, with coordinates that are not "aware" of the matrix' sparseness
  * @param alignment The address of the alignment data structure
@@ -87,6 +90,7 @@ inline AlignmentCellType* alignment__matrix_absolute_access__no_check(AlignmentT
 inline ScoreType alignment__get_score(const AlignmentType * alignment, int i, int j) {
   return (CHECK_RELATIVE_COORDS(i, j)) ? alignment->matrix[i][TO_MATRX_ABS_COORD(j, i)].score : MIN_SCORE;
 }
+
 /**
  * Retrieve a score in the alignment matrix, with coordinates that are not "aware" of the matrix' sparseness, without checking the parameter range
  * @param alignment The address of the alignment data structure
@@ -94,7 +98,7 @@ inline ScoreType alignment__get_score(const AlignmentType * alignment, int i, in
  * @param j The requested cell's column coordinate, as a number from 0 to reference length (to be transformed in actual matrix coords)
  * @return The found score, or MIN_SCORE if the parameters are out of range
  */
-inline ScoreType alignment__get_score__no_check(const AlignmentType * alignment, int i, int j) {
+static inline ScoreType alignment__get_score__no_check(const AlignmentType * alignment, int i, int j) {
   return alignment->matrix[i][TO_MATRX_ABS_COORD(j, i)].score;
 }
 
@@ -105,7 +109,7 @@ inline ScoreType alignment__get_score__no_check(const AlignmentType * alignment,
  * @param j The requested cell's column coordinate, as a number from 0 to matrix line length
  * @return The found score, or MIN_SCORE if the parameters are out of range
  */
-inline ScoreType alignment__get_score_absolute(const AlignmentType * alignment, int i, int j) {
+static inline ScoreType alignment__get_score_absolute(const AlignmentType * alignment, int i, int j) {
   return (CHECK_ABSOLUTE_COORDS(i, j)) ? alignment->matrix[i][j].score : MIN_SCORE;
 }
 /**
@@ -115,7 +119,7 @@ inline ScoreType alignment__get_score_absolute(const AlignmentType * alignment, 
  * @param j The requested cell's column coordinate, as a number from 0 to matrix line length
  * @return The found score, or MIN_SCORE if the parameters are out of range
  */
-inline ScoreType alignment__get_score_absolute__no_check(const AlignmentType * alignment, int i, int j) {
+static inline ScoreType alignment__get_score_absolute__no_check(const AlignmentType * alignment, int i, int j) {
   return alignment->matrix[i][j].score;
 }
 
@@ -125,7 +129,7 @@ inline ScoreType alignment__get_score_absolute__no_check(const AlignmentType * a
  * @param alignment
  * @param read_quality The read quality 'classes' (levels), short integers ranging from 0 to READ_QUALITY_LEVELS
  */
-inline void alignment__init_read_quality(AlignmentType * alignment, short* read_quality) {
+static inline void alignment__init_read_quality(AlignmentType * alignment, short* read_quality) {
   int i;
   if (read_quality != NULL) {
     for (i = 0; i <  alignment->read_len; ++i) {
@@ -144,7 +148,7 @@ inline void alignment__init_read_quality(AlignmentType * alignment, short* read_
  * @param alignment
  * @param read_quality The read quality 'classes' (levels), short integers ranging from 0 to READ_QUALITY_LEVELS
  */
-inline void alignment__init_read_quality_compressed(AlignmentType * alignment, QUAL_TYPE* read_quality) {
+static inline void alignment__init_read_quality_compressed(AlignmentType * alignment, QUAL_TYPE* read_quality) {
   int i;
   if (read_quality != NULL) {
     for (i = 0; i <  alignment->read_len; ++i) {
@@ -194,7 +198,7 @@ inline void alignment__reset_with_compressed(AlignmentType *alignment, CODE_TYPE
  * @param quality_level The quality level of the read
  * @return The corresponding score
  */
-inline ScoreType alignment__score_for_match(AlignmentType * alignment, CODE_TYPE match, short quality_level) {
+static inline ScoreType alignment__score_for_match(AlignmentType * alignment, CODE_TYPE match, short quality_level) {
   return alignment->params.pair_scores[INDEX_FOR(match)][quality_level] ;
 }
 
@@ -204,7 +208,7 @@ inline ScoreType alignment__score_for_match(AlignmentType * alignment, CODE_TYPE
  * @param alignment The address of the alignment data structures
  * @param allowed_indels The maximum number of indels allowed in the alignment.
  */
-void alignment__create_matrix(AlignmentType * alignment, int allowed_indels) {
+static void alignment__create_matrix(AlignmentType * alignment, int allowed_indels) {
   /* Few indels allowed: no need to compute the entire DP matrix, just a neighborhood of the diagonal */
 
   /* Create the alignment matrix */
@@ -864,18 +868,18 @@ int  alignment__traceback_to_CIGAR(const unsigned char* traceback, const int tra
   /* translate obtained code (color/code) sequence into ascii using the reference letter into base letters */
 #ifdef NUCLEOTIDES
   {
-    int i;
-    for (i = 0; i < SEQ_len; ++i) {
-      SEQ_dest[i] = BASE_CODE_LETTER[(int)SEQ_dest[i]];
+    int u;
+    for (u = 0; u < SEQ_len; ++u) {
+      SEQ_dest[u] = BASE_CODE_LETTER[(int)SEQ_dest[u]];
     }
   }
 #else
   {
     CODE_TYPE code = ref_start_symbol;
-    int i;
-    for (i = 0; i < SEQ_len; ++i) {
-      code = TRANSFORM(code, SEQ_dest[i]);
-      SEQ_dest[i] = BASE_CODE_LETTER[code];
+    int u;
+    for (u = 0; u < SEQ_len; ++u) {
+      code = TRANSFORM(code, SEQ_dest[u]);
+      SEQ_dest[u] = BASE_CODE_LETTER[code];
     }
   }
 #endif

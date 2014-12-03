@@ -828,14 +828,15 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
 
   /* compute heap size needed */
   int heap_size = 0;
-  int si;
-  for (si = 0; si < seeds_count; ++si) {
-    if (seeds[si]->positions)
-      heap_size += seeds[si]->positions_count;
-    else
-      heap_size += reads_db.read_len;/* enought : used to keep distances ...*/
+  {
+    int si;
+    for (si = 0; si < seeds_count; ++si) {
+      if (seeds[si]->positions)
+        heap_size += seeds[si]->positions_count;
+      else
+        heap_size += reads_db.read_len; /* it's enought : used to keep distances between threads pages */
+    }
   }
-
   /* create indexes */
   SAFE_FAILURE__ALLOC(ref_index, seeds_count, IndexType*);
   /* create alignment data */
@@ -847,136 +848,139 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
   crt_time = time(NULL);
 
   /* process each reference sequence */
-  int ref_id;
-  for (ref_id = 0; ref_id < ref_dbs_size; ++ref_id) {
-    ReferenceDBType* ref_db = &ref_dbs[ref_id];
+  {
+    int ref_id;
+    for (ref_id = 0; ref_id < ref_dbs_size; ++ref_id) {
+      ReferenceDBType* ref_db = &ref_dbs[ref_id];
 #ifdef NUCLEOTIDES
-    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nProcessing reference sequence %s (%d of %d, %d bases)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size););
+      VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nProcessing reference sequence %s (%d of %d, %d bases)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size););
 #else
-    VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nProcessing reference sequence %s (%d of %d, %d colors)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size););
+      VERB_FILTER(VERBOSITY_MODERATE, INFO__("\n\nProcessing reference sequence %s (%d of %d, %d colors)...\n", ref_db->name?ref_db->name:"(null)", ref_id + 1, ref_dbs_size, ref_db->size););
 #endif
 
-    /* create index */
-    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Creating reference index...\n"););
-    crt_time1 = time(NULL);
-    int si;
+      /* create index */
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Creating reference index...\n"););
+      crt_time1 = time(NULL);
+      {
+        int si;
 #ifdef _OPENMP
 #pragma omp parallel for ordered shared(ref_index, ref_window_len, ref_db, seeds)
 #endif
-    for (si = 0; si < seeds_count; ++si) {
-      ref_index[si] = index__build_reference(ref_db, seeds[si]);
-    }
-    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Created %d indexes in %ld seconds.\n\n", seeds_count, time(NULL) - crt_time1););
+        for (si = 0; si < seeds_count; ++si) {
+          ref_index[si] = index__build_reference(ref_db, seeds[si]);
+        }
+      }
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Created %d indexes in %ld seconds.\n\n", seeds_count, time(NULL) - crt_time1););
 
+      /* on each read, pass each seed, find the hits, and align */
+      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Start search...\n"););
 
-    /* on each read, pass each seed, find the hits, and align */
-    VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Start search...\n"););
+      crt_time1 = time(NULL);
+      if (ALIGNMENT_SENSE & ALIGNMENT_SENSE_FORWARD) {
+        VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Forward...\n"););
 
-    crt_time1 = time(NULL);
-    if (ALIGNMENT_SENSE & ALIGNMENT_SENSE_FORWARD) {
-      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Forward...\n"););
+        int p_read_id = 0;
+        int read_id;
 
-      int p_read_id = 0;
-      int read_id;
-
-      VERB_FILTER(VERBOSITY_MODERATE, display_progress(p_read_id, reads_db.size, map->mapped););
+        VERB_FILTER(VERBOSITY_MODERATE, display_progress(p_read_id, reads_db.size, map->mapped););
 
 #ifdef _OPENMP
 #pragma omp parallel for shared(p_read_id, reads_db, ref_index, seeds) schedule(dynamic,256)
 #endif
-      for (read_id = 0; read_id < reads_db.size; ++read_id) {
+        for (read_id = 0; read_id < reads_db.size; ++read_id) {
 
 #ifdef _OPENMP
-        const int _ogtn = omp_get_thread_num();
+          const int _ogtn = omp_get_thread_num();
 #endif
 
-        /* set the read */
-        ALIGNMENT__RESET_READ(reads_db.reads[read_id].sequence, reads_db.reads[read_id].quality);
+          /* set the read */
+          ALIGNMENT__RESET_READ(reads_db.reads[read_id].sequence, reads_db.reads[read_id].quality);
 
-        process_read(HEAP__REF, KEY__REF, HIT_POINTER__REF,
-                     (reads_db.reads[read_id]).sequence, reads_db.read_len, read_id,
-                     ref_id,  seeds_count,
-                     ref_index,
-                     ALIGNMENT__REF, map,
-                     simd_allowed_diags, ALIGNMENT_SENSE_FORWARD
-                 );
+          process_read(HEAP__REF, KEY__REF, HIT_POINTER__REF,
+                       (reads_db.reads[read_id]).sequence, reads_db.read_len, read_id,
+                       ref_id,  seeds_count,
+                       ref_index,
+                       ALIGNMENT__REF, map,
+                       simd_allowed_diags, ALIGNMENT_SENSE_FORWARD
+                       );
 
-        /* do not display this progress bar if other details (such as specific local alignments) are also displayed. */
-        VERB_FILTER(VERBOSITY_MODERATE,
-                    if ( !(p_read_id & 0x3ff) ) {
-                      display_progress(p_read_id, reads_db.size, map->mapped);
-                    }
-                    );
+          /* do not display this progress bar if other details (such as specific local alignments) are also displayed. */
+          VERB_FILTER(VERBOSITY_MODERATE,
+                      if ( !(p_read_id & 0x3ff) ) {
+                        display_progress(p_read_id, reads_db.size, map->mapped);
+                      }
+                      );
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
-        p_read_id++;
+          p_read_id++;
 
+        }
+
+        VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped););
+        VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Forward completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
       }
 
-      VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped););
-      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Forward completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
-    }
 
 
+      crt_time1 = time(NULL);
+      if (ALIGNMENT_SENSE & ALIGNMENT_SENSE_REVERSE) {
+        VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Reverse complementary...\n"););
 
-    crt_time1 = time(NULL);
-    if (ALIGNMENT_SENSE & ALIGNMENT_SENSE_REVERSE) {
-      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Reverse complementary...\n"););
+        int p_read_id = 0;
+        int read_id;
 
-      int p_read_id = 0;
-      int read_id;
-
-      VERB_FILTER(VERBOSITY_MODERATE, display_progress(p_read_id, reads_db.size, map->mapped));
+        VERB_FILTER(VERBOSITY_MODERATE, display_progress(p_read_id, reads_db.size, map->mapped));
 
 #ifdef _OPENMP
 #pragma omp parallel for shared(p_read_id, reads_db, ref_index, seeds) schedule(dynamic,256)
 #endif
-      for (read_id = 0; read_id < reads_db.size; ++read_id) {
+        for (read_id = 0; read_id < reads_db.size; ++read_id) {
 
 #ifdef _OPENMP
-        const int _ogtn = omp_get_thread_num();
+          const int _ogtn = omp_get_thread_num();
 #endif
 
-        /* set the read */
-        read__reverse(&reads_db.reads[read_id], REV_SEQ__REF(tmp_sequence), reads_db.read_len);
-        ALIGNMENT__RESET_READ(REV_SEQ__SEQ_REF(tmp_sequence), REV_SEQ__QUAL_REF(tmp_sequence));
+          /* set the read */
+          read__reverse(&reads_db.reads[read_id], REV_SEQ__REF(tmp_sequence), reads_db.read_len);
+          ALIGNMENT__RESET_READ(REV_SEQ__SEQ_REF(tmp_sequence), REV_SEQ__QUAL_REF(tmp_sequence));
 
-        process_read(HEAP__REF, KEY__REF, HIT_POINTER__REF,
-                     REV_SEQ__SEQ_REF(tmp_sequence), reads_db.read_len, read_id,
-                     ref_id,  seeds_count,
-                     ref_index,
-                     ALIGNMENT__REF, map,
-                     simd_allowed_diags, ALIGNMENT_SENSE_REVERSE
-                 );
+          process_read(HEAP__REF, KEY__REF, HIT_POINTER__REF,
+                       REV_SEQ__SEQ_REF(tmp_sequence), reads_db.read_len, read_id,
+                       ref_id,  seeds_count,
+                       ref_index,
+                       ALIGNMENT__REF, map,
+                       simd_allowed_diags, ALIGNMENT_SENSE_REVERSE
+                       );
 
         /* do not display this progress bar if other details (such as specific local alignments) are also displayed. */
-        VERB_FILTER(VERBOSITY_MODERATE,
-                    if ( !(p_read_id & 0x3ff) ) {
-                      display_progress(p_read_id, reads_db.size, map->mapped);
-                    }
-                    );
+          VERB_FILTER(VERBOSITY_MODERATE,
+                      if ( !(p_read_id & 0x3ff) ) {
+                        display_progress(p_read_id, reads_db.size, map->mapped);
+                      }
+                      );
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
-        p_read_id++;
+          p_read_id++;
 
+        }
+
+        VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped));
+        VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Reverse complementary completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
       }
 
-      VERB_FILTER(VERBOSITY_MODERATE, display_progress(reads_db.size, reads_db.size, map->mapped));
-      VERB_FILTER(VERBOSITY_MODERATE, MESSAGE__("Reverse complementary completed in %ld seconds, %d of %d reads aligned.\n\n", time(NULL) - crt_time1, map->mapped, map->size));
-    }
-
-    /* clear the index for each seed of the current reference */
-    {
-      int si;
-      for (si = 0; si < seeds_count; ++si) {
-        index__destroy(ref_index[si]);
-      free(ref_index[si]);
-      ref_index[si] = NULL;
+      /* clear the index for each seed of the current reference */
+      {
+        int si;
+        for (si = 0; si < seeds_count; ++si) {
+          index__destroy(ref_index[si]);
+          free(ref_index[si]);
+          ref_index[si] = NULL;
+        }
       }
-    }
-  } /* for (ref_id = 0; ref_id < ref_counts; ++ref_id) */
+    } /* for (ref_id = 0; ref_id < ref_counts; ++ref_id) */
+  }
 
   /* clear SIMD allocated data */
   simd_clean_fct();

@@ -20,10 +20,12 @@ int N_BYTES = 8;
 
 #define STRIP2(code) ((code) &= MASK)
 
+
+#ifdef NUCLEOTIDES
 /**
  * Convert a base name to its code.
  */
-int base_to_code (const char base) {
+static int base_to_code (const char base) {
   switch (base) {
   case 'A':
     return 0;
@@ -40,6 +42,7 @@ int base_to_code (const char base) {
   }
   return 0;
 }
+#endif
 
 /**
  * Obtains a readable string from a compressed base sequence.
@@ -199,7 +202,7 @@ CODE_TYPE* string_to_compressed_code(const char* string) {
  * @param dest
  * @param len The number of bases to consider from the source. The number of obtained colors will be len - 1.
  */
-inline void base_string_to_dest_code(const char* src, CODE_TYPE* dest, const int len) {
+void base_string_to_dest_code(const char* src, CODE_TYPE* dest, const int len) {
   int i;
 #ifdef NUCLEOTIDES
   for (i = 0; i < len; ++i) {
@@ -236,7 +239,7 @@ CODE_TYPE* base_string_to_code(const char* string) {
  * @param offset The offset (as number of code locations to skip; e.g: offset = 2 for skipping two codes, that take up 4 bits)
  * @return The new offset
  */
-inline int base_string_to_dest_compressed_color_code(const char* src, CODE_TYPE* dest, const int len, const int offset) {
+int base_string_to_dest_compressed_color_code(const char* src, CODE_TYPE* dest, const int len, const int offset) {
   int i;
   for (i = 0; i < len - 1; ++i) {
     TO_NTH_CODE(dest, (i + CODE_OFFSET(offset)), COLOR(BASE_SYMBOL_TO_CODE(src[i]), BASE_SYMBOL_TO_CODE(src[i+1])));

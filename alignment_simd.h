@@ -6,13 +6,13 @@
  * AVX512BW/AVX2/SSE2/SSE check function : check if the cpu is OK for all that stuff ...
  * @return true if the processor is avx512bw/avx2/sse2/sse compatible, false otherwise ...
  */
-int alignment_avx512bw__compatible_proc();
+int alignment_avx512bw__compatible_proc(void);
 
-int alignment_avx2__compatible_proc();
+int alignment_avx2__compatible_proc(void);
 
-int alignment_sse2__compatible_proc();
+int alignment_sse2__compatible_proc(void);
 
-int alignment_sse__compatible_proc();
+int alignment_sse__compatible_proc(void);
 
 
 /**
@@ -265,16 +265,16 @@ void alignment_sse__setlength_mono(unsigned int readlength);
  */
 
 #ifdef __AVX512BW__
-void alignment_avx512bw__clean();
+void alignment_avx512bw__clean(void);
 #endif
 #ifdef __AVX2__
-void alignment_avx2__clean();
+void alignment_avx2__clean(void);
 #endif
 #ifdef __SSE2__
-void alignment_sse2__clean();
+void alignment_sse2__clean(void);
 #endif
 #ifdef __SSE__
-void alignment_sse__clean();
+void alignment_sse__clean(void);
 #endif
 
 #endif /* _ALIGNMENT_SIMD_H_ */
