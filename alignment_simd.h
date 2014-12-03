@@ -3,7 +3,7 @@
 
 
 /**
- * AVX512BW/AVX2/SSE2/SSE check function : check if the cpu is OK for all that stuff ...
+ * AVX512BW/AVX2/SSE2/SSE check function : check if the CPU is OK for all that stuff ...
  * @return true if the processor is avx512bw/avx2/sse2/sse compatible, false otherwise ...
  */
 int alignment_avx512bw__compatible_proc(void);
@@ -22,7 +22,7 @@ int alignment_sse__compatible_proc(void);
 
 /**
  * AVX512BW/AVX2/SSE2/SSE alignment init function : fix the scoring system and the length of the reads (must be called once before aligning)
- * @param match      inits the match score vector
+ * @param match      inits the match score vector (positive value only)
  * @param mismatch   inits the mismatch penalty vector (positive value only)
  * @param gapopen    inits the gap penalty vector (positive value only)
  * @param gapextends inits the gap penalty vector (positive value only)
@@ -143,12 +143,12 @@ void alignment_sse__init_mono(const unsigned int match,
 
 
 /**
- * AVX512BW/AVX2/SSE2/SSE alignment align function : does a banded smith-waterman of the given read against two parts of the genome;
- * allows at most 1/2, 3/4, 7/8 or 15/16 indels on each side.
- * @param genome is the compressed genome (first nucleotide is the lower bit of the first byte)
+ * AVX512BW/AVX2/SSE2/SSE alignment align function : does a banded Smith-Waterman of the given read against two parts of the genome;
+ * allows at most 1/2, 3/4, 7/8 or 15/16 indels on each left/right (or right/left) side.
+ * @param genome is the compressed genome (first nucleotide are the two lower bits of the first byte)
  * @param pos_genome gives the list of 32, 16, 8, 4, 2 or 1 positions (in term of nucleotides) to be aligned with the read
- *        (you must substract 1/2, 3/4, 7/8 or 15/16 potential indels according to the hit position)
- * @param read is the compressed read (first nucleotide is the lower bit of the first byte)
+ *        (you must substract 1 (or 2), 3 (or 4), 7 (or 8), 15 (or 16) potential indels respectively according to the hit position)
+ * @param read is the compressed read (first nucleotide are the two lower bits of the first byte)
  * @return 0 if none is aligned to reach the given threshold (what should happened most of the time),
  *         or a bitmask 1<<(x) | 1<<(y) if x or y align correctly.
  */
