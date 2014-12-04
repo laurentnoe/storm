@@ -38,31 +38,9 @@ void read__reverse(const ReadDataType* src, ReadDataType* dest, int len) {
 /**
  * Sort reads function (alphanumeric order)
  */
-static int gv_read_len = 0;
-
 static int sort_reads_fun(const void *a, const void *b) {
-  ReadDataType * r_a = (ReadDataType *)a;
-  ReadDataType * r_b = (ReadDataType *)b;
-
-  /* read "a" tag : not clean to do this here ... but must be parallel if psort ... and very few are computed as polyA "0" */
-  if (!r_a->tag) {
-    int i;
-    unsigned long c_tag = 0;
-    for (i = 0; i < gv_read_len; i++) {
-      c_tag <<= 2 ; c_tag |= ((NTH_CODE(r_a->sequence, i) + 1) & 0x3) ^ 0x1; /* (x):[acgt] order -> ((x)+1)&0x3:[tacg] order -> (((x)+1)&0x3)^0x1:[atgc] order : so more weigth given to "gc" more than "at" */
-      r_a->tag = MAX(r_a->tag,c_tag);
-    }
-  }
-  /* read "b" tag : not clean to do this here ... but must be parallel if psort ... and very few are computed as polyA "0" */
-  if (!r_b->tag) {
-    int i;
-    unsigned long c_tag = 0;
-    for (i = 0; i < gv_read_len; i++) {
-      c_tag <<= 2 ; c_tag |= ((NTH_CODE(r_b->sequence, i) + 1) & 0x3) ^ 0x1;
-      r_b->tag = MAX(r_b->tag,c_tag);
-    }
-  }
-
+  const ReadDataType * r_a = (const ReadDataType *)a;
+  const ReadDataType * r_b = (const ReadDataType *)b;
   /* comparison of tags */
   if (r_a->tag < r_b->tag)
     return -1;
@@ -78,8 +56,6 @@ void psort() __attribute__((weak));
  * Sort a read database (alphanumeric order)
  */
 int sort_reads_db(ReadsDBType * db) {
-  gv_read_len = db->read_len;
-
   if (psort)
     psort((void *)db->reads/*base*/,
           (size_t)db->size /*nel*/,
@@ -272,7 +248,17 @@ static int load_reads_db_fasta_csfasta(const char* reads_filename, const char* q
           // copy the color sequence after the fake first base and the first color
           db->reads[i].sequence = string_to_compressed_code(linebuffer+2);
 #endif
+          // tag computation
           db->reads[i].tag = 0;
+          {
+            unsigned long c_tag = 0;
+            int u;
+            for (u = 0; u < db->read_len; u++) {
+              c_tag <<= 2; c_tag |= ((NTH_CODE(db->reads[i].sequence, u) + 1) & 0x3) ^ 0x1; /* (x):[acgt] order -> ((x)+1)&0x3:[tacg] order -> (((x)+1)&0x3)^0x1:[atgc] order : so more weigth given to "gc" more than "at" */
+              db->reads[i].tag = MAX(db->reads[i].tag,c_tag);
+            }
+          }
+          // increase size
           i++;
           if (i == db->size) {
             goto eol;
@@ -507,7 +493,16 @@ static int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
       // copy the color sequence after the fake first base and the first color
       db->reads[i].sequence = string_to_compressed_code(line+2);
 #endif
+      // tag computation
       db->reads[i].tag = 0;
+      {
+        unsigned long c_tag = 0;
+        int u;
+        for (u = 0; u < db->read_len; u++) {
+          c_tag <<= 2; c_tag |= ((NTH_CODE(db->reads[i].sequence, u) + 1) & 0x3) ^ 0x1; /* (x):[acgt] order -> ((x)+1)&0x3:[tacg] order -> (((x)+1)&0x3)^0x1:[atgc] order : so more weigth given to "gc" more than "at" */
+          db->reads[i].tag = MAX(db->reads[i].tag,c_tag);
+        }
+      }
       break;
       }
     case LINE_TYPE_QUAL_HEADER:
