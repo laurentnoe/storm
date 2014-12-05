@@ -33,7 +33,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
 [RUNNING SToRM]
 
   Command line: 
-    "./storm -M 1 -g <path_2_reference.fas> -r <path_2_reads.xx> [opts]"
+    "./storm -M 1 -g <path_2_reference.fas> -r <path_2_reads.fastq> [opts]"
     "./storm -h" for full parameter list
 
    A classic command line:
@@ -122,8 +122,9 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
      [4] "use" the -l option with smaller value (e.g. -l 10) /or/ "use"
           with bigger value (e.g. -l 1000)/"disable" with "<= 0" value
 
-     [5] check your quality and change the -b 33 to -b 0 or -b 64 (for 
-         some Illumina 1.5 to 1.7) accordingly ...
+     [5] check your quality and change the -b 33 to -b 0 to disable the 
+         score scaling algorithm, or to -b 64 (for Illumina 1.5 to 1.7) 
+         accordingly ...
 
 
 [READING THE RESULT]

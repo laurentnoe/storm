@@ -130,7 +130,6 @@ static void show_usage(char * progname, char* default_seeds) {
                  "\t   written, in SAM format.                               Default: stdout\n");
   DISPLAY_OPTION("O <output_file>", "Name of the  output file  where the unmapped reads are\n"
                  "\t   written, in FASTQ format. Availaible if -M <number>.    Default: none\n");
-
   DISPLAY_OPTION("m <number>", "Match score.                                   Default: %3d\n", SCALE_SCORE(DEFAULT_MATCH, MAX_READ_QUALITY_LEVEL));
   DISPLAY_OPTION("x <number>", "Mismatch penalty.                              Default: %3d\n"
                  "\n\t\033[33;1mWARNING\033[0m: Match / mismatch scores are \033[37;1mscaled\033[0m according to read qualities,"
@@ -145,7 +144,9 @@ static void show_usage(char * progname, char* default_seeds) {
   DISPLAY_OPTION("u <number>", "The  minimum difference  between  the first and  the second\n"
                  "\t   alignment of a given read to consider it unique;    Default: disabled\n");
   DISPLAY_OPTION("b <number>", "The ASCII code for the  worst possible quality value of the\n"
-                 "\t   FASTQ file, given in decimal format.                Default: %2d (\'%c\')\n", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
+                 "\t   FASTQ file, given in decimal format.                Default: %2d (\'%c\')", read_quality_min_symbol_code, (char) read_quality_min_symbol_code);
+  MESSAGE__("\n\t\033[33;1mWARNING\033[0m: Match / mismatch scores are scaled according to read qualities.\n"
+            "\t         Setting this parameter to 0 DISABLES this scaling behaviour.\n\n");
   DISPLAY_OPTION("G", "Perform an \"ordered greedy\" mapping. By default, multiple alignments\n"
                  "\t    of overlapping reads are evaluated during the mapping stage in order\n"
                  "\t    to establish the  most relevant candidate read for each  position of\n"
