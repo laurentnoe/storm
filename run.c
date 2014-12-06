@@ -232,9 +232,9 @@ int PRINT_ALL_READS = 0;
 
 /**
  * Perform an alignment between two sequences
- * @param read_str First sequence (color code)
- * @param ref_str Second sequence (color code)
- * @param ref_masked_str Second sequence mask
+ * @param read_str First sequence (color/nucleotide uncompressed code)
+ * @param ref_str Second sequence (color/nucleotide uncompressed code)
+ * @param ref_masked_str Second sequence mask (uncompressed code)
  * @param read quality values for the first sequence
  * @param match
  * @param mismatch
@@ -456,8 +456,17 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
 
 /*---------------------------------------------->8--------------------------------------------------------*/
 
-/** Heap structure for sorting hits
-  */
+/** The HitType structure for heap-sorting hits along a read.
+ *  This structure is used to "order" along the reference genome, all the hits per read,
+ *  The main idea is to keep "cache consistency" when many hits occurs : even if sorting seems slower than just
+ *  processing then in theory, in practice accessing random hits is not cache-efficient.
+ *  This structure is used in a heap sorting process where each key code, for each seed, and for each read position,
+ *  is set in a heap. When a hit occurs and is the minimal one on the reference, it is immediatly replaced by the
+ *  next hit (for the same seed and same read position) in the heap. As such, all the different keys are 
+ *  reference-coherent crossed for each read (by now, this is done read by read ... but may be better if several
+ *  reads are processed in parallel).
+ *  The size of the Heap is < (number of seeds) x (read length) which seems reasonable for "short reads".
+ */
 typedef struct HitType {
   /** hit position on the current reference */
   int   hit_pos;
@@ -467,7 +476,7 @@ typedef struct HitType {
   short seed_id;
 } __attribute__((__packed__)) HitType;
 
-/* insert at position $__size__$ then sieve from bottom to top (increment $__size__$) */
+/** insert at position $__size__$ then sieve from bottom to top (increment $__size__$) */
 #define INSERT_HEAP(__heap__,__size__,__hit_pos__,__read_pos__,__seed_id__) \
   {                                                                         \
     int __u__ = __size__;                                                   \
@@ -487,7 +496,7 @@ typedef struct HitType {
     __size__ ++;                                                            \
   }
 
-/* replace at position $0$ (erase previous element) then sieve from top to bottom */
+/** replace at position $0$ (erase previous element) then sieve from top to bottom */
 #define REP_TOP_SIEVE_HEAP(__heap__,__size__,__hit_pos__,__read_pos__,__seed_id__)    \
   {                                                                                   \
     int __u__ = 0;                                                                    \
@@ -516,7 +525,7 @@ typedef struct HitType {
   }
 
 
-/* delete at position $0$ (by using the last element in the sieve) then sieve from top to bottom */
+/** delete at position $0$ (by using the last element in the sieve) then sieve from top to bottom */
 #define DEL_TOP_SIEVE_HEAP(__heap__,__size__)                                         \
   {                                                                                   \
     __size__ -- ;                                                                     \
@@ -543,7 +552,6 @@ typedef struct HitType {
  * @param simd_allowed_diags number of diagonal allowed for the simd code (for selection the right simd function)
  * @param alignment_sens alignement done in forward/reverse (sequence already reversed, for updating the map only)
  */
-
 static inline void process_read(
                                 HitType * heap, int ** key, int ** hit_pointer,
                                 CODE_TYPE* read_seq, const int read_len, const int read_id,
@@ -953,7 +961,7 @@ int reads_against_references(const char* reads_filename, const char* qual_filena
                        simd_allowed_diags, ALIGNMENT_SENSE_REVERSE
                        );
 
-        /* do not display this progress bar if other details (such as specific local alignments) are also displayed. */
+          /* do not display this progress bar if other details (such as specific local alignments) are also displayed. */
           VERB_FILTER(VERBOSITY_MODERATE,
                       if ( !(p_read_id & 0x3ff) ) {
                         display_progress(p_read_id, reads_db.size, map->mapped);
