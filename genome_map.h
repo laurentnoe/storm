@@ -10,10 +10,6 @@ extern int map_greedy;
 #include "hit_map.h"
 #include "alignment.h"
 
-#define ALIGNED_POSITION_IDX 0
-#define INSERTED_POSITION_IDX 1
-#define CONSENSUS_POSITION_TYPES 2
-
 #define COMPRESSED_COUNTERS
 
 /**
@@ -59,7 +55,6 @@ typedef struct GenomeMapPositionType {
  *  set of structures needed for storing data
  *  and during mapping
  */
-
 typedef struct GenomeMapType {
   /** 2D array (of size equal to ref number x ref size) of pointers
    *  to a GenomeMapPositionType struct

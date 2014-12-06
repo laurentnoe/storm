@@ -64,9 +64,9 @@ int map_greedy = 0;
 
 /**
  * Create the data structure for the needed (mapped) positions
- * @param genome_map The map to be updated
- * @param ref_id
- * @param re_pos position ref position
+ * @param genome_map The genome_map to be updated
+ * @param ref_id The reference genome identifier
+ * @param ref_pos The reference genome position
  */
 static void genome_map__create_position_data(const GenomeMapType* genome_map, const int ref_id, const int ref_pos) {
   /* already allocated */
@@ -123,7 +123,11 @@ static void genome_map__create_position_data(const GenomeMapType* genome_map, co
 }
 
 /**
- * Access to map positions: set
+ * Access to map positions: set a read (read_id) and its score rank (score_rank) at a given reference position (ref_id,ref_pos),
+ * @param genome_map The genome_map to be updated
+ * @param ref_id The reference genome identifier
+ * @param read_id The reference position
+ * @param score_rank The score rank of the read (this last value is provided by the hitmap)
  */
 static void genome_map__set_read_idx_at(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int read_id, const int score_rank) {
   int rank = 0;
@@ -146,7 +150,7 @@ static void genome_map__set_read_idx_at(const GenomeMapType* genome_map, const i
  * @param hitmap The hitmap that will help populate the genome map
  * @param ref_dbs The reference sequences
  * @param ref_dbs_size The reference number of sequences
- * @param reads_dd The reads database
+ * @param reads_db The reads database
  * @return The genome_map to create
  */
 GenomeMapType* genome_map__create(HitMapType* hitmap, ReferenceDBType* ref_dbs, int ref_dbs_size, ReadsDBType* reads_db) {
@@ -174,15 +178,14 @@ GenomeMapType* genome_map__create(HitMapType* hitmap, ReferenceDBType* ref_dbs, 
 }
 
 
-/* ********************************************************************************
+/**
  *  Mapping version 1: greedy
  */
-
+/** @{ */
 /**
  * Attempt to map a read
  * @param genome_map The map be used and updated if the read is mapped
- * @param ref_id The reference genome identifier
- * @param ref_pos The reference genome position
+ * @param read_id The read_id to be mapped
  * @return The position where the read is mapped with best score
  */
 static int genome_map__map_read_greedy(const GenomeMapType* genome_map, const int read_id) {
@@ -227,14 +230,26 @@ static void genome_map__build_greedy(GenomeMapType* genome_map) {
     }
   }
 }
+/** @} */
 
-/* ********************************************************************************
+/**
  *  Mapping version 2: read multiple alignment based
+ */
+/** @{ */
+
+/*
+ * @param genome_map The map to be updated
+ * @param j_index The index of the read in the sorted list of reads (according to their best score)
+ * @return the best score for this read according to the hitmap structure
  */
 static inline ScoreType genome_map__get_sorted_score(GenomeMapType* genome_map, int j_index) {
   return genome_map->hitmap->map[genome_map->sorted_read_indices[j_index]][0].score;
 }
 
+/**
+ * Sort the reads accorting to their hitmap best score
+ * @param genome_map The map to be updated
+ */
 static inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
   unsigned int i = 0;
 #define BITS_IN_DIGIT 4
@@ -289,6 +304,12 @@ static inline void genome_map__radix_sort_reads(GenomeMapType* genome_map) {
  * If there is a tie, and the reference code is one of the most frequent codes,
  * then the reference code is returned.
  * Otherwise, the first code with the highest number of appearances is returned.
+ * @param genome_map The map to be read
+ * @param ref_id The reference genome identifier to be read
+ * @param ref_pos The reference genome position to be read
+ * @param offset is -1 if no insertion is considered, otherwise >= 0, to be read
+ * @param reference_code is the "by default" value returned if no read is mapped there
+ * @return the consensus code for this reference position
  */
 static inline int genome_map__get_direct_consensus_code(const GenomeMapType* genome_map, const int ref_id, const int ref_pos, const int offset, const int reference_code) {
 
@@ -323,7 +344,6 @@ static inline int genome_map__get_direct_consensus_code(const GenomeMapType* gen
  * @param offset is -1 if no insertion is considered, otherwise >= 0
  * @param code The code counter being incremented
  */
-
 static inline void genome_map__update_consensus_code(GenomeMapType* genome_map, int ref_id, int ref_pos, int offset, int code) {
   /* only creates the data if null. This ensures counts != null */
   genome_map__create_position_data(genome_map, ref_id, ref_pos);
@@ -404,7 +424,10 @@ static ScoreType genome_map__compute_adjusted_score(GenomeMapType* genome_map, i
 }
 
 /**
- * Build a genome map for a database of mapped reads: multiple alignment approach
+ * Build a genome map for a database of mapped reads - multiple alignment approach
+ * @param genome_map The map to be updated
+ * @param match The score for a match
+ * @param mismatch The score for a mismatch
  */
 static void genome_map__build_contextual(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch) {
 
@@ -506,7 +529,12 @@ static void genome_map__build_contextual(GenomeMapType* genome_map, const ScoreT
     }
   }
 }
+/** @} */
 
+/**
+ * Build the map of the genomes
+ * @param genome_map The genome map to build
+ */
 void genome_map__build(GenomeMapType* genome_map, const ScoreType match, const ScoreType mismatch) {
   if (map_greedy) {
     genome_map__build_greedy(genome_map);
@@ -514,7 +542,6 @@ void genome_map__build(GenomeMapType* genome_map, const ScoreType match, const S
     genome_map__build_contextual(genome_map, match, mismatch);
   }
 }
-
 
 /**
  * Outputs the mapped reads in the SAM fomat (http://samtools.sourceforge.net)
@@ -772,7 +799,6 @@ void genome_map__generate_SAM_output(GenomeMapType* genome_map, FILE* sam_output
  * Quick display of pairs ref_pos: read_index for each position with a corresponding mapped read
  * @param genome_map The genome_map to be printed
  */
-
 void genome_map__display(const GenomeMapType* genome_map) {
   int ref_id;
   for (ref_id = 0; ref_id < genome_map->ref_dbs_size; ++ref_id) {
