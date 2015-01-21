@@ -84,10 +84,11 @@ void hit_map__init(HitMapType* map, int size, int indel_count);
  * @param ref_id The reference id that hits the read
  * @param ref_pos The position where the aligned part of the reference starts
  * @param alignment The obtained alignment
+ * @param alignment The obtained alignment sense (forward/reverse)
  * @return The rank of the alignment if its score was good enough to include in the map
  * (between 0 and MAP_DETAIL_SIZE exclusive), or -1 otherwise.
  */
-int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const int ref_pos, const AlignmentType* alignment, int alignment_sense);
+int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const int ref_pos, const AlignmentType* alignment, const int alignment_sense);
 
 /**
  * Obtain the score for a read, when mapped on a given position

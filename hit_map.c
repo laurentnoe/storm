@@ -43,16 +43,15 @@ void hit_map__init(HitMapType* map, int size, int indel_count) {
  * @param read_id The aligned read's index in the reads database
  * @param ref_pos The position where the aligned part of the reference starts
  * @param alignment The obtained alignment
+ * @param alignment The obtained alignment sense (forward/reverse)
  * @return The rank of the alignment if its score was good enough to include in the map
  * (between 0 and MAP_DETAIL_SIZE exclusive), or UNMAPPED (-1) otherwise.
  */
-int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const int ref_pos, const AlignmentType* alignment, int alignment_sense) {
+int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const int ref_pos, const AlignmentType* alignment, const int alignment_sense) {
 
 
   /* (0) init the full table if this first time mapped */
-  int mapped = 0;
   if (!(map->map[read_id])) {
-    mapped = 1;
     SAFE_FAILURE__ALLOC(map->map[read_id], MAP_DETAIL_SIZE, HitInfoType);
     int k;
     for (k = 0; k < MAP_DETAIL_SIZE; ++k) {
@@ -67,6 +66,11 @@ int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const 
       map->map[read_id][k].traceback         = NULL;
       map->map[read_id][k].traceback_seq_len = 0;
     }
+
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+    map->mapped++;
   }
 
   HitInfoType* info = map->map[read_id];
@@ -136,10 +140,6 @@ int hit_map__update(HitMapType* map, const int read_id, const int ref_id, const 
     TRACEBACK_SEQ_SET(info[i+1].traceback, p, TRACEBACK_SEQ_GET(alignment->traceback, (alignment->traceback_seq_len - 1 - p )));
   }
 
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
-  map->mapped += mapped;
   return i+1;
 }
 
