@@ -462,7 +462,7 @@ int single_alignment(const char* read_str, const char* ref_str, const char* ref_
  *  processing then in theory, in practice accessing random hits is not cache-efficient.
  *  This structure is used in a heap sorting process where each key code, for each seed, and for each read position,
  *  is set in a heap. When a hit occurs and is the minimal one on the reference, it is immediatly replaced by the
- *  next hit (for the same seed and same read position) in the heap. As such, all the different keys are 
+ *  next hit (for the same seed and same read position) in the heap. As such, all the different keys are
  *  reference-coherent crossed for each read (by now, this is done read by read ... but may be better if several
  *  reads are processed in parallel).
  *  The size of the Heap is < (number of seeds) x (read length) which seems reasonable for "short reads".

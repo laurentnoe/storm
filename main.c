@@ -97,7 +97,7 @@ static void show_usage(char * progname, char* default_seeds) {
             "\t         This can be changed with the  -M <number>  parameter  (possibly\n"
             "\t         adding the -A parameter to output unmapped reads)\n\n");
   MESSAGE__("\n\033[37;1mOptional:\033[0m\n");
-  DISPLAY_OPTION("q <quqalities_file>",  "Name of the qualities file (qual).\n");
+  DISPLAY_OPTION("q <qualities_file>",  "Name of the qualities file (qual).\n");
   DISPLAY_OPTION("s <seed list>", "The  seed family  to be used for filtering. It should be\n"
                  "\t   of the form \"#-#-#;##--#\" or \"10101;11001\"  (seeds separated by ';').\n"
                  "\t   These seeds are applied on every position of the read. To restrict to\n"
