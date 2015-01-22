@@ -2,6 +2,29 @@
 #define _ALIGNMENT_SIMD_H_
 
 
+
+/**
+ * AVX512BW/AVX2/SSE2/SSE/"not" : number of allowed indels relates to the SIMD filter and the possible size of the bandwidth alignment
+ */
+#ifdef __AVX512BW__
+#define INDEL_DATA_VECTOR_SIZE (16)
+#else
+#ifdef __AVX2__
+#define INDEL_DATA_VECTOR_SIZE (16)
+#else
+#ifdef __SSE2__
+#define INDEL_DATA_VECTOR_SIZE (16)
+#else
+#ifdef __SSE__
+#define INDEL_DATA_VECTOR_SIZE (8)
+#else
+/* No filter. Default to 7 indels (above this, the alignment algorithm would be much too slow). */
+#define INDEL_DATA_VECTOR_SIZE (8)
+#endif
+#endif
+#endif
+#endif
+
 /**
  * AVX512BW/AVX2/SSE2/SSE check function : check if the CPU is OK for all that stuff ...
  * @return true if the processor is avx512bw/avx2/sse2/sse compatible, false otherwise ...

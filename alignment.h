@@ -27,26 +27,6 @@ typedef char DirectionType;
 #define DEFAULT_GAP_EXTEND (-4)
 #define DEFAULT_ALLOWED_INDELS (3)
 
-/**
- * The number of allowed indels relates to the SIMD filter and the possible size of the bandwidth alignment.
- */
-#ifdef __AVX2__
-#define INDEL_DATA_VECTOR_SIZE (16)
-#else
-#ifdef __SSE2__
-#define INDEL_DATA_VECTOR_SIZE (16)
-#else
-#ifdef __SSE__
-#define INDEL_DATA_VECTOR_SIZE (8)
-#else
-/* No filter. Default to 7 indels (above this, the alignment algorithm would be much too slow). */
-#define INDEL_DATA_VECTOR_SIZE (8)
-#endif
-#endif
-#endif
-
-#define INDEL_COUNT_LIMIT (INDEL_DATA_VECTOR_SIZE - 1)
-
 #define SCALE_SCORE(score, quality_level) (ScoreType)(   ((score) * (quality_level+1) + 0.) / READ_QUALITY_LEVELS)
 
 /* For accessing various parameters */

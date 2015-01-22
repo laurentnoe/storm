@@ -304,11 +304,11 @@ int main (int argc, char* argv[]) {
       if (allowed_indels < 0) {
         HANDLE_INVALID_NUMERIC_VALUE_FATAL(allowed_indels, "a positive value or zero");
       }
-      if (allowed_indels > INDEL_COUNT_LIMIT) {
-        VERB_FILTER(VERBOSITY_MODERATE, WARNING__("%s may not handle more than %d indels in SIMD (local alignment) filter (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_COUNT_LIMIT, INDEL_DATA_VECTOR_SIZE, allowed_indels));
-      simd_allowed_diags = INDEL_COUNT_LIMIT;
+      if (allowed_indels >= INDEL_DATA_VECTOR_SIZE) {
+        VERB_FILTER(VERBOSITY_MODERATE, WARNING__("%s may not handle more than %d indels in SIMD (local alignment) filter (%d diagonals).\nHowever final alignment does support this -i <%d> value...\nSo a good idea is to set -z <number> with smaller value than -t <number>.", PROGRAM_NAME, INDEL_DATA_VECTOR_SIZE-1, INDEL_DATA_VECTOR_SIZE, allowed_indels));
+        simd_allowed_diags = INDEL_DATA_VECTOR_SIZE-1;
       } else {
-      simd_allowed_diags = allowed_indels;
+        simd_allowed_diags = allowed_indels;
       }
       break;
     case 'a':
