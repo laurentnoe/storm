@@ -426,21 +426,13 @@ void hit_map__generate_SAM_output(const HitMapType* map,
          */
 
         /* display the read sequence (base format translated if color) */
-#ifndef NUCLEOTIDES
         fprintf(sam_output, "%s\t", translated_read_string);
-      {
-#else
-      if (score_rank) {
-        fprintf(sam_output, "*\t*");
-      } else {
-        fprintf(sam_output, "%s\t", translated_read_string);
-#endif
         /* display the quality (phread) */
         if (reads_db->reads[read_id].quality) {
           if (map->map[read_id][score_rank].sense & ALIGNMENT_SENSE_REVERSE) {
             int q;
             for (q = reads_db->read_len - 1; q >= 0; --q) {
-            fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
+              fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
             }
 #ifndef NUCLEOTIDES
             fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual],126));
@@ -451,51 +443,50 @@ void hit_map__generate_SAM_output(const HitMapType* map,
             fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[reads_db->reads[read_id].first_qual],126));
 #endif
             for (q = 0; q < reads_db->read_len; ++q) {
-            fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
+              fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
             }
           }
         } else {
           /* quality replaced by a "*" if no quality */
           fprintf(sam_output, "*");
         }
-      }
         fprintf(sam_output, "\tAS:i:%d\tNM:i:%d\tNH:i:%d\n", map->map[read_id][score_rank].score, edit_distance, nb_reported);
       }
     } else {
-        if (PRINT_ALL_READS) {
 
-          /* Unmapped read are displayed */
-          ReadDataType* read = &(reads_db->reads[read_id]);
+      if (PRINT_ALL_READS) {
+
+        /* Unmapped read are displayed */
+        ReadDataType* read = &(reads_db->reads[read_id]);
 
 #ifndef NUCLEOTIDES
-          /* reads sequence are in color format, but the problem here is that there is no way to mix "unmapped color reads" with "already translated and mapped nucleotide reads" */
-          fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n", read->info);
+        /* reads sequence are in color format, but the problem here is that there is no way to mix "unmapped color reads" with "already translated and mapped nucleotide reads" */
+        fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n", read->info);
 #else
-          fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t0\t0\t", read->info);
+        fprintf(sam_output, "%s\t4\t*\t0\t255\t*\t*\t0\t0\t", read->info);
 
-          /* read sequence are in base format */
-          {
-            int q;
-            for (q = 0; q < reads_db->read_len; ++q) {
-              fprintf(sam_output, "%c",  BASE_CODE_LETTER[(int)NTH_CODE(read->sequence, q)]);
-            }
-            fprintf(sam_output, "\t");
+        /* read sequence are in base format */
+        {
+          int q;
+          for (q = 0; q < reads_db->read_len; ++q) {
+            fprintf(sam_output, "%c",  BASE_CODE_LETTER[(int)NTH_CODE(read->sequence, q)]);
           }
-          /* display the quality of a base format read (phread) */
-          if (reads_db->reads[read_id].quality) {
-            int q;
-            for (q = 0; q < reads_db->read_len; ++q) {
-              fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
-            }
-          } else {
-            /* quality replaced by a "*" if no quality */
-            fprintf(sam_output, "*");
-          }
-
-          fprintf(sam_output, "\n");
-#endif
+          fprintf(sam_output, "\t");
         }
+        /* display the quality of a base format read (phread) */
+        if (reads_db->reads[read_id].quality) {
+          int q;
+          for (q = 0; q < reads_db->read_len; ++q) {
+            fprintf(sam_output, "%c", MIN(read_quality_min_symbol_code + READ_QUALITY_LEVEL_UPPER_BOUNDS[NTH_QUAL(reads_db->reads[read_id].quality, q)],126));
+          }
+        } else {
+          /* quality replaced by a "*" if no quality */
+          fprintf(sam_output, "*");
+        }
+        fprintf(sam_output, "\n");
+#endif
       }
+    }
   }
   fflush(sam_output);
   free(CIGAR_STRING);
