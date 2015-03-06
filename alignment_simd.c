@@ -1078,6 +1078,7 @@ void alignment_sse2__clean() {if (vMsk128unaligned){ free(vMsk128unaligned); vMs
 #define NEXTREADSEQ_MONO64(inout_byte,inout_nbnuc,                                                                                         \
                            inout_vector,out_vtype_vLA) {                                                                                   \
     if (!inout_nbnuc) {                                                                                                                    \
+      /* inout_vector.u64[0] = *((uint64_t *)(inout_byte)); // WHEN THE NEXT ONE DOES NOT COMPILE : BUGGY SYSTEM */                        \
       inout_vector.v = _mm_cvtsi64_m64(*((uint64_t *)(inout_byte)));                                                                       \
       inout_nbnuc    = 32;                                                                                                                 \
       inout_byte    += 8;                                                                                                                  \
@@ -1140,6 +1141,7 @@ void alignment_sse2__clean() {if (vMsk128unaligned){ free(vMsk128unaligned); vMs
 #define NEXTGENOSEQ_MONO64(inout_subpos,inout_byte,                                                                                        \
                            inout_nbnuc,inout_vector,out_vtype_vLB) {                                                                       \
     if (!inout_nbnuc) {                                                                                                                    \
+      /* inout_vector.u64[0] = *((uint64_t *)(inout_byte)); // WHEN THE NEXT ONE DOES NOT COMPILE : BUGGY SYSTEM */                        \
       inout_vector.v = _mm_cvtsi64_m64(*((uint64_t *)(inout_byte)));                                                                       \
       inout_nbnuc    = 32;                                                                                                                 \
       inout_byte    += 8;                                                                                                                  \
@@ -1197,6 +1199,7 @@ void alignment_sse2__clean() {if (vMsk128unaligned){ free(vMsk128unaligned); vMs
 #define NEXTGENOSEQ_NOSUB_MONO64(inout_byte,                                                                                               \
                                  inout_nbnuc,inout_vector,out_vtype_vLB) {                                                                 \
     if (!inout_nbnuc) {                                                                                                                    \
+      /* inout_vector.u64[0] = *((uint64_t *)(inout_byte)); // WHEN THE NEXT ONE DOES NOT COMPILE : BUGGY SYSTEM */                        \
       inout_vector.v = _mm_cvtsi64_m64(*((uint64_t *)(inout_byte)));                                                                       \
       inout_nbnuc    = 32;                                                                                                                 \
       inout_byte    += 8;                                                                                                                  \

@@ -59,12 +59,12 @@ extern ScoreType min_accepted_score_simd_filter;
 #define TRACEBACK_PAIR_MASK           0xC /* 11XX */
 #define TRACEBACK_CODE_MASK           0x3 /* XX11 */
 /* codes for traceback : note that some can overlap letter codes !!! */
-#define TRACEBACK_PAIR_MATCH          0x3 /* 0         */
-#define TRACEBACK_PAIR_CODE_MISMATCH  0x4 /* 01XX (XX = color code in the read) */
+#define TRACEBACK_PAIR_MATCH          0x3 /* 0011 */
+#define TRACEBACK_PAIR_CODE_MISMATCH  0x4 /* 01XX (XX = (color) code in the read) */
 #ifndef NUCLEOTIDES
 #define TRACEBACK_PAIR_COLORBASE_MISMATCH  0x8 /* 10XX (XX = color code in the read) */
 #endif
-#define TRACEBACK_PAIR_READ_INSERTION      0xC /* 11XX (XX = color code inserted in the read)*/
+#define TRACEBACK_PAIR_READ_INSERTION      0xC /* 11XX (XX = (color) code inserted in the read) */
 #define TRACEBACK_PAIR_READ_DELETION       0x1 /* 0001 */
 #define TRACEBACK_PAIR_UNDEFINED           0x0 /* 0000 */
 
