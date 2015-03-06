@@ -73,7 +73,7 @@ int sort_reads_db(ReadsDBType * db) {
 /**
  * Load fasta/csfasta reads file
  */
-static int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_filename, ReadsDBType* db) {
+int load_reads_db_fasta_csfasta(const char* reads_filename, const char* quals_filename, ReadsDBType* db) {
   char line[MAX_LINE_LEN];
   char* read_result;
   FILE* reads_in = NULL;
@@ -351,7 +351,7 @@ static int load_reads_db_fasta_csfasta(const char* reads_filename, const char* q
 /**
  * Load fastq reads file
  */
-static int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
+int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
   char line[MAX_LINE_LEN];
   char* read_result;
   FILE* reads_in = NULL;
@@ -569,7 +569,7 @@ static int load_reads_db_fastq(const char* reads_filename, ReadsDBType* db) {
 }
 
 int load_reads_db(const char* reads_filename, const char* quals_filename, ReadsDBType* db) {
-  char * pos_dot = rindex(reads_filename, '.');
+  char * pos_dot = strrchr(reads_filename, '.');
   if ((pos_dot != NULL)  &&  ((strcmp(pos_dot,".fastq") == 0) || (strcmp(pos_dot,".fq") == 0) || (strcmp(pos_dot,".fastq2") == 0) ||( strcmp(pos_dot,".fq2") == 0))) {
     return load_reads_db_fastq(reads_filename, db);
   } else {
