@@ -49,23 +49,20 @@ static int sort_reads_fun(const void *a, const void *b) {
   return 0;
 }
 
-
-void psort() __attribute__((weak));
+#if defined(__APPLE__) && defined (__MACH__)
+   void psort() __attribute__ ((weak));
+#endif
 
 /**
  * Sort a read database (alphanumeric order)
  */
 int sort_reads_db(ReadsDBType * db) {
+#if defined(__APPLE__) && defined (__MACH__)
   if (psort)
-    psort((void *)db->reads/*base*/,
-          (size_t)db->size /*nel*/,
-          (size_t)(sizeof(ReadDataType))/*width*/,
-          sort_reads_fun/*int (*compar)(const void *, const void *)*/);
+    psort((void *) db->reads, (size_t) db->size, (size_t) sizeof(ReadDataType), sort_reads_fun);
   else
-    qsort((void *)db->reads/*base*/,
-          (size_t)db->size /*nel*/,
-          (size_t)(sizeof(ReadDataType))/*width*/,
-          sort_reads_fun/*int (*compar)(const void *, const void *)*/);
+#endif
+    qsort((void *) db->reads, (size_t) db->size, (size_t) sizeof(ReadDataType), sort_reads_fun);
   return 0;
 }
 
