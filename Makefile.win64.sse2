@@ -1,0 +1,21 @@
+CC      = x86_64-w64-mingw32-gcc
+
+CFLAGS  = -m64 -Wall -msse2 -Ofast -D__SSE__ -D__SSE2__ -U__AVX2__
+CFLAGS += -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -static
+
+LDFLAGS = -lm
+
+ALL_C   = main.c alignment.c alignment_simd.c codes.c hit_map.c \
+   index.c load_data.c genome_map.c reads_data.c read_quality.c \
+   reference_data.c run.c seed.c stats.c util.c
+
+all: storm-color-sse2-win64-gcc.exe storm-nucleotide-sse2-win64-gcc.exe
+
+storm-color-sse2-win64-gcc.exe :
+	${CC} ${ALL_C} -o storm-color-sse2-win64-gcc.exe ${CFLAGS} ${LDFLAGS}
+
+storm-nucleotide-sse2-win64-gcc.exe :
+	${CC} -DNUCLEOTIDES ${ALL_C} -o storm-nucleotide-sse2-win64-gcc.exe ${CFLAGS} ${LDFLAGS}
+
+clean:
+	rm -f *~ storm-color-sse2-win64-gcc.exe storm-nucleotide-sse2-win64-gcc.exe
