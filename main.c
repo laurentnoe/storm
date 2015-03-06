@@ -47,13 +47,13 @@ extern int read_quality_min_symbol_code;
     }                                                                           \
   }
 
-#define STRING_VALUE_FROM_OPTION(target) {                                                                            \
-    if ((strlen(optarg) == 2) && (optarg[0] == '-') && (optarg[1] != ':') && (index(optstring, optarg[1]) != NULL)) { \
-      ERROR__("Mandatory parameter missing for option %c.", option);                                                  \
-      exit(1);                                                                                                        \
-    } else {                                                                                                          \
-      target = optarg;                                                                                                \
-    }                                                                                                                 \
+#define STRING_VALUE_FROM_OPTION(target) {                                                                             \
+    if ((strlen(optarg) == 2) && (optarg[0] == '-') && (optarg[1] != ':') && (strchr(optstring, optarg[1]) != NULL)) { \
+      ERROR__("Mandatory parameter missing for option %c.", option);                                                   \
+      exit(1);                                                                                                         \
+    } else {                                                                                                           \
+      target = optarg;                                                                                                 \
+    }                                                                                                                  \
   }
 
 #define HANDLE_INVALID_NUMERIC_VALUE(value, default_) {                                              \
@@ -99,7 +99,7 @@ static void show_usage(char * progname, char* default_seeds) {
   MESSAGE__("\n\033[37;1mOptional:\033[0m\n");
   DISPLAY_OPTION("q <qualities_file>",  "Name of the qualities file (qual).\n");
   DISPLAY_OPTION("s <seed list>", "The  seed family  to be used for filtering. It should be\n"
-                 "\t   of the form \"#-#-#;##--#\" or \"10101;11001\"  (seeds separated by ';').\n"
+                 "\t   of the form \"#-#-#;##--#\" or \"10101;11001\"  (seeds separated by ';' or '\\;').\n"
                  "\t   These seeds are applied on every position of the read. To restrict to\n"
                  "\t   certain positions, the list of wanted positions w.r.t the read can\n"
                  "\t   be mentioned after each seed, as follows: \n"

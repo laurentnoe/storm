@@ -9,6 +9,14 @@
 #define IS_UNDEFINED(code) (!((code) ^ SEED_UNDEFINED))
 #define IS_SEED_MATCH(code) ((code) & SEED_MATCH_MASK)
 
+
+
+/* the Windows world company ... */
+#if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
+# define strtok_r strtok_s
+#endif
+
+
 /**
  * Create a seed from a pattern
  * @param pattern Accepted forms: "1        001...:pos1 pos2 pos3..." or "#-##--#..:pos1 pos2 pos3..."
@@ -21,7 +29,7 @@ SeedType* seed__create(const char* pattern) {
   SeedType* seed;
   SAFE_FAILURE__ALLOC(seed, 1, SeedType);
   //process the pattern before ':'
-  pos_list = index(pattern, SEED_POS_LIST_DELIMITER);
+  pos_list = strchr(pattern, SEED_POS_LIST_DELIMITER);
   seed->length = strlen(pattern) - ((pos_list) ? strlen(pos_list) : 0);
   SAFE_FAILURE__ALLOC(seed->seed, seed->length, CODE_TYPE);
   seed->weight = 0;
@@ -56,9 +64,9 @@ SeedType* seed__create(const char* pattern) {
 
       /* count the positions */
       while (scanner && (
-        (pos_ptr = index (scanner, SEED_POS_DELIMITER_1))
+        (pos_ptr = strchr(scanner, SEED_POS_DELIMITER_1))
         ||
-        (pos_ptr = index (scanner, SEED_POS_DELIMITER_2))
+        (pos_ptr = strchr(scanner, SEED_POS_DELIMITER_2))
         )) {
         seed->positions_count++;
         scanner = pos_ptr + 1;
@@ -78,6 +86,7 @@ SeedType* seed__create(const char* pattern) {
   } /* IF: the position list is not an empty string */
   return seed;
 }
+
 /**
  * Creates an array of seeds from an input string of the form
  * <seed_pattern>(<seed_delimiter><seed_pattern>)*
@@ -99,7 +108,7 @@ int seed__parse_list(const char* src, SeedType*** seeds) {
 
   src_copy2 = src_copy;
 
-  while ((src_copy2 = index(src_copy2, SEED_DELIMITER))) {
+  while ((src_copy2 = strchr(src_copy2, SEED_DELIMITER))) {
     ++seed_count;
     ++src_copy2;
   }
