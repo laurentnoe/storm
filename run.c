@@ -2,7 +2,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
 #include <xmmintrin.h>
 #endif
 #include "run.h"
@@ -177,7 +177,7 @@ void(* const simd_clean_fct)() = &alignment_sse__clean;
 #define SIMD_SUPPORT_CHECK {if (!alignment_sse__compatible_proc()) {ERROR__("\nCPU is not compatible with SSE instructions set.\nExiting.\n"); exit(1);}}
 #else
 
-#warning "No __AVX2__, __SSE2__, __SSE__ defined : this program will be slow !!"
+#warning "No __AVX512BW__, __AVX2__, __SSE2__, __SSE__ defined : this program will be slow !!"
 
 #define MAX_MULTIPLE_HITS 1
 
@@ -214,7 +214,7 @@ int(* const simd_fct_table[INDEL_DATA_VECTOR_SIZE])(unsigned char *, int *, unsi
 };
 const int simd_N_BYTE_table[INDEL_DATA_VECTOR_SIZE] = {1, 1, 1, 1, 1, 1, 1, 1};
 void(* const simd_clean_fct)() = &fake_clean;
-#define SIMD_SUPPORT_CHECK {VERB_FILTER(VERBOSITY_MODERATE, WARNING__("\n This program has been compiled without any __AVX2__, __SSE2__, __SSE__ defined : it will be slow !!\n Good night ...\n"));}
+#define SIMD_SUPPORT_CHECK {VERB_FILTER(VERBOSITY_MODERATE, WARNING__("\n This program has been compiled without any __AVX512BW__, __AVX2__, __SSE2__, __SSE__ defined : it will be slow !!\n Good night ...\n"));}
 #endif
 #endif
 #endif
@@ -585,9 +585,9 @@ static inline void process_read(
         int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos], hit_pointer[si]+read_pos);
         if (ref_pos >= 0) {
           ref_pos -= read_pos;
-#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
 #include <xmmintrin.h>
-          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_T1);
+          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_NTA);
 #endif
           INSERT_HEAP(heap,heap_size,ref_pos,read_pos,si);
         }
@@ -599,8 +599,8 @@ static inline void process_read(
         int ref_pos       = index__get_extern_next_hit(indexes[si], key[si][read_pos], hit_pointer[si]+read_pos);
         if (ref_pos >= 0) {
           ref_pos -= read_pos;
-#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
-          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_T1);
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
+          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_NTA);
 #endif
           INSERT_HEAP(heap,heap_size,ref_pos,read_pos,si);
         }
@@ -629,8 +629,8 @@ static inline void process_read(
 
     if (new_ref_pos >= 0) {
       new_ref_pos -= read_pos;
-#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__)
-      _mm_prefetch((char*)ref_seq + (new_ref_pos >> 2), _MM_HINT_T1);
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
+      _mm_prefetch((char*)ref_seq + (new_ref_pos >> 2), _MM_HINT_NTA);
 #endif
       REP_TOP_SIEVE_HEAP(heap,heap_size,new_ref_pos,read_pos,seed_id);
     } else {

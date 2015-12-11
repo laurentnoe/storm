@@ -13,7 +13,7 @@
 
 /* the Windows world company ... */
 #if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
-# define strtok_r strtok_s
+#define strtok_r strtok_s
 #endif
 
 
