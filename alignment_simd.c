@@ -491,16 +491,16 @@ int alignment_sse__compatible_proc() {
     inout_nbnuc_vector.v = EPI64_TYPE(_mm512_sub)(inout_nbnuc_vector.v,vOnes512);                                                          \
 }
 
-VTYPE512  vThreshold512     __attribute__ ((aligned (64))),
-          vMatchS512        __attribute__ ((aligned (64))),
-          vMismatchS512     __attribute__ ((aligned (64))),
-          vIndelOpenS512    __attribute__ ((aligned (64))),
-          vIndelExtendsS512 __attribute__ ((aligned (64))),
-          vOnes512          __attribute__ ((aligned (64))),
-          vBufferMask512    __attribute__ ((aligned (64))),
-         *vMsk512           __attribute__ ((aligned (64)));
+VTYPE512   vThreshold512     __attribute__ ((aligned (64))),
+           vMatchS512        __attribute__ ((aligned (64))),
+           vMismatchS512     __attribute__ ((aligned (64))),
+           vIndelOpenS512    __attribute__ ((aligned (64))),
+           vIndelExtendsS512 __attribute__ ((aligned (64))),
+           vOnes512          __attribute__ ((aligned (64))),
+           vBufferMask512    __attribute__ ((aligned (64)));
+__mmask64 *vMsk512           __attribute__ ((aligned (64)));
 
-void     *vMsk512unaligned = NULL;
+void      *vMsk512unaligned = NULL;
 
 void alignment_avx512bw__clean() {if (vMsk512unaligned){ free(vMsk512unaligned); vMsk512unaligned = NULL;}}
 
@@ -1265,7 +1265,7 @@ void alignment_avx512bw__setlength_quad(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk512unaligned)
     free(vMsk512unaligned);
-  vMsk512unaligned = malloc(prlength * sizeof(VTYPE512) + 63);
+  vMsk512unaligned = malloc(prlength * sizeof(__mmask64) + 63);
   if (!vMsk512unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
@@ -1275,20 +1275,9 @@ void alignment_avx512bw__setlength_quad(const unsigned int readlength) {
   vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
-  vMsk512[0] = EPI64_TYPE(_mm512_set)(0xff00000000000000LL,
-                                      0x0000000000000000LL,
-                                      0xff00000000000000LL,
-                                      0x0000000000000000LL,
-                                      0xff00000000000000LL,
-                                      0x0000000000000000LL,
-                                      0xff00000000000000LL,
-                                      0x0000000000000000LL);
+  vMsk512[0] = 0x8000800080008000LL;
 #ifdef DEBUG_SIMD
-  {
-    vector512_t Msk;
-    Msk.v = vMsk512[0];
-    fprintf(stderr,"[0]\t Msk:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[7]),(Msk.u64[6]),(Msk.u64[5]),(Msk.u64[4]),(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
-  }
+  fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[0]);
 #endif
   unsigned int l;
   for (l = 1; l < prlength; l++) {
@@ -1297,20 +1286,16 @@ void alignment_avx512bw__setlength_quad(const unsigned int readlength) {
     if (!(l & 1)) {
       /* mask at the end */
       if (l >= prlength - 15*2) {
-        vMsk512[l] = EPI128_TYPE(_mm512_bsrli)(vMsk512[l],(1));
+        vMsk512[l] = vMsk512[l] >> 1;
       } else {
         /* mask at the beginning */
         if (l <= 15*2) {
-          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI128_TYPE(_mm512_bsrli)(vMsk512[l],(1)));
+          vMsk512[l] = (vMsk512[l-1] >> 1) | 0x8000800080008000LL;
         }
       }
     }
 #ifdef DEBUG_SIMD
-    {
-      vector512_t Msk;
-      Msk.v = vMsk512[l];
-      fprintf(stderr,"[0]\t Msk:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[7]),(Msk.u64[6]),(Msk.u64[5]),(Msk.u64[4]),(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
-    }
+    fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[l]);
 #endif
   }/* for l */
 }
@@ -1324,7 +1309,7 @@ void alignment_avx512bw__setlength_octa(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk512unaligned)
     free(vMsk512unaligned);
-  vMsk512unaligned = malloc(prlength * sizeof(VTYPE512) + 63);
+  vMsk512unaligned = malloc(prlength * sizeof(__mmask64) + 63);
   if (!vMsk512unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
@@ -1334,20 +1319,9 @@ void alignment_avx512bw__setlength_octa(const unsigned int readlength) {
   vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
-  vMsk512[0] = EPI64_TYPE(_mm512_set)(0xff00000000000000LL,
-                                      0xff00000000000000LL,
-                                      0xff00000000000000LL,
-                                      0xff00000000000000LL,
-                                      0xff00000000000000LL,
-                                      0xff00000000000000LL,
-                                      0xff00000000000000LL,
-                                      0xff00000000000000LL);
+  vMsk512[0] = 0x8080808080808080LL;
 #ifdef DEBUG_SIMD
-  {
-    vector512_t Msk;
-    Msk.v = vMsk512[0];
-    fprintf(stderr,"[0]\t Msk:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[7]),(Msk.u64[6]),(Msk.u64[5]),(Msk.u64[4]),(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
-  }
+  fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[0]);
 #endif
   unsigned int l;
   for (l = 1; l < prlength; l++) {
@@ -1356,20 +1330,16 @@ void alignment_avx512bw__setlength_octa(const unsigned int readlength) {
     if (!(l & 1)) {
       /* mask at the end */
       if (l >= prlength - 7*2) {
-        vMsk512[l] = EPI64_TYPE(_mm512_srli)(vMsk512[l],(1)*8);
+        vMsk512[l] = vMsk512[l - 1] >> 1;
       } else {
         /* mask at the beginning */
         if (l <= 7*2) {
-          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI64_TYPE(_mm512_srli)(vMsk512[l],(1)*8));
+          vMsk512[l] = (vMsk512[l - 1] >> 1) | 0x8080808080808080LL;
         }
       }
     }
 #ifdef DEBUG_SIMD
-    {
-      vector512_t Msk;
-      Msk.v = vMsk512[l];
-      fprintf(stderr,"[0]\t Msk:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[7]),(Msk.u64[6]),(Msk.u64[5]),(Msk.u64[4]),(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
-    }
+    fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[l]);
 #endif
   }/* for l */
 }
@@ -1383,7 +1353,7 @@ void alignment_avx512bw__setlength_hexa(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk512unaligned)
     free(vMsk512unaligned);
-  vMsk512unaligned = malloc(prlength * sizeof(VTYPE512) + 63);
+  vMsk512unaligned = malloc(prlength * sizeof(__mmask64) + 63);
   if (!vMsk512unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
@@ -1393,28 +1363,9 @@ void alignment_avx512bw__setlength_hexa(const unsigned int readlength) {
   vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
-  vMsk512[0] = EPI32_TYPE(_mm512_set)(0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000,
-                                      0xff000000);
+  vMsk512[0] = 0x8888888888888888LL;
 #ifdef DEBUG_SIMD
-  {
-    vector512_t Msk;
-    Msk.v = vMsk512[0];
-    fprintf(stderr,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[15]),(Msk.u32[14]),(Msk.u32[13]),(Msk.u32[12]),(Msk.u32[11]),(Msk.u32[10]),(Msk.u32[9]),(Msk.u32[8]),(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
-  }
+  fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[0]);
 #endif
   unsigned int l;
   for (l = 1; l < prlength; l++) {
@@ -1423,20 +1374,16 @@ void alignment_avx512bw__setlength_hexa(const unsigned int readlength) {
     if (!(l & 1)) {
       /* mask at the end */
       if (l >= prlength - 3*2) {
-        vMsk512[l] = EPI32_TYPE(_mm512_srli)(vMsk512[l],(1)*8);
+        vMsk512[l] = vMsk512[l - 1] >> 1;
       } else {
         /* mask at the beginning */
         if (l <= 3*2) {
-          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI32_TYPE(_mm512_srli)(vMsk512[l],(1)*8));
+          vMsk512[l] = (vMsk512[l - 1] >> 1) | 0x8888888888888888LL;
         }
       }
     }
 #ifdef DEBUG_SIMD
-    {
-      vector512_t Msk;
-      Msk.v = vMsk512[l];
-      fprintf(stderr,"[0]\t Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[15]),(Msk.u32[14]),(Msk.u32[13]),(Msk.u32[12]),(Msk.u32[11]),(Msk.u32[10]),(Msk.u32[9]),(Msk.u32[8]),(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
-    }
+    fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[l]);
 #endif
   }/* for l */
 }
@@ -1450,7 +1397,7 @@ void alignment_avx512bw__setlength_tria(const unsigned int readlength) {
   /* allocating/reallocating mask table */
   if (vMsk512unaligned)
     free(vMsk512unaligned);
-  vMsk512unaligned = malloc(prlength * sizeof(VTYPE512) + 63);
+  vMsk512unaligned = malloc(prlength * sizeof(__mmask64) + 63);
   if (!vMsk512unaligned) {
     fprintf(stderr,"\033[31;1m");
     fprintf(stderr,"\nNot enough available memory.\n%s:%d\n\nExiting.\n", __FILE__, __LINE__);
@@ -1460,28 +1407,9 @@ void alignment_avx512bw__setlength_tria(const unsigned int readlength) {
   vMsk512 = (void *) ((uintptr_t) ((char *) vMsk512unaligned + 63) & ~0x3f);
 
   /* init mask table */
-  vMsk512[0] = EPI32_TYPE(_mm512_set)(0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00,
-                                      0xff00ff00);
+  vMsk512[0] = 0xaaaaaaaaaaaaaaaaLL;
 #ifdef DEBUG_SIMD
-  {
-    vector512_t Msk;
-    Msk.v = vMsk512[0];
-    fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[31]),(Msk.u16[30]),(Msk.u16[29]),(Msk.u16[28]),(Msk.u16[27]),(Msk.u16[26]),(Msk.u16[25]),(Msk.u16[24]),(Msk.u16[23]),(Msk.u16[22]),(Msk.u16[21]),(Msk.u16[20]),(Msk.u16[19]),(Msk.u16[18]),(Msk.u16[17]),(Msk.u16[16]),(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
-  }
+  fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[0]);
 #endif
   unsigned int l;
   for (l = 1; l < prlength; l++) {
@@ -1490,20 +1418,16 @@ void alignment_avx512bw__setlength_tria(const unsigned int readlength) {
     if (!(l & 1)) {
       /* mask at the end */
       if (l >= prlength - 1*2) {
-        vMsk512[l] = EPI16_TYPE(_mm512_srli)(vMsk512[l],(1)*8);
+        vMsk512[l] = vMsk512[l - 1] >> 1;
       } else {
         /* mask at the beginning */
         if (l <= 1*2) {
-          vMsk512[l] = SI512_TYPE(_mm512_or)(vMsk512[l-1],EPI16_TYPE(_mm512_srli)(vMsk512[l],(1)*8));
+          vMsk512[l] = (vMsk512[l - 1] >> 1) | 0xaaaaaaaaaaaaaaaaLL;
         }
       }
     }
 #ifdef DEBUG_SIMD
-    {
-      vector512_t Msk;
-      Msk.v = vMsk512[l];
-      fprintf(stderr,"[0]\t Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[31]),(Msk.u16[30]),(Msk.u16[29]),(Msk.u16[28]),(Msk.u16[27]),(Msk.u16[26]),(Msk.u16[25]),(Msk.u16[24]),(Msk.u16[23]),(Msk.u16[22]),(Msk.u16[21]),(Msk.u16[20]),(Msk.u16[19]),(Msk.u16[18]),(Msk.u16[17]),(Msk.u16[16]),(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
-    }
+    fprintf(stderr,"[0]\t Msk:%.16llx\n",vMsk512[l]);
 #endif
   }/* for l */
 }
@@ -1522,13 +1446,6 @@ void alignment_avx512bw__setlength_tria(const unsigned int readlength) {
  */
 
 void alignment_avx512bw__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_avx512bw__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX512BW instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -1550,13 +1467,6 @@ void alignment_avx512bw__init_quad(const unsigned int match, const unsigned int 
 
 void alignment_avx512bw__init_octa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx512bw__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX512BW instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -1577,13 +1487,6 @@ void alignment_avx512bw__init_octa(const unsigned int match, const unsigned int 
 
 void alignment_avx512bw__init_hexa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx512bw__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX512BW instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -1603,13 +1506,6 @@ void alignment_avx512bw__init_hexa(const unsigned int match, const unsigned int 
 
 
 void alignment_avx512bw__init_tria(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_avx512bw__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX512BW instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -1770,7 +1666,7 @@ unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
         vI                    = EPU8_TYPE(_mm512_subs)(vI_old_merge,vIndelExtendsS512);
         VTYPE512 vIstart      = EPU8_TYPE(_mm512_subs)(vM_old_merge,vIndelOpenS512);
         vI                    = EPU8_TYPE(_mm512_max)(vI,vIstart);
-        vM                    = EPU8_TYPE(_mm512_max)(vM,vI);
+        vM                    = EPU8_TYPE(_mm512_maskz_max)(vMsk512[l],vM,vI);
       }
 
 #ifdef DEBUG_SIMD
@@ -1783,16 +1679,14 @@ unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
       }
 #endif
 
-      vM    = SI512_TYPE(_mm512_and)(vM,vMsk512[l]);
       vMMax = EPU8_TYPE(_mm512_max)(vMMax,vM);
 
 #ifdef DEBUG_SIMD
       {
-        vector512_t Msk,M,Max;
-        Msk.v = vMsk512[l];
+        vector512_t M,Max;
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stderr,"[1]\t>Msk:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(Msk.u64[7]),(Msk.u64[6]),(Msk.u64[5]),(Msk.u64[4]),(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx\n",vMsk512[l]);
         fprintf(stderr,"[1]\t>  M:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(  M.u64[7]),(  M.u64[6]),(  M.u64[5]),(  M.u64[4]),(  M.u64[3]),(  M.u64[2]),(  M.u64[1]),(  M.u64[0]));
         fprintf(stderr,"[1]\t>Max:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(Max.u64[7]),(Max.u64[6]),(Max.u64[5]),(Max.u64[4]),(Max.u64[3]),(Max.u64[2]),(Max.u64[1]),(Max.u64[0]));
       }
@@ -1955,7 +1849,7 @@ unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
         vI                    = EPU8_TYPE(_mm512_subs)(vI_old_merge,vIndelExtendsS512);
         VTYPE512 vIstart      = EPU8_TYPE(_mm512_subs)(vM_old_merge,vIndelOpenS512);
         vI                    = EPU8_TYPE(_mm512_max)(vI,vIstart);
-        vM                    = EPU8_TYPE(_mm512_max)(vM,vI);
+        vM                    = EPU8_TYPE(_mm512_maskz_max)(vMsk512[l],vM,vI);
       }
 
 #ifdef DEBUG_SIMD
@@ -1968,16 +1862,14 @@ unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
       }
 #endif
 
-      vM    = SI512_TYPE(_mm512_and)(vM,vMsk512[l]);
       vMMax = EPU8_TYPE(_mm512_max)(vMMax,vM);
 
 #ifdef DEBUG_SIMD
       {
-        vector512_t Msk,M,Max;
-        Msk.v = vMsk512[l];
+        vector512_t M,Max;
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stderr,"[1]\t>Msk:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(Msk.u64[7]),(Msk.u64[6]),(Msk.u64[5]),(Msk.u64[4]),(Msk.u64[3]),(Msk.u64[2]),(Msk.u64[1]),(Msk.u64[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx\n",vMsk512[l]);
         fprintf(stderr,"[1]\t>  M:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(  M.u64[7]),(  M.u64[6]),(  M.u64[5]),(  M.u64[4]),(  M.u64[3]),(  M.u64[2]),(  M.u64[1]),(  M.u64[0]));
         fprintf(stderr,"[1]\t>Max:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(Max.u64[7]),(Max.u64[6]),(Max.u64[5]),(Max.u64[4]),(Max.u64[3]),(Max.u64[2]),(Max.u64[1]),(Max.u64[0]));
       }
@@ -2140,7 +2032,7 @@ unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
         vI                    = EPU8_TYPE(_mm512_subs)(vI_old_merge,vIndelExtendsS512);
         VTYPE512 vIstart      = EPU8_TYPE(_mm512_subs)(vM_old_merge,vIndelOpenS512);
         vI                    = EPU8_TYPE(_mm512_max)(vI,vIstart);
-        vM                    = EPU8_TYPE(_mm512_max)(vM,vI);
+        vM                    = EPU8_TYPE(_mm512_maskz_max)(vMsk512[l],vM,vI);
       }
 
 #ifdef DEBUG_SIMD
@@ -2153,16 +2045,14 @@ unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
       }
 #endif
 
-      vM    = SI512_TYPE(_mm512_and)(vM,vMsk512[l]);
       vMMax = EPU8_TYPE(_mm512_max)(vMMax,vM);
 
 #ifdef DEBUG_SIMD
       {
-        vector512_t Msk,M,Max;
-        Msk.v = vMsk512[l];
+        vector512_t M,Max;
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stderr,"[1]\t>Msk:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Msk.u32[15]),(Msk.u32[14]),(Msk.u32[13]),(Msk.u32[12]),(Msk.u32[11]),(Msk.u32[10]),(Msk.u32[9]),(Msk.u32[8]),(Msk.u32[7]),(Msk.u32[6]),(Msk.u32[5]),(Msk.u32[4]),(Msk.u32[3]),(Msk.u32[2]),(Msk.u32[1]),(Msk.u32[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx\n",vMsk512[l]);
         fprintf(stderr,"[1]\t>  M:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(  M.u32[15]),(  M.u32[14]),(  M.u32[13]),(  M.u32[12]),(  M.u32[11]),(  M.u32[10]),(  M.u32[9]),(  M.u32[8]),(  M.u32[7]),(  M.u32[6]),(  M.u32[5]),(  M.u32[4]),(  M.u32[3]),(  M.u32[2]),(  M.u32[1]),(  M.u32[0]));
         fprintf(stderr,"[1]\t>Max:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(Max.u32[15]),(Max.u32[14]),(Max.u32[13]),(Max.u32[12]),(Max.u32[11]),(Max.u32[10]),(Max.u32[9]),(Max.u32[8]),(Max.u32[7]),(Max.u32[6]),(Max.u32[5]),(Max.u32[4]),(Max.u32[3]),(Max.u32[2]),(Max.u32[1]),(Max.u32[0]));
       }
@@ -2325,7 +2215,7 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
         vI                    = EPU8_TYPE(_mm512_subs)(vI_old_merge,vIndelExtendsS512);
         VTYPE512 vIstart      = EPU8_TYPE(_mm512_subs)(vM_old_merge,vIndelOpenS512);
         vI                    = EPU8_TYPE(_mm512_max)(vI,vIstart);
-        vM                    = EPU8_TYPE(_mm512_max)(vM,vI);
+        vM                    = EPU8_TYPE(_mm512_maskz_max)(vMsk512[l],vM,vI);
       }
 
 #ifdef DEBUG_SIMD
@@ -2338,16 +2228,14 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
       }
 #endif
 
-      vM    = SI512_TYPE(_mm512_and)(vM,vMsk512[l]);
       vMMax = EPU8_TYPE(_mm512_max)(vMMax,vM);
 
 #ifdef DEBUG_SIMD
       {
-        vector512_t Msk,M,Max;
-        Msk.v = vMsk512[l];
+        vector512_t M,Max;
         M.v   = vM;
         Max.v = vMMax;
-        fprintf(stderr,"[1]\t>Msk:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Msk.u16[31]),(Msk.u16[30]),(Msk.u16[29]),(Msk.u16[28]),(Msk.u16[27]),(Msk.u16[26]),(Msk.u16[25]),(Msk.u16[24]),(Msk.u16[23]),(Msk.u16[22]),(Msk.u16[21]),(Msk.u16[20]),(Msk.u16[19]),(Msk.u16[18]),(Msk.u16[17]),(Msk.u16[16]),(Msk.u16[15]),(Msk.u16[14]),(Msk.u16[13]),(Msk.u16[12]),(Msk.u16[11]),(Msk.u16[10]),(Msk.u16[9]),(Msk.u16[8]),(Msk.u16[7]),(Msk.u16[6]),(Msk.u16[5]),(Msk.u16[4]),(Msk.u16[3]),(Msk.u16[2]),(Msk.u16[1]),(Msk.u16[0]));
+        fprintf(stderr,"[1]\t>Msk:%.16llx\n",vMsk512[l]);
         fprintf(stderr,"[1]\t>  M:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(  M.u16[31]),(  M.u16[30]),(  M.u16[29]),(  M.u16[28]),(  M.u16[27]),(  M.u16[26]),(  M.u16[25]),(  M.u16[24]),(  M.u16[23]),(  M.u16[22]),(  M.u16[21]),(  M.u16[20]),(  M.u16[19]),(  M.u16[18]),(  M.u16[17]),(  M.u16[16]),(  M.u16[15]),(  M.u16[14]),(  M.u16[13]),(  M.u16[12]),(  M.u16[11]),(  M.u16[10]),(  M.u16[9]),(  M.u16[8]),(  M.u16[7]),(  M.u16[6]),(  M.u16[5]),(  M.u16[4]),(  M.u16[3]),(  M.u16[2]),(  M.u16[1]),(  M.u16[0]));
         fprintf(stderr,"[1]\t>Max:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(Max.u16[31]),(Max.u16[30]),(Max.u16[29]),(Max.u16[28]),(Max.u16[27]),(Max.u16[26]),(Max.u16[25]),(Max.u16[24]),(Max.u16[23]),(Max.u16[22]),(Max.u16[21]),(Max.u16[20]),(Max.u16[19]),(Max.u16[18]),(Max.u16[17]),(Max.u16[16]),(Max.u16[15]),(Max.u16[14]),(Max.u16[13]),(Max.u16[12]),(Max.u16[11]),(Max.u16[10]),(Max.u16[9]),(Max.u16[8]),(Max.u16[7]),(Max.u16[6]),(Max.u16[5]),(Max.u16[4]),(Max.u16[3]),(Max.u16[2]),(Max.u16[1]),(Max.u16[0]));
       }
@@ -2633,13 +2521,6 @@ void alignment_avx2__setlength_hexa(const unsigned int readlength) {
 
 void alignment_avx2__init_pair(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -2659,13 +2540,6 @@ void alignment_avx2__init_pair(const unsigned int match, const unsigned int mism
 
 
 void alignment_avx2__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_avx2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -2687,13 +2561,6 @@ void alignment_avx2__init_quad(const unsigned int match, const unsigned int mism
 
 void alignment_avx2__init_octa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_avx2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -2713,13 +2580,6 @@ void alignment_avx2__init_octa(const unsigned int match, const unsigned int mism
 
 
 void alignment_avx2__init_hexa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_avx2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with AVX2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -3779,13 +3639,6 @@ void alignment_sse2__setlength_octa(const unsigned int readlength) {
 
 void alignment_sse2__init_mono(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -3805,13 +3658,6 @@ void alignment_sse2__init_mono(const unsigned int match, const unsigned int mism
 
 
 void alignment_sse2__init_pair(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_sse2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -3833,13 +3679,6 @@ void alignment_sse2__init_pair(const unsigned int match, const unsigned int mism
 
 void alignment_sse2__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -3859,14 +3698,6 @@ void alignment_sse2__init_quad(const unsigned int match, const unsigned int mism
 
 
 void alignment_sse2__init_octa(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_sse2__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE2 instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
@@ -4862,13 +4693,6 @@ void alignment_sse__setlength_quad(const unsigned int readlength) {
 
 void alignment_sse__init_mono(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -4889,13 +4713,6 @@ void alignment_sse__init_mono(const unsigned int match, const unsigned int misma
 
 void alignment_sse__init_pair(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
 
-  if (!alignment_sse__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
-
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
   if (u_threshold >= 255)
@@ -4915,13 +4732,6 @@ void alignment_sse__init_pair(const unsigned int match, const unsigned int misma
 
 
 void alignment_sse__init_quad(const unsigned int match, const unsigned int mismatch, const unsigned int gapopen, const unsigned int gapextends, const unsigned int threshold, const unsigned int readlength) {
-
-  if (!alignment_sse__compatible_proc()) {
-    fprintf(stderr,"\033[31;1m");
-    fprintf(stderr,"\nCPU is not compatible with SSE instructions set.\nExiting.\n");
-    fprintf(stderr,"\033[0m\n");
-    exit(1);
-  }
 
   /* set maximal acceptable threshold for filtering */
   unsigned int u_threshold = threshold;
