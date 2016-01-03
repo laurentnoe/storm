@@ -587,7 +587,7 @@ static inline void process_read(
           ref_pos -= read_pos;
 #if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
 #include <xmmintrin.h>
-          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_NTA);
+          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_T0);
 #endif
           INSERT_HEAP(heap,heap_size,ref_pos,read_pos,si);
         }
@@ -600,7 +600,7 @@ static inline void process_read(
         if (ref_pos >= 0) {
           ref_pos -= read_pos;
 #if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
-          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_NTA);
+          _mm_prefetch((char*)ref_seq + (ref_pos >> 2), _MM_HINT_T0);
 #endif
           INSERT_HEAP(heap,heap_size,ref_pos,read_pos,si);
         }
@@ -624,13 +624,17 @@ static inline void process_read(
     short read_pos = heap[0].read_pos;
     short seed_id  = heap[0].seed_id;
 
+#if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
+    _mm_prefetch((char*)ref_seq + (hit_pos >> 2), _MM_HINT_T0);
+#endif
+    
     /* heap update can be done in parallel with ...*/
     int new_ref_pos = index__get_extern_next_hit(indexes[seed_id], key[seed_id][read_pos], hit_pointer[seed_id]+read_pos);
 
     if (new_ref_pos >= 0) {
       new_ref_pos -= read_pos;
 #if defined(__SSE__) || defined(__SSE2__) || defined(__AVX2__) || defined(__AVX512BW__)
-      _mm_prefetch((char*)ref_seq + (new_ref_pos >> 2), _MM_HINT_NTA);
+      _mm_prefetch((char*)ref_seq + (new_ref_pos >> 2), _MM_HINT_T1);
 #endif
       REP_TOP_SIEVE_HEAP(heap,heap_size,new_ref_pos,read_pos,seed_id);
     } else {
