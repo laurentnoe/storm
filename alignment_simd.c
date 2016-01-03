@@ -1727,18 +1727,6 @@ unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~ab_MatchMask,vMismatchS512);
-
-#ifdef DEBUG_SIMD
-        {
-          vector512_t S_a,S_s;
-          S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stderr,"[1]\t S_a:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(S_a.u64[7]),(S_a.u64[6]),(S_a.u64[5]),(S_a.u64[4]),(S_a.u64[3]),(S_a.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
-          fprintf(stderr,"[1]\t S_s:%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx,%.16llx%.16llx\n",(S_s.u64[7]),(S_s.u64[6]),(S_a.u64[5]),(S_a.u64[4]),(S_s.u64[3]),(S_s.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
-        }
-#endif
-
 
 #ifdef DEBUG_SIMD
         {
@@ -1749,8 +1737,8 @@ unsigned int alignment_avx512bw__align_quad(unsigned char * genome,
 #endif
 
         /* same diagonal with M_old_old */
-        vM = EPU8_TYPE(_mm512_adds)(vM_old_old,vM_add);
-        vM = EPU8_TYPE(_mm512_subs)(vM,vM_sub);
+        vM = EPU8_TYPE(_mm512_mask_adds)(vM_old_old, ab_MatchMask,vM_old_old, vMatchS512);
+        vM = EPU8_TYPE(_mm512_mask_subs)(vM,        ~ab_MatchMask,vM,         vMismatchS512);
       }
 
 #ifdef DEBUG_SIMD
@@ -1924,18 +1912,6 @@ unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~ab_MatchMask,vMismatchS512);
-
-#ifdef DEBUG_SIMD
-        {
-          vector512_t S_a,S_s;
-          S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stderr,"[1]\t S_a:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(S_a.u64[7]),(S_a.u64[6]),(S_a.u64[5]),(S_a.u64[4]),(S_a.u64[3]),(S_a.u64[2]),(S_a.u64[1]),(S_a.u64[0]));
-          fprintf(stderr,"[1]\t S_s:%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx,%.16llx\n",(S_s.u64[7]),(S_s.u64[6]),(S_s.u64[5]),(S_s.u64[4]),(S_s.u64[3]),(S_s.u64[2]),(S_s.u64[1]),(S_s.u64[0]));
-        }
-#endif
-
 
 #ifdef DEBUG_SIMD
         {
@@ -1946,8 +1922,8 @@ unsigned int alignment_avx512bw__align_octa(unsigned char * genome,
 #endif
 
         /* same diagonal with M_old_old */
-        vM = EPU8_TYPE(_mm512_adds)(vM_old_old,vM_add);
-        vM = EPU8_TYPE(_mm512_subs)(vM,vM_sub);
+        vM = EPU8_TYPE(_mm512_mask_adds)(vM_old_old, ab_MatchMask,vM_old_old, vMatchS512);
+        vM = EPU8_TYPE(_mm512_mask_subs)(vM,        ~ab_MatchMask,vM,         vMismatchS512);
       }
 
 #ifdef DEBUG_SIMD
@@ -2121,18 +2097,6 @@ unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~ab_MatchMask,vMismatchS512);
-
-#ifdef DEBUG_SIMD
-        {
-          vector512_t S_a,S_s;
-          S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stderr,"[1]\t S_a:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(S_a.u32[15]),(S_a.u32[14]),(S_a.u32[13]),(S_a.u32[12]),(S_a.u32[11]),(S_a.u32[10]),(S_a.u32[9]),(S_a.u32[8]),(S_a.u32[7]),(S_a.u32[6]),(S_a.u32[5]),(S_a.u32[4]),(S_a.u32[3]),(S_a.u32[2]),(S_a.u32[1]),(S_a.u32[0]));
-          fprintf(stderr,"[1]\t S_s:%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x,%.8x\n",(S_s.u32[15]),(S_s.u32[14]),(S_s.u32[13]),(S_s.u32[12]),(S_s.u32[11]),(S_s.u32[10]),(S_s.u32[9]),(S_s.u32[8]),(S_s.u32[7]),(S_s.u32[6]),(S_s.u32[5]),(S_s.u32[4]),(S_s.u32[3]),(S_s.u32[2]),(S_s.u32[1]),(S_s.u32[0]));
-        }
-#endif
-
 
 #ifdef DEBUG_SIMD
         {
@@ -2143,8 +2107,8 @@ unsigned int alignment_avx512bw__align_hexa(unsigned char * genome,
 #endif
 
         /* same diagonal with M_old_old */
-        vM = EPU8_TYPE(_mm512_adds)(vM_old_old,vM_add);
-        vM = EPU8_TYPE(_mm512_subs)(vM,vM_sub);
+        vM = EPU8_TYPE(_mm512_mask_adds)(vM_old_old, ab_MatchMask,vM_old_old, vMatchS512);
+        vM = EPU8_TYPE(_mm512_mask_subs)(vM,        ~ab_MatchMask,vM,         vMismatchS512);
       }
 
 #ifdef DEBUG_SIMD
@@ -2318,18 +2282,6 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
       /* b) compute the matching score */
       {
         __mmask64 ab_MatchMask = EPI8_MASK_TYPE(_mm512_cmp)(vA,vB,_MM_CMPINT_EQ);
-        VTYPE512  vM_add       = EPI8_TYPE(_mm512_maskz_mov)( ab_MatchMask,vMatchS512);
-        VTYPE512  vM_sub       = EPI8_TYPE(_mm512_maskz_mov)(~ab_MatchMask,vMismatchS512);
-
-#ifdef DEBUG_SIMD
-        {
-          vector512_t S_a,S_s;
-          S_a.v = vM_add; S_s.v = vM_sub;
-          fprintf(stderr,"[1]\t S_a:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_a.u16[31]),(S_a.u16[30]),(S_a.u16[29]),(S_a.u16[28]),(S_a.u16[27]),(S_a.u16[26]),(S_a.u16[25]),(S_a.u16[24]),(S_a.u16[23]),(S_a.u16[22]),(S_a.u16[21]),(S_a.u16[20]),(S_a.u16[19]),(S_a.u16[18]),(S_a.u16[17]),(S_a.u16[16]),(S_a.u16[15]),(S_a.u16[14]),(S_a.u16[13]),(S_a.u16[12]),(S_a.u16[11]),(S_a.u16[10]),(S_a.u16[9]),(S_a.u16[8]),(S_a.u16[7]),(S_a.u16[6]),(S_a.u16[5]),(S_a.u16[4]),(S_a.u16[3]),(S_a.u16[2]),(S_a.u16[1]),(S_a.u16[0]));
-          fprintf(stderr,"[1]\t S_s:%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x,%.4x\n",(S_s.u16[31]),(S_s.u16[30]),(S_s.u16[29]),(S_s.u16[28]),(S_s.u16[27]),(S_s.u16[26]),(S_s.u16[25]),(S_s.u16[24]),(S_s.u16[23]),(S_s.u16[22]),(S_s.u16[21]),(S_s.u16[20]),(S_s.u16[19]),(S_s.u16[18]),(S_s.u16[17]),(S_s.u16[16]),(S_s.u16[15]),(S_s.u16[14]),(S_s.u16[13]),(S_s.u16[12]),(S_s.u16[11]),(S_s.u16[10]),(S_s.u16[9]),(S_s.u16[8]),(S_s.u16[7]),(S_s.u16[6]),(S_s.u16[5]),(S_s.u16[4]),(S_s.u16[3]),(S_s.u16[2]),(S_s.u16[1]),(S_s.u16[0]));
-        }
-#endif
-
 
 #ifdef DEBUG_SIMD
         {
@@ -2340,8 +2292,8 @@ unsigned int alignment_avx512bw__align_tria(unsigned char * genome,
 #endif
 
         /* same diagonal with M_old_old */
-        vM = EPU8_TYPE(_mm512_adds)(vM_old_old,vM_add);
-        vM = EPU8_TYPE(_mm512_subs)(vM,vM_sub);
+        vM = EPU8_TYPE(_mm512_mask_adds)(vM_old_old, ab_MatchMask,vM_old_old, vMatchS512);
+        vM = EPU8_TYPE(_mm512_mask_subs)(vM,        ~ab_MatchMask,vM,         vMismatchS512);
       }
 
 #ifdef DEBUG_SIMD
