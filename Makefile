@@ -1,6 +1,6 @@
 ## Tested on 
-# - gcc 4.8 (sse2,avx2) [linux]
-# - gcc-mp-4.8 + llvm-gcc-4.2 (sse2) + icc 14 (sse2,avx2) [mac]
+# - gcc 4.8, gcc  6 (sse2,avx2) [linux]
+# - gcc-mp-4.8/gcc-mp-5/gcc-mp-6 + llvm-gcc-4.2 (sse2) + icc 14 (sse2,avx2) [mac] with the "-Wa,-q" flags when avx2 is used
 CC      = gcc
 
 ## Without the "-msse2" or "-mavx2", the program is more than ten time slower
@@ -23,8 +23,8 @@ ALL_C   = main.c alignment.c alignment_simd.c codes.c hit_map.c \
    index.c load_data.c genome_map.c reads_data.c read_quality.c \
    reference_data.c run.c seed.c stats.c util.c
 
-##  SToRM has been build to work in color space by default (SOLiD reads), 
-##  but is now also able to work in full nucleotide space (Illumina reads) 
+##  SToRM has been initially build to work in color space by default (SOLiD reads), 
+##  but is also able to work in full nucleotide space (Illumina reads) 
 ##  (Note that it only supports fixed length reads)
 
 all: storm-color storm-nucleotide
