@@ -9,7 +9,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
  the properties of the SOLiD color encoding or Illumina substitution model 
  as well as the observed reading error distribution along the read.
 
- More information at  http://bioinfo.lifl.fr/yass/iedera_solid/storm
+ More information at  http://bioinfo.cristal.univ-lille.fr/storm/storm.php
 
 
 [CONTENTS OF THIS ARCHIVE]
@@ -91,7 +91,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
       ...
 
       note first that iedera can help you in the seed design :
-         http://bioinfo.lifl.fr/yass/iedera.php
+         http://bioinfo.cristal.univ-lille.fr/yass/iedera.php
              ./iedera -spaced -n 3 -w 11,11 -s 11,22 -r 10000 -k -l 40
              ./iedera -spaced -n 3 -w 10,10 -s 10,20 -r 10000 -k -l 40
       => you can send requests to Laurent Noé for specific seeding
