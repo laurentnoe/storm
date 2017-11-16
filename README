@@ -130,7 +130,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
 [READING THE RESULT]
 
  SToRM generates its output in the SAM format. To visualise the result, we 
- recommend use of the SAMtools package (http://samtools.sourceforge.net/).
+ recommend use of the SAMtools package (http://samtools.sourceforge.net/ - http://www.htslib.org/).
 
  For both a SToRM output file "out.sam" and a reference file "ref.fas", the 
  samtools command lines usually are:
@@ -141,14 +141,17 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
      samtools view -bT ref.fas out.sam > out.bam
 
      ##
-     ## Next line if the "-M <int>" option is set: the "out.sam"/"out.bam"
-     ## are "read sorted" and not "ref sorted" in that case
+     ## Only when needed, merge several bam files into one single : 
+     samtools merge -f out.bam   out{1}.bam out{2}.bam ... out{42}.bam
+
      ##
-     samtools sort out.bam -o out_sorted
+     ## Only if the "-M <int>" option is set: the "out.sam"/"out.bam"
+     ## are "read sorted" and not "ref sorted" in that case, so : 
+     samtools sort out.bam -o out_sorted.bam
 
-     samtools index out_sorted
+     samtools index out_sorted.bam
 
-     samtools tview out_sorted ref.fas
+     samtools tview out_sorted.bam ref.fas
 
 
  Please refer to the SAMtools documentation for more usage details.
