@@ -20,9 +20,9 @@
 #define SEED_POS_DELIMITER    ", "
 
 #ifdef NUCLEOTIDES
-#define DEFAULT_SEED_FILE "seeds/solexa.lossy.3"
+#define DEFAULT_SEED_FILE "seeds/solexa_lossy-3-12.in"
 #else
-#define DEFAULT_SEED_FILE "seeds/solid.lossy.3"
+#define DEFAULT_SEED_FILE "seeds/solid_lossy-3-12.in"
 #endif
 
 /* In case something happened to the file ... */
