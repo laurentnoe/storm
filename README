@@ -144,7 +144,7 @@ SToRM - Seed-based Read Mapping tool for SOLiD or Illumina sequencing data
      ## Next line if the "-M <int>" option is set: the "out.sam"/"out.bam"
      ## are "read sorted" and not "ref sorted" in that case
      ##
-     samtools sort out.bam out_sorted  
+     samtools sort out.bam -o out_sorted  
 
      samtools index out_sorted.bam
 
